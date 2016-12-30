@@ -10,7 +10,7 @@ int main(int n,char *argv[]) {
 	std::thread thr;
 	acceptor *p=boost::dll::import<
 			acceptor *(boost::property_tree::ptree &config, std::thread &thr)
-			>("libtcp.dll","tcp_listen")(pt,thr);
+			>("libtcp.so","tcp_listen")(pt,thr);
 	p->OnConnect.connect([p](assocket *ptr) {
 		std::cout << "new soc" << ptr << std::endl;
 		std::string str("Hello");

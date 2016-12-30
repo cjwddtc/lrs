@@ -112,11 +112,11 @@ tcp::~tcp() {
 extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr){
 	return tcp_acceptor::listen(std::ref(config),std::ref(thr));
 }
-
+/*
 BOOST_DLL_ALIAS(
     tcp_acceptor::listen, // <-- this function is exported with...
     tcp_listen                               // <-- ...this alias name
-)
+)*/
 #include<boost/property_tree/xml_parser.hpp>
 
 int main(){
