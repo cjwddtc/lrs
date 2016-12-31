@@ -19,26 +19,26 @@ class tcp :public assocket
 	tcp_acceptor *acc;
 public:
 	boost::asio::ip::tcp::socket soc;
-	std::vector<char> buf;
+	buffer buf;
 	int count;
 	bool is_closing;
 	class closing_write :public std::exception {};
 	tcp(boost::asio::io_service &io, size_t buf_size, tcp_acceptor *acc_) :soc(io), buf(buf_size), count(0), is_closing(false), acc(acc_){}
 	virtual boost::signals2::signal<void(size_t)> *send(
-		std::vector<char> &&message) {
+		buffer &&message) {
 		if (is_closing) {
 			throw closing_write();
 		}
 		auto sig = new boost::signals2::signal<void(size_t)>;
 		auto buf = boost::asio::buffer(message.data(), message.size());
 		count++;
-		soc.async_write_some(buf, [message = std::move(message), sig, this](const boost::system::error_code& error,
+		soc.async_write_some(buf, [message = std::move(message)/*, sig, this*/](const boost::system::error_code& error,
 			std::size_t bytes_transferred){
-			count--;
+			/*count--;
 			(*sig)(bytes_transferred);
 			delete sig;
 			if (is_closing && count == 0)
-				delete this;
+				delete this;*/
 		});
 		return sig;
 	}
@@ -104,6 +104,7 @@ public:
 };
 
 tcp::~tcp() {
+	OnDestroy();
 	acc--;
 	if (acc->count == 0)
 		delete acc;
@@ -112,27 +113,3 @@ tcp::~tcp() {
 extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr){
 	return tcp_acceptor::listen(std::ref(config),std::ref(thr));
 }
-/*
-BOOST_DLL_ALIAS(
-    tcp_acceptor::listen, // <-- this function is exported with...
-    tcp_listen                               // <-- ...this alias name
-)*/
-#include<boost/property_tree/xml_parser.hpp>
-
-int main(){
-	boost::property_tree::ptree pt;
-	boost::property_tree::read_xml("asd.xml", pt);
-	std::thread thr;
-	acceptor *p=tcp_acceptor::listen(pt,thr);
-	p->OnConnect.connect([p](assocket *ptr) {
-		std::cout << "new soc" << ptr << std::endl;
-		std::string str("Hello");
-		std::vector<char> vec(str.begin(), str.end());
-		ptr->send(std::move(vec))->connect([](size_t size) {std::cout << "Hello writed" << std::endl; });
-		ptr->OnMessage.connect(boost::signals2::at_back,[ptr](const std::vector<char> &a) {if (std::find(a.begin(), a.end(), 'q') != a.end()) ptr->close(); });
-		ptr->OnMessage.connect(boost::signals2::at_back,[p, ptr](const std::vector<char> &a) {if (std::find(a.begin(), a.end(), 'w') != a.end()) { p->stop(); ptr->close(); } });
-		ptr->OnMessage.connect([](const std::vector<char> &a) {std::string b(a.begin(), a.end()); std::cout << b << std::endl; });
-	});
-	thr.join();
-}
-
