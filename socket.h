@@ -4,16 +4,16 @@
 #include <boost/asio/detail/socket_ops.hpp>
 #include <vector>
 #include <memory>
-
+namespace lsy{
 class buffer
 {
 	unsigned char *ptr;
 	size_t size_;
 	mutable unsigned char *now_ptr;
+	size_t *count;
 public:
 	buffer(size_t size_);
-	buffer(buffer &&buf);
-	buffer(const buffer &buf) = delete;
+	buffer(const buffer &buf);
 
 	void *data() const;
 	void *data();
@@ -27,76 +27,58 @@ public:
 	size_t remain() const;
 
 	template <class T>
-	void put(T a)
-	{
-		static_assert(false,"wrong argument type");
-	}
-
-	template <>
-	void put<uint16_t>(uint16_t a)
-	{
-		*(uint16_t *)now_ptr = 
-				boost::asio::detail::socket_ops::host_to_network_short(a);
-		now_ptr += 2;
-	}
-
-	template <>
-	void put<uint32_t>(uint32_t a) {
-		*(uint32_t *)now_ptr = 
-				boost::asio::detail::socket_ops::host_to_network_short(a);
-		now_ptr += 4;
-	}
-
+	void put(T a){}
+	
 	void put(unsigned char *ptr, size_t size);
 
-	template <class T>
-	void get(T &) const 
-	{
-		static_assert(false, "wrong argument type");
-	}
-
-
-	template <>
-	void get<uint16_t>(uint16_t &t) const 
-	{
-		t = *(uint16_t *)now_ptr;
-		now_ptr += 2;
-	}
-
-	template <>
-	void get<uint32_t>(uint32_t &t) const
-	{
-		t = *(uint32_t *)now_ptr;
-		now_ptr += 4;
-	}
+	void get(uint16_t &t) const ;
+	void get(uint32_t &t) const;
 
 	template <class T>
 	T get() const
 	{
-		static_assert(false, "wrong argument type");
-	}
-
-	template <>
-	uint16_t get<uint16_t>() const
-	{
-		uint16_t t = *(uint16_t *)now_ptr;
-		now_ptr += 2;
-		return boost::asio::detail::socket_ops::network_to_host_short(t);
-	}
-
-
-	template <>
-	uint32_t get<uint32_t>() const
-	{
-		uint32_t t = *(uint32_t *)now_ptr;
-		now_ptr += 4;
-		return boost::asio::detail::socket_ops::network_to_host_long(t);
+		assert(false);
 	}
 
 	unsigned char *get(size_t size) const;
 
 	~buffer();
 };
+
+template <>
+void buffer::put<uint16_t>(uint16_t a)
+{
+	*(uint16_t *)now_ptr = 
+			boost::asio::detail::socket_ops::host_to_network_short(a);
+	now_ptr += 2;
+}
+
+template <>
+void buffer::put<uint32_t>(uint32_t a)
+{
+	*(uint32_t *)now_ptr = 
+			boost::asio::detail::socket_ops::host_to_network_short(a);
+	now_ptr += 4;
+}
+
+
+template <>
+uint16_t buffer::get<uint16_t>() const
+{
+	uint16_t t = *(uint16_t *)now_ptr;
+	now_ptr += 2;
+	return boost::asio::detail::socket_ops::network_to_host_short(t);
+}
+
+
+template <>
+uint32_t buffer::get<uint32_t>() const
+{
+	uint32_t t = *(uint32_t *)now_ptr;
+	now_ptr += 4;
+	return boost::asio::detail::socket_ops::network_to_host_long(t);
+}
+
 
 class assocket
 {
@@ -120,6 +102,7 @@ public:
 protected:
 	virtual ~acceptor() = default;
 };
+}
 
 
 #endif /* TCP_HPP */

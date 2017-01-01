@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <boost/asio/detail/socket_ops.hpp>
 #include <stdint.h>
+namespace lsy{
 class package {
 	assocket *soc;
 	buffer buf;
@@ -14,8 +15,8 @@ public:
 		uint32_t size = vec.size()+6;
 		buffer buf(size);
 
-		buf.put<uint32_t>(boost::asio::detail::socket_ops::host_to_network_long(size));
-		buf.put<uint16_t>(boost::asio::detail::socket_ops::host_to_network_short(port));
+		buf.put(boost::asio::detail::socket_ops::host_to_network_long(size));
+		buf.put(boost::asio::detail::socket_ops::host_to_network_short(port));
 		buf.put(vec.data(), vec.size());
 
 		soc->send(std::move(buf));
@@ -31,6 +32,7 @@ public:
 	}
 
 };
+}
 
 int main() {
 

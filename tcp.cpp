@@ -11,7 +11,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <iostream>
 #include <thread>
-
+namespace lsy{
 class tcp_acceptor;
 
 class tcp :public assocket
@@ -32,13 +32,13 @@ public:
 		auto sig = new boost::signals2::signal<void(size_t)>;
 		auto buf = boost::asio::buffer(message.data(), message.size());
 		count++;
-		soc.async_write_some(buf, [message = std::move(message)/*, sig, this*/](const boost::system::error_code& error,
+		soc.async_write_some(buf, [message , sig, this](const boost::system::error_code& error,
 			std::size_t bytes_transferred){
-			/*count--;
+			count--;
 			(*sig)(bytes_transferred);
 			delete sig;
 			if (is_closing && count == 0)
-				delete this;*/
+				delete this;
 		});
 		return sig;
 	}
@@ -112,4 +112,6 @@ tcp::~tcp() {
 
 extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr){
 	return tcp_acceptor::listen(std::ref(config),std::ref(thr));
+}
+
 }
