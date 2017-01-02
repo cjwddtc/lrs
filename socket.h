@@ -7,10 +7,9 @@
 namespace lsy{
 class buffer
 {
-	unsigned char *ptr;
+	mutable unsigned char *ptr;
 	size_t size_;
 	mutable unsigned char *now_ptr;
-	size_t *count;
 public:
 	buffer(size_t size_);
 	buffer(const buffer &buf);
