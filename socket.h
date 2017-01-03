@@ -2,36 +2,45 @@
 #define TCP_HPP
 #include <boost/signals2.hpp>
 #include <boost/asio/detail/socket_ops.hpp>
-#include <vector>
-#include <memory>
 namespace lsy{
+struct count_block
+{
+	size_t count;
+	unsigned char ptr[1];
+};
 class buffer
 {
-	mutable unsigned char *ptr;
+	count_block *ptr;
 	size_t size_;
 	mutable unsigned char *now_ptr;
 public:
 	buffer(size_t size_);
 	buffer(const buffer &buf);
+	
+	unsigned char *begin();
+	unsigned char *end();
 
 	void *data() const;
 	void *data();
-
 	size_t size() const;
-
-	void resize(size_t);
-
-	void realloc(size_t);
+	
+	void resize(size_t size);
 
 	size_t remain() const;
-
-	template <class T>
-	void put(T a){}
+	size_t readed() const;
 	
-	void put(unsigned char *ptr, size_t size);
+	template <class T>
+	void put(T a){
+		assert(false);
+	}
+	
+	void put(const unsigned char *ptr, size_t size);
+	void put(const buffer &);
 
-	void get(uint16_t &t) const ;
+	void get(uint16_t &t) const;
 	void get(uint32_t &t) const;
+	void get(unsigned char *ptr,size_t size) const;
+	void get(const buffer &) const;
 
 	template <class T>
 	T get() const
@@ -40,6 +49,10 @@ public:
 	}
 
 	unsigned char *get(size_t size) const;
+
+	void reset() const;
+	void renew(size_t new_size);
+	void renew();
 
 	~buffer();
 };
@@ -55,8 +68,9 @@ void buffer::put<uint16_t>(uint16_t a)
 template <>
 void buffer::put<uint32_t>(uint32_t a)
 {
-	*(uint32_t *)now_ptr = 
-			boost::asio::detail::socket_ops::host_to_network_short(a);
+	uint32_t i=boost::asio::detail::socket_ops::host_to_network_long(a);
+	*(uint32_t *)now_ptr = i;
+			
 	now_ptr += 4;
 }
 
@@ -82,10 +96,10 @@ uint32_t buffer::get<uint32_t>() const
 class assocket
 {
 public:
-	boost::signals2::signal<void(const buffer &)> OnMessage;
+	boost::signals2::signal<void(buffer)> OnMessage;
 	boost::signals2::signal<void()> OnDestroy;
 	virtual boost::signals2::signal<void(size_t)> *send(
-		buffer &&message) = 0;
+		buffer message) = 0;
 	virtual void close() = 0;
 
 protected:
