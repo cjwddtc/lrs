@@ -105,11 +105,11 @@ tcp::~tcp() {
 	OnDestroy();
 }
 
-extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr){
+extern "C" BOOST_SYMBOL_EXPORT acceptor * listen(boost::property_tree::ptree &config, std::thread &thr){
 	return tcp_acceptor::listen(std::ref(config),std::ref(thr));
 }
 
-extern "C" BOOST_SYMBOL_EXPORT boost::signals2::signal<void(assocket *)> *tcp_connect(boost::property_tree::ptree &config, std::thread &thr){
+extern "C" BOOST_SYMBOL_EXPORT boost::signals2::signal<void(assocket *)> *connect(boost::property_tree::ptree &config, std::thread &thr){
 	auto io=std::make_shared<boost::asio::io_service>();
 	auto soc=new tcp(*io,config.get("buf_size",128));
 	auto sig=new boost::signals2::signal<void(assocket *)>();

@@ -1,3 +1,5 @@
+#ifndef PORT_H
+#define PORT_H
 #include <assert.h>
 #include <stdint.h>
 #include "socket.h"
@@ -35,6 +37,7 @@ public:
 	port_all(assocket &soc_);
 	
 	port *resign_port(uint16_t num);
+	void close();
 
 	boost::signals2::signal<void(size_t)> *write(unsigned short port, buffer buf);
 	
@@ -42,3 +45,4 @@ public:
 };
 
 }
+#endif

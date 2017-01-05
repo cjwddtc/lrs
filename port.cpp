@@ -87,3 +87,8 @@ lsy::port::~port()
 {
 	OnDestroy();
 }
+
+void lsy::port_all::close()
+{
+	soc.close();
+}

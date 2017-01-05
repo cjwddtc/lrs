@@ -5,13 +5,16 @@
 #include <iostream>
 #include "port.h"
 using namespace lsy;
+
+typedef acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
+
 int main(int n,char *argv[]) {
 	boost::property_tree::ptree pt;
 	boost::property_tree::read_xml("asd.xml", pt);
 	std::thread thr_ser,thr_cli;
 	acceptor *p=boost::dll::import<
 			acceptor *(boost::property_tree::ptree &, std::thread &)
-			>(pt.get<std::string>("lib_path"),"tcp_listen")(pt,thr_ser);
+			>(pt.get<std::string>("lib_path"),"listen")(pt,thr_ser);
 	p->OnConnect.connect([p](assocket *ptr) {
 		ptr->OnMessage.connect([](buffer mes){;});
 		auto ptr_=new port_all(*ptr);
@@ -36,7 +39,7 @@ int main(int n,char *argv[]) {
 	});
 	boost::dll::import<boost::signals2::signal<void(assocket *)> 
 			*(boost::property_tree::ptree &, std::thread &)
-			>(pt.get<std::string>("lib_path"),"tcp_connect")
+			>(pt.get<std::string>("lib_path"),"connect")
 			(pt,thr_cli)->connect([](assocket *ptr){
 				auto ptr_=new port_all(*ptr);
 				auto p5=ptr_->resign_port(5);
