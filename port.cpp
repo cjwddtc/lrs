@@ -13,10 +13,6 @@ lsy::port_all::port_all(assocket &soc_):soc(soc_),buf(0),head(6),is_head(true)
 	});
 }
 
-boost::signals2::signal<void(size_t)> *lsy::port_all::write(unsigned short port, buffer buf)
-{
-}
-
 void lsy::port_all::Message_handle(buffer mes) 
 {
 	int i;

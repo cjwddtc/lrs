@@ -6,21 +6,24 @@
 
 typedef lsy::acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
 
-void lsy::listener::add(boost::property_tree::ptree &pt)
+void lsy::listener::add(std::string name,boost::property_tree::ptree &pt)
 {
+	std::thread thr;
 	auto ptr=boost::dll::import<acceptor_fun>
 				(pt.get<std::string>("lib_path"),
 				pt.get("listen","listen"))
-			(pt.thr);
-	accs.insert(pt.get<std::string>("name"),ptr);
-	ptr->c->OnConnect.connect([this](assocket *p){
-		OnConnect(new port_all(*p));
+			(pt,thr);
+	auto &value=accs[name];
+	value.first=ptr;
+	value.second.swap(thr);
+	ptr->OnConnect.connect([this](assocket *p){
+		OnConnect(*new port_all(*p));
 	});
 }
 
 void lsy::listener::add_group(boost::property_tree::ptree &pt)
 {
 	for(auto pt_:pt){
-		add(pt_);
+		add(pt_.first,pt_.second);
 	}
 }

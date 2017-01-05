@@ -38,8 +38,6 @@ public:
 	
 	port *resign_port(uint16_t num);
 	void close();
-
-	boost::signals2::signal<void(size_t)> *write(unsigned short port, buffer buf);
 	
 	void Message_handle(buffer mes);
 };
