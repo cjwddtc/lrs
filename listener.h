@@ -9,12 +9,14 @@
 namespace lsy{
 class listener
 {
-	boost::signals2::signal<void(port_all &port)> OnConnect;
 	std::map<std::string,std::pair<acceptor *,std::thread>> accs;
+public:
+	boost::signals2::signal<void(port_all &port)> OnConnect;
 	listener();
 	void add(std::string name,boost::property_tree::ptree &pt);
 	void add_group(boost::property_tree::ptree &pt);
 	void join();
+	void close();
 };
 }
 #endif

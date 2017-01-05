@@ -27,3 +27,24 @@ void lsy::listener::add_group(boost::property_tree::ptree &pt)
 		add(pt_.first,pt_.second);
 	}
 }
+
+lsy::listener::listener()
+{
+}
+
+void lsy::listener::join()
+{
+	for(auto &a:accs)
+	{
+		a.second.second.join();
+	}
+}
+
+
+void lsy::listener::close()
+{
+	for(auto &a:accs)
+	{
+		a.second.first->stop();
+	}
+}
