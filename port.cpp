@@ -1,6 +1,6 @@
 #include "port.h"
 
-lsy::port_all::port_all(assocket &soc_):soc(soc_),buf(0),head(6),is_head(true)
+lsy::port_all::port_all(assocket &soc_):soc(soc_),buf(0),head(6),is_head(true), ports(65536)
 {
 	soc.OnMessage.connect([this](buffer mes){
 		Message_handle(mes);
@@ -15,8 +15,6 @@ lsy::port_all::port_all(assocket &soc_):soc(soc_),buf(0),head(6),is_head(true)
 
 void lsy::port_all::Message_handle(buffer mes) 
 {
-	int i;
-	i++;
 	while(mes.remain())
 		if(is_head){
 			head.put(mes);

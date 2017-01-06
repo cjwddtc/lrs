@@ -6,7 +6,7 @@
 namespace lsy{
 	
 class port_all;
-class port:public assocket
+class BOOST_SYMBOL_EXPORT port:public assocket
 {
 	port_all &all;
 	uint16_t num;
@@ -17,7 +17,7 @@ public:
 	~port();
 };
 
-class port_all {
+class BOOST_SYMBOL_EXPORT port_all {
 	friend class port;
 	assocket &soc;
 	buffer buf;
@@ -32,7 +32,7 @@ public:
 		port_using(uint16_t port);
 	};
 
-	port *ports[65536];
+	std::vector<port *> ports;
 
 	port_all(assocket &soc_);
 	

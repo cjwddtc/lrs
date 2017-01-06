@@ -9,6 +9,7 @@ typedef lsy::acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &
 void lsy::listener::add(std::string name,boost::property_tree::ptree &pt)
 {
 	std::thread thr;
+	std::cout << pt.get("listen", "listen") << std::endl;
 	auto ptr=boost::dll::import<acceptor_fun>
 				(pt.get<std::string>("lib_path"),
 				pt.get("listen","listen"))

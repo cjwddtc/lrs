@@ -4,10 +4,9 @@
 #include <map>
 #include "port.h"
 #include "socket.h"
-#include "listener.h"
 
 namespace lsy{
-class listener
+class BOOST_SYMBOL_EXPORT listener
 {
 	std::map<std::string,std::pair<acceptor *,std::thread>> accs;
 public:

@@ -32,7 +32,7 @@ int main(int n,char *argv[]) {
 	std::thread thr_cli;
 	boost::dll::import<boost::signals2::signal<void(assocket *)> 
 			*(boost::property_tree::ptree &, std::thread &)
-			>(pt.get<std::string>("lib_path"),"connect")
+			>(pt.get<std::string>("lib_path"), pt.get("connect","connect"))
 			(pt,thr_cli)->connect([](assocket *ptr){
 				auto ptr_=new port_all(*ptr);
 				auto p5=ptr_->resign_port(5);

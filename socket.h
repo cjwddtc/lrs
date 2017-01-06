@@ -2,13 +2,14 @@
 #define TCP_HPP
 #include <boost/signals2.hpp>
 #include <boost/asio/detail/socket_ops.hpp>
+#include <boost/config.hpp>
 namespace lsy{
 struct count_block
 {
 	size_t count;
 	unsigned char ptr[1];
 };
-class buffer
+class BOOST_SYMBOL_EXPORT buffer
 {
 	count_block *ptr;
 	size_t size_;
@@ -93,7 +94,7 @@ uint32_t buffer::get<uint32_t>() const
 }
 
 
-class assocket
+class BOOST_SYMBOL_EXPORT assocket
 {
 public:
 	boost::signals2::signal<void(buffer)> OnMessage;
@@ -106,7 +107,7 @@ protected:
 	virtual ~assocket() = default;
 };
 
-class acceptor
+class BOOST_SYMBOL_EXPORT acceptor
 {
 public:
 	boost::signals2::signal<void(assocket *)> OnConnect;
