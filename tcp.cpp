@@ -11,6 +11,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <iostream>
 #include <thread>
+#include <atomic>
 namespace lsy{
 class tcp_acceptor;
 
@@ -19,8 +20,8 @@ class tcp :public assocket
 public:
 	boost::asio::ip::tcp::socket soc;
 	buffer buf;
-	int count;
-	bool is_closing;
+	std::atomic<int> count;
+	std::atomic<bool> is_closing;
 	class closing_write :public std::exception {};
 	tcp(boost::asio::io_service &io, size_t buf_size) :soc(io), buf(buf_size), count(0), is_closing(false){}
 	virtual boost::signals2::signal<void(size_t)> *send(
@@ -37,7 +38,10 @@ public:
 			(*sig)(bytes_transferred);
 			delete sig;
 			if (is_closing && count == 0)
-				delete this;
+			{
+				count = -1;
+				soc.get_io_service().post([this]() {delete this; });
+			}
 		});
 		return sig;
 	}
@@ -45,13 +49,20 @@ public:
 		count++;
 		soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
 			[this](const boost::system::error_code& error,
-				std::size_t bytes_transferred) {
+				std::size_t bytes_transferred) 
+		{
 			count--;
 			if (error != 0)
+			{
 				is_closing = true;
-			if (is_closing && count == 0)
-				delete this;
-			else {
+			}
+			if (is_closing && count == 0) 
+			{
+				count = -1;
+				soc.get_io_service().post([this]() {delete this; });
+			}
+			else 
+			{
 				buffer buf_(buf);
 				buf_.resize(bytes_transferred);
 				buf.reset();
@@ -60,7 +71,8 @@ public:
 			}
 		});
 	}
-	virtual void close() {
+	virtual void close() 
+	{
 		soc.close();
 		is_closing = true;
 	}
@@ -74,10 +86,15 @@ class tcp_acceptor :public acceptor
 	boost::asio::ip::tcp::acceptor acc;
 public:
 	tcp_acceptor(size_t buf_size_, unsigned short port) :io_service(new boost::asio::io_service),buf_size(buf_size_),
-			acc(*io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)){}
+			acc(*io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+	{
 
-	void accept(tcp *ptr,const boost::system::error_code& ec) {
-		if (ec != 0) {
+	}
+
+	void accept(tcp *ptr,const boost::system::error_code& ec) 
+	{
+		if (ec != 0) 
+		{
 			delete this;
 			return;
 		}
@@ -87,10 +104,12 @@ public:
 		OnConnect(ptr);
 		ptr->read();
 	}
-	virtual void stop(){
+	virtual void stop()
+	{
 		acc.close();
 	}
-	static acceptor *listen(boost::property_tree::ptree &config, std::thread &thr) {
+	static acceptor *listen(boost::property_tree::ptree &config, std::thread &thr) 
+	{
 		tcp_acceptor *a = new tcp_acceptor(config.get("buf_size",128), config.get("port",12345));
 		auto c = new tcp(*a->io_service, a->buf_size);
 		a->acc.async_accept(c->soc, [c,a]
@@ -101,15 +120,18 @@ public:
 	}
 };
 
-tcp::~tcp() {
+tcp::~tcp() 
+{
 	OnDestroy();
 }
 
-extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr){
+extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr)
+{
 	return tcp_acceptor::listen(std::ref(config),std::ref(thr));
 }
 
-extern "C" BOOST_SYMBOL_EXPORT boost::signals2::signal<void(assocket *)> *tcp_connect(boost::property_tree::ptree &config, std::thread &thr){
+extern "C" BOOST_SYMBOL_EXPORT boost::signals2::signal<void(assocket *)> *tcp_connect(boost::property_tree::ptree &config, std::thread &thr)
+{
 	auto io=std::make_shared<boost::asio::io_service>();
 	auto soc=new tcp(*io,config.get("buf_size",128));
 	auto sig=new boost::signals2::signal<void(assocket *)>();
