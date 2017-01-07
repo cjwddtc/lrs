@@ -9,6 +9,7 @@ using namespace lsy;
 
 typedef acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
 
+
 int main(int n,char *argv[]) {
 	boost::property_tree::ptree pt;
 	boost::property_tree::read_xml("asd.xml", pt);
