@@ -24,10 +24,3 @@ namespace lsy {
 		});
 	}
 }
-
-template <class T>
-class proxy
-{
-	T old_value;
-	T new_value;
-};

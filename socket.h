@@ -23,33 +23,52 @@ public:
 
 	void *data() const;
 	void *data();
+
 	size_t size() const;
 	
 	void resize(size_t size);
 
 	size_t remain() const;
 	size_t readed() const;
+
 	
 	template <class T>
-	void put(T a){
+	void put(T a)
+	{
 		assert(false);
 	}
-	
+
+	template <>
+	void buffer::put<uint16_t>(uint16_t a);
+
+	template <>
+	void buffer::put<uint32_t>(uint32_t a);
+
 	void put(const unsigned char *ptr, size_t size);
+
 	void put(const buffer &);
+
 
 	void get(uint16_t &t) const;
 	void get(uint32_t &t) const;
 	void get(unsigned char *ptr,size_t size) const;
 	void get(const buffer &) const;
+	unsigned char *get(size_t size) const;
+
 
 	template <class T>
 	T get() const
 	{
 		assert(false);
+		return T();
 	}
 
-	unsigned char *get(size_t size) const;
+	template <>
+	uint16_t buffer::get<uint16_t>() const;
+
+	template <>
+	uint32_t buffer::get<uint32_t>() const;
+
 
 	void reset() const;
 	void renew(size_t new_size);
@@ -57,42 +76,6 @@ public:
 
 	~buffer();
 };
-
-template <>
-void buffer::put<uint16_t>(uint16_t a)
-{
-	*(uint16_t *)now_ptr = 
-			boost::asio::detail::socket_ops::host_to_network_short(a);
-	now_ptr += 2;
-}
-
-template <>
-void buffer::put<uint32_t>(uint32_t a)
-{
-	uint32_t i=boost::asio::detail::socket_ops::host_to_network_long(a);
-	*(uint32_t *)now_ptr = i;
-			
-	now_ptr += 4;
-}
-
-
-template <>
-uint16_t buffer::get<uint16_t>() const
-{
-	uint16_t t = *(uint16_t *)now_ptr;
-	now_ptr += 2;
-	return boost::asio::detail::socket_ops::network_to_host_short(t);
-}
-
-
-template <>
-uint32_t buffer::get<uint32_t>() const
-{
-	uint32_t t = *(uint32_t *)now_ptr;
-	now_ptr += 4;
-	return boost::asio::detail::socket_ops::network_to_host_long(t);
-}
-
 
 class BOOST_SYMBOL_EXPORT assocket
 {

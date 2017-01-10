@@ -4,11 +4,13 @@
 #include <boost/dll.hpp>
 #include <iostream>
 #include "port.h"
+#include "database.h"
 #include "listener.h"
 using namespace lsy;
 
 typedef acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
-
+#include <sqlite3.h>
+#include <boost/mpl/vector.hpp>
 
 int main(int n,char *argv[]) {
 	boost::property_tree::ptree pt;
