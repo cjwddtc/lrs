@@ -1,30 +1,44 @@
 cmake_minimum_required(VERSION 3.7)
 project(main)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sqlite)
-add_subdirectory(sqlite)
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
+
+find_package(Threads REQUIRED)
+link_libraries(Threads::Threads)
+
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
-add_library(tcp SHARED tcp.cpp)
+
+
+IF (UNIX)  
+link_libraries(${CMAKE_DL_LIBS})
+endif(UNIX)
+
+
+add_subdirectory(sqlite)
+
 add_library(socket SHARED socket.cpp)
-add_library(server SHARED server.cpp listener.cpp port.cpp)
-add_library(database SHARED database.cpp)
-add_executable(main main.cpp)
-target_link_libraries(tcp ${Boost_LIBRARIES} socket)
 target_link_libraries(socket ${Boost_LIBRARIES})
-target_link_libraries(server database socket)
+
+add_library(tcp SHARED tcp.cpp)
+target_link_libraries(tcp ${Boost_LIBRARIES} socket)
+
+add_library(network SHARED server.cpp listener.cpp port.cpp)
+target_link_libraries(network socket)
+
+add_library(database SHARED database.cpp)
 target_link_libraries(database libsqlite)
-target_link_libraries(main socket server)
+
+add_executable(main main.cpp)
+target_link_libraries(main socket network database)
+
 IF (WIN32)  
 target_link_libraries(tcp ws2_32.lib mswsock.lib)
 target_link_libraries(socket ws2_32.lib mswsock.lib)
 endif(WIN32)
-IF (UNIX)  
-target_link_libraries(port dl)
-endif(UNIX)
-

@@ -95,3 +95,13 @@ database::statement::proxy::operator int()
 {
 	return sqlite3_value_int(value);
 }
+
+template <class T>
+bind_base<T>::statement::statement(bind_base<T>& bind_, std::string condition):
+        bind(bind_),database::statement(bind_.db,select+condition)
+{
+}
+template <class T>
+void bind_base<T>::statement::async_run(std::function<void(T&)> func)
+{
+}

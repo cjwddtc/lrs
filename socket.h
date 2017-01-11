@@ -31,45 +31,25 @@ public:
 	size_t remain() const;
 	size_t readed() const;
 
-	
-	template <class T>
-	void put(T a)
-	{
-		assert(false);
-	}
-
-	template <>
-	void buffer::put<uint16_t>(uint16_t a);
-
-	template <>
-	void buffer::put<uint32_t>(uint32_t a);
-
+	void put(uint16_t a);
+	void put(uint32_t a);
 	void put(const unsigned char *ptr, size_t size);
-
 	void put(const buffer &);
-
 
 	void get(uint16_t &t) const;
 	void get(uint32_t &t) const;
 	void get(unsigned char *ptr,size_t size) const;
 	void get(const buffer &) const;
 	unsigned char *get(size_t size) const;
-
-
+    
 	template <class T>
 	T get() const
-	{
-		assert(false);
-		return T();
-	}
-
-	template <>
-	uint16_t buffer::get<uint16_t>() const;
-
-	template <>
-	uint32_t buffer::get<uint32_t>() const;
-
-
+    {
+        T a;
+        get(a);
+        return a;
+    }
+    
 	void reset() const;
 	void renew(size_t new_size);
 	void renew();

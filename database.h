@@ -112,7 +112,7 @@ public:
 				default:
 					//I know it is the wrong using just change later
 					throw(run_sql_fail_exception(
-						std::string(sqlite3_errmsg(sqlite3_db_handle(a)))));
+						std::string(sqlite3_errmsg(sqlite3_db_handle(st)))));
 				}
 			});
 		}
@@ -124,6 +124,7 @@ template <class T>
 class bind_base
 {
 public:
+    database *db;
 	std::string select;
 	class value_type
 	{
@@ -134,7 +135,7 @@ public:
 		boost::variant<proxy<int> T::*, proxy<int> T::*, proxy<std::string> T::*> value;
 		std::string name;
 	};
-	bind_base(sqlite3 *db_) :db(dl_) {}
+	bind_base(database *db_) :db(db_) {}
 	std::multimap<std::string, value_type> values;
 	template <class F>
 	void add(proxy<F> T::*a, const std::string &name)
@@ -162,10 +163,6 @@ public:
 			}
 		}
 		select += from;
-	}
-	const std::string&get_string()
-	{
-		return select;
 	}
 	class statement :public database::statement
 	{
