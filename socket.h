@@ -58,40 +58,18 @@ public:
 	~buffer();
 };
 
-template <>
-void buffer::put<uint16_t>(uint16_t a)
-{
-	*(uint16_t *)now_ptr = 
-			boost::asio::detail::socket_ops::host_to_network_short(a);
-	now_ptr += 2;
-}
 
 template <>
-void buffer::put<uint32_t>(uint32_t a)
-{
-	uint32_t i=boost::asio::detail::socket_ops::host_to_network_long(a);
-	*(uint32_t *)now_ptr = i;
-			
-	now_ptr += 4;
-}
-
+void buffer::put<uint16_t>(uint16_t a);
 
 template <>
-uint16_t buffer::get<uint16_t>() const
-{
-	uint16_t t = *(uint16_t *)now_ptr;
-	now_ptr += 2;
-	return boost::asio::detail::socket_ops::network_to_host_short(t);
-}
-
+void buffer::put<uint32_t>(uint32_t a);
 
 template <>
-uint32_t buffer::get<uint32_t>() const
-{
-	uint32_t t = *(uint32_t *)now_ptr;
-	now_ptr += 4;
-	return boost::asio::detail::socket_ops::network_to_host_long(t);
-}
+uint16_t buffer::get<uint16_t>() const;
+
+template <>
+uint32_t buffer::get<uint32_t>() const;
 
 
 class BOOST_SYMBOL_EXPORT assocket
