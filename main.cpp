@@ -7,12 +7,21 @@
 #include "database.h"
 #include "listener.h"
 using namespace lsy;
-
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
+typedef websocketpp::server<websocketpp::config::asio> server;
 typedef acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
 #include <sqlite3.h>
 #include <boost/mpl/vector.hpp>
 
 int main(int n,char *argv[]) {
+    server a;
+    a.init_asio();  
+    a.listen(9002);
+    a.start_accept();
+    a.set_open_handler()
+    a.run();
+/*
 	boost::property_tree::ptree pt;
 	boost::property_tree::read_xml("asd.xml", pt);
 	listener li;
@@ -48,5 +57,6 @@ int main(int n,char *argv[]) {
 			});
 	std::cout << "asd" << std::endl;
 	thr_cli.join();
-	li.join();
+	li.join();*/
+    
 }
