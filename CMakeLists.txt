@@ -23,25 +23,25 @@ endif(UNIX)
 
 add_subdirectory(sqlite)
 
-add_library(socket SHARED socket.cpp)
-target_link_libraries(socket ${Boost_LIBRARIES})
+add_library(tool SHARED tool.cpp)
+target_link_libraries(tool ${Boost_LIBRARIES})
 
 add_library(tcp SHARED tcp.cpp)
-target_link_libraries(tcp ${Boost_LIBRARIES} socket)
+target_link_libraries(tcp ${Boost_LIBRARIES} tool)
 
 #add_library(websocket SHARED websocket.cpp)
 #target_link_libraries(websocket ${Boost_LIBRARIES} socket)
 
 add_library(network SHARED server.cpp listener.cpp port.cpp)
-target_link_libraries(network socket)
+target_link_libraries(network tool)
 
 add_library(database SHARED database.cpp)
 target_link_libraries(database libsqlite)
 
 add_executable(main main.cpp)
-target_link_libraries(main socket network database)
+target_link_libraries(main tool network database)
 
 IF (WIN32)  
 target_link_libraries(tcp ws2_32.lib mswsock.lib)
-target_link_libraries(socket ws2_32.lib mswsock.lib)
+target_link_libraries(tool ws2_32.lib mswsock.lib)
 endif(WIN32)
