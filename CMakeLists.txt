@@ -29,8 +29,8 @@ target_link_libraries(socket ${Boost_LIBRARIES})
 add_library(tcp SHARED tcp.cpp)
 target_link_libraries(tcp ${Boost_LIBRARIES} socket)
 
-add_library(websocket SHARED websocket.cpp)
-target_link_libraries(websocket ${Boost_LIBRARIES} socket)
+#add_library(websocket SHARED websocket.cpp)
+#target_link_libraries(websocket ${Boost_LIBRARIES} socket)
 
 add_library(network SHARED server.cpp listener.cpp port.cpp)
 target_link_libraries(network socket)
