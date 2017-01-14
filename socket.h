@@ -26,16 +26,18 @@ public:
 
 	void *data() const;
 	void *data();
-
 	size_t size() const;
 	
 	void resize(size_t size);
 
 	size_t remain() const;
 	size_t readed() const;
-
-	void put(uint16_t a);
-	void put(uint32_t a);
+	
+	template <class T>
+	void put(T a){
+		assert(false);
+	}
+	
 	void put(const unsigned char *ptr, size_t size);
 	void put(const buffer &);
 
@@ -43,16 +45,15 @@ public:
 	void get(uint32_t &t) const;
 	void get(unsigned char *ptr,size_t size) const;
 	void get(const buffer &) const;
-	unsigned char *get(size_t size) const;
-    
+
 	template <class T>
 	T get() const
-    {
-        T a;
-        get(a);
-        return a;
-    }
-    
+	{
+		assert(false);
+	}
+
+	unsigned char *get(size_t size) const;
+
 	void reset() const;
 	void renew(size_t new_size);
 	void renew();

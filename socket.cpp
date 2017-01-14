@@ -61,21 +61,6 @@ size_t buffer::readed() const
 	return now_ptr-ptr->ptr;
 }
 
-
-void lsy::buffer::put(uint16_t a)
-{
-    *(uint16_t *)now_ptr =
-        boost::asio::detail::socket_ops::host_to_network_short(a);
-    now_ptr += 2;
-}
-
-void lsy::buffer::put(uint32_t a)
-{
-    uint32_t i = boost::asio::detail::socket_ops::host_to_network_long(a);
-    *(uint32_t *)now_ptr = i;
-    now_ptr += 4;
-}
-
 void buffer::put(const unsigned char *ptr_, size_t size)
 {
 	assert(now_ptr+size-ptr->ptr<=size_);
@@ -194,3 +179,4 @@ unsigned char* lsy::buffer::end()
 {
 	return ptr->ptr+size_;
 }
+
