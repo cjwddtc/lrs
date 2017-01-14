@@ -62,7 +62,8 @@ void lsy::port_write::send(buffer buf)
 	head.put(soc.num);
     auto &w=soc.all.soc.write();
     w.OnWrite.connect([this](auto a){OnWrite(a);});
-    w.send(head);
+    soc.all.soc.write().send(head);
+    w.send(buf);
 }
 
 lsy::port::port(port_all &all_, uint16_t num_):all(all_),num(num_)
@@ -100,4 +101,9 @@ lsy::port::~port()
 void lsy::port_all::close()
 {
 	soc.close();
+}
+
+lsy::writer& lsy::port::write()
+{
+	return *new port_write(*this);
 }

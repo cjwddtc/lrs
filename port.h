@@ -14,9 +14,9 @@ class BOOST_SYMBOL_EXPORT port:public assocket
 public:
 	uint16_t num;
 	port(port_all &all_,uint16_t num_);
-    writer& write();
-	void close();
-	~port();
+    virtual writer& write();
+	virtual void close();
+	virtual ~port();
 };
 
 class port_write:public writer
