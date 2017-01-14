@@ -6,19 +6,31 @@
 namespace lsy{
 	
 class port_all;
+class port_write;
 class BOOST_SYMBOL_EXPORT port:public assocket
 {
+    friend class port_write;
 	port_all &all;
-	uint16_t num;
 public:
+	uint16_t num;
 	port(port_all &all_,uint16_t num_);
-	boost::signals2::signal<void(size_t)> *send(buffer buf);
-	void close();
-	~port();
+    virtual writer& write();
+	virtual void close();
+	virtual ~port();
+};
+
+class port_write:public writer
+{
+    port& soc;
+public:
+    port_write(port &soc_);
+    virtual void send(buffer message);
+    virtual ~port_write()=default;
 };
 
 class BOOST_SYMBOL_EXPORT port_all {
 	friend class port;
+    friend class port_write;
 	assocket &soc;
 	buffer buf;
 	buffer head;

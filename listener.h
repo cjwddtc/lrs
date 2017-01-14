@@ -8,7 +8,7 @@
 namespace lsy{
 class BOOST_SYMBOL_EXPORT listener
 {
-	std::map<std::string,std::pair<acceptor *,std::thread>> accs;
+	std::map<std::string,std::pair<socket_getter *,std::thread>> accs;
 public:
 	boost::signals2::signal<void(port_all &port)> OnConnect;
 	listener();

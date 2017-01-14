@@ -5,15 +5,17 @@
 */
 
 #include "socket.h"
-#include <boost/dll/alias.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <iostream>
 #include <thread>
 #include <atomic>
+class message;
 namespace lsy{
 class tcp_acceptor;
+
+class closing_write :public std::exception {};
 
 class tcp :public assocket
 {
@@ -22,30 +24,9 @@ public:
 	buffer buf;
 	std::atomic<int> count;
 	std::atomic<bool> is_closing;
-	class closing_write :public std::exception {};
 	tcp(boost::asio::io_service &io, size_t buf_size) :soc(io), buf(buf_size), count(0), is_closing(false){}
-	virtual boost::signals2::signal<void(size_t)> *send(
-		buffer message) {
-		if (is_closing) {
-			throw closing_write();
-		}
-		auto sig = new boost::signals2::signal<void(size_t)>;
-		auto buf = boost::asio::buffer(message.data(), message.size());
-		count++;
-		soc.async_write_some(buf, [message , sig, this](const boost::system::error_code& error,
-			std::size_t bytes_transferred){
-			count--;
-			(*sig)(bytes_transferred);
-			delete sig;
-			if (is_closing && count == 0)
-			{
-				count = -1;
-				soc.get_io_service().post([this]() {delete this; });
-			}
-		});
-		return sig;
-	}
-	void read() {
+    virtual writer& write();
+	virtual void read() {
 		count++;
 		soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
 			[this](const boost::system::error_code& error,
@@ -76,82 +57,129 @@ public:
 		soc.close();
 		is_closing = true;
 	}
-	virtual ~tcp();
+	virtual ~tcp(){
+        OnDestroy();
+    }
 };
 
-class tcp_acceptor :public acceptor
+class tcp_write:public writer
+{
+    tcp &soc;
+public:
+    tcp_write(tcp &soc_):soc(soc_){}
+    virtual void send(buffer message);
+    virtual ~tcp_write()=default;
+};
+
+writer& tcp::write()
+{
+    return *new tcp_write(*this);
+}
+
+void tcp_write::send(buffer message)
+{
+    if (soc.is_closing) {
+        throw closing_write();
+    }
+    auto buf = boost::asio::buffer(message.data(), message.size());
+    soc.count++;
+    soc.soc.async_write_some(buf, [message , this](const boost::system::error_code& error,
+        std::size_t bytes_transferred){
+        soc.count--;
+        OnWrite(bytes_transferred);
+        soc.soc.get_io_service().post([this]() {delete this; });
+        if (soc.is_closing && soc.count == 0)
+        {
+            soc.count = -1;
+            soc.soc.get_io_service().post([this]() {delete &soc; });
+        }
+    });
+}
+
+class tcp_listener :public socket_getter
 {
 	std::shared_ptr<boost::asio::io_service> io_service;
 	size_t buf_size;
-	boost::asio::ip::tcp::acceptor acc;
+	boost::asio::ip::tcp::acceptor *acc;
+	std::atomic<bool> is_closing;
 public:
-	tcp_acceptor(size_t buf_size_, unsigned short port) :io_service(new boost::asio::io_service),buf_size(buf_size_),
-			acc(*io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+	tcp_listener():io_service(new boost::asio::io_service),
+			acc(0),is_closing(false)
 	{
-
 	}
-
-	void accept(tcp *ptr,const boost::system::error_code& ec) 
+    
+    void accept(tcp *ptr,const boost::system::error_code& ec) 
 	{
-		if (ec != 0) 
-		{
-			delete this;
+		if(is_closing)
 			return;
-		}
+		boost::asio::detail::throw_error(ec, "accept");
 		auto c = new tcp(*io_service, buf_size);
-		acc.async_accept(c->soc, [c, this]
+		acc->async_accept(c->soc, [c, this]
 		(const boost::system::error_code& ec) {accept(c, ec); });
-		OnConnect(ptr);
+		OnNewSocket(*ptr);
 		ptr->read();
 	}
+    
+    virtual void start(boost::property_tree::ptree& config, std::thread &thr)
+    {
+        buf_size=config.get("buf_size",256);
+		acc=new boost::asio::ip::tcp::acceptor(*io_service,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), config.get("port",12345)));
+		auto c = new tcp(*io_service, buf_size);
+		acc->async_accept(c->soc,[c,this]
+			(const boost::system::error_code& ec) {accept(c, ec); });
+		std::thread([io=io_service]() {
+			std::cout << "start" << std::endl; 
+			io->run(); 
+			std::cout << "finish" << std::endl; 
+		}).swap(thr);
+    }
+    
 	virtual void stop()
 	{
-		acc.close();
+		is_closing=true;
+		acc->close();
+        io_service->post([this](){delete this;});
 	}
-	static acceptor *listen(boost::property_tree::ptree &config, std::thread &thr) 
-	{
-		tcp_acceptor *a = new tcp_acceptor(config.get("buf_size",128), config.get("port",12345));
-		auto c = new tcp(*a->io_service, a->buf_size);
-		a->acc.async_accept(c->soc, [c,a]
-		(const boost::system::error_code& ec) {a->accept(c, ec); });
-		std::thread([io=a->io_service]() {std::cout << "start" << std::endl; io->run(); std::cout << "finish" << std::endl; }).swap(thr);
-		std::cout << "run" << std::endl;
-		return a;
+	virtual ~tcp_listener(){
+		delete acc;
 	}
 };
 
-tcp::~tcp() 
+
+class tcp_connector :public socket_getter
 {
-	OnDestroy();
+	std::shared_ptr<boost::asio::io_service> io_service;
+public:
+	tcp_connector():io_service(new boost::asio::io_service)
+	{
+	}
+    
+    virtual void start(boost::property_tree::ptree& config, std::thread &thr)
+    {
+		auto soc=new tcp(*io_service,config.get("buf_size",128));
+		soc->soc.async_connect(boost::asio::ip::tcp::endpoint(
+					boost::asio::ip::address::from_string(config.get("ip","127.0.0.1")),
+				config.get("port",12345)),
+				[this,soc](const boost::system::error_code& error){
+					boost::asio::detail::throw_error(error, "start");
+					soc->read();
+					OnNewSocket(*soc);
+				});
+		std::thread([io=io_service](){io->run();}).swap(thr);
+    }
+    
+	virtual void stop()
+	{
+        io_service->post([this](){delete this;});
+	}
+};
+
+extern "C" BOOST_SYMBOL_EXPORT socket_getter &tcp_listner_socket_getter(){
+	return *new tcp_listener();
 }
 
-extern "C" BOOST_SYMBOL_EXPORT acceptor * tcp_listen(boost::property_tree::ptree &config, std::thread &thr)
-{
-	return tcp_acceptor::listen(std::ref(config),std::ref(thr));
-}
-
-extern "C" BOOST_SYMBOL_EXPORT boost::signals2::signal<void(assocket *)> *tcp_connect(boost::property_tree::ptree &config, std::thread &thr)
-{
-	auto io=std::make_shared<boost::asio::io_service>();
-	auto soc=new tcp(*io,config.get("buf_size",128));
-	auto sig=new boost::signals2::signal<void(assocket *)>();
-	soc->soc.async_connect(boost::asio::ip::tcp::endpoint(
-				boost::asio::ip::address::from_string(config.get("ip","127.0.0.1")),
-			config.get("port",12345)),
-			[sig,soc](const boost::system::error_code& error){
-		if(error!=0){
-			delete soc;
-			(*sig)(0);
-			delete sig;
-		}
-		else{
-			soc->read();
-			(*sig)(soc);
-			delete sig;
-		}
-	});
-	std::thread([io](){io->run();}).swap(thr);
-	return sig;
+extern "C" BOOST_SYMBOL_EXPORT socket_getter &tcp_connecter_socket_getter(){
+	return *new tcp_connector();
 }
 
 }

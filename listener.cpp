@@ -1,25 +1,24 @@
-#include <boost/dll.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <thread>
 #include <iostream>
 #include "listener.h"
+#include <boost/dll/import.hpp>
 
-typedef lsy::acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
+typedef lsy::socket_getter *acceptor_fun();
 
 void lsy::listener::add(std::string name,boost::property_tree::ptree &pt)
 {
 	std::thread thr;
-	std::cout << pt.get("listen", "listen") << std::endl;
 	auto ptr=boost::dll::import<acceptor_fun>
 				(pt.get<std::string>("lib_path"),
 				pt.get("listen","listen"))
-			(pt,thr);
+			();
 	auto &value=accs[name];
 	value.first=ptr;
-	value.second.swap(thr);
-	ptr->OnConnect.connect([this](assocket *p){
-		OnConnect(*new port_all(*p));
+	ptr->OnNewSocket.connect([this](assocket &p){
+		OnConnect(*new port_all(p));
 	});
+	ptr->start(pt,value.second);
 }
 
 void lsy::listener::add_group(boost::property_tree::ptree &pt)

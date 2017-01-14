@@ -7,21 +7,8 @@
 #include "database.h"
 #include "listener.h"
 using namespace lsy;
-#include <websocketpp/config/asio_no_tls.hpp>
-#include <websocketpp/server.hpp>
-typedef websocketpp::server<websocketpp::config::asio> server;
-typedef acceptor *acceptor_fun(boost::property_tree::ptree &, std::thread &);
-#include <sqlite3.h>
-#include <boost/mpl/vector.hpp>
 
 int main(int n,char *argv[]) {
-    server a;
-    a.init_asio();  
-    a.listen(9002);
-    a.start_accept();
-    a.set_open_handler()
-    a.run();
-/*
 	boost::property_tree::ptree pt;
 	boost::property_tree::read_xml("asd.xml", pt);
 	listener li;
@@ -32,7 +19,9 @@ int main(int n,char *argv[]) {
 		std::string str("Hello");
 		buffer buf(str.size());
 		buf.put((const unsigned char *)str.data(), str.size());
-		ptr4->send(buf)->connect([](size_t size) {std::cout << "Hello writed" << std::endl; });
+		auto &w=ptr4->write();
+		w.OnWrite.connect([](size_t size) {std::cout << "Hello writed" << std::endl; });
+		w.send(buf);
 		ptr5->OnMessage.connect([ptr4,&p,&li](buffer a)
 		{
 			std::string b(a.begin(), a.end()); 
@@ -41,22 +30,19 @@ int main(int n,char *argv[]) {
 			li.close();
 		});
 	});
+	listener lii;
+	lii.add_group(pt.find("client")->second);
 	std::thread thr_cli;
-	boost::dll::import<boost::signals2::signal<void(assocket *)> 
-			*(boost::property_tree::ptree &, std::thread &)
-			>(pt.get<std::string>("lib_path"), pt.get("connect","connect"))
-			(pt,thr_cli)->connect([](assocket *ptr){
-				auto ptr_=new port_all(*ptr);
-				auto p5=ptr_->resign_port(5);
-				p5->OnMessage.connect([ptr_](buffer a) {
-					std::cout << "qwe" << std::endl;
-					auto p4=ptr_->resign_port(4); 
-					p4->send(a)->connect([](size_t size) {std::cout << "response" << std::endl; });
-				});
-				
-			});
-	std::cout << "asd" << std::endl;
-	thr_cli.join();
-	li.join();*/
-    
+	lii.OnConnect.connect([&lii](port_all &p){
+		auto p5=p.resign_port(5);
+		p5->OnMessage.connect([&p](buffer a) {
+			std::cout << "qwe" << std::endl;
+			auto p4=p.resign_port(4); 
+			auto &w=p4->write();
+			w.OnWrite.connect([](size_t size) {std::cout << "response" << std::endl; });
+			w.send(a);
+		});
+	});
+	lii.join();
+	li.join();
 }

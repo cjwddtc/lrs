@@ -50,20 +50,21 @@ void lsy::port_all::Message_handle(buffer mes)
 	}
 }
 
+lsy::port_write::port_write(port &soc_):soc(soc_){}
 
-boost::signals2::signal<void(size_t)> *lsy::port::send(buffer buf)
+void lsy::port_write::send(buffer buf)
 {
 	assert(buf.size() < 0xfffffff0);
 	uint32_t size = buf.size();
 	buffer head(6);
 
 	head.put(size);
-	head.put(num);
-
-	all.soc.send(head);
-	return all.soc.send(buf);
+	head.put(soc.num);
+    auto &w=soc.all.soc.write();
+    w.OnWrite.connect([this](auto a){OnWrite(a);});
+    soc.all.soc.write().send(head);
+    w.send(buf);
 }
-
 
 lsy::port::port(port_all &all_, uint16_t num_):all(all_),num(num_)
 {
@@ -100,4 +101,9 @@ lsy::port::~port()
 void lsy::port_all::close()
 {
 	soc.close();
+}
+
+lsy::writer& lsy::port::write()
+{
+	return *new port_write(*this);
 }
