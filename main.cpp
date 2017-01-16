@@ -8,6 +8,10 @@
 using namespace lsy;
 
 int main(int n,char *argv[]) {
+	boost::dll::import<void()>
+				("libwebsocket.so",
+				"asd")
+			();/*
 	boost::property_tree::ptree pt;
 	boost::property_tree::read_xml("asd.xml", pt);
 	listener li;
@@ -43,5 +47,5 @@ int main(int n,char *argv[]) {
 		});
 	});
 	lii.join();
-	li.join();
+	li.join();*/
 }

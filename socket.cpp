@@ -80,7 +80,7 @@ void buffer::put(const buffer &other)
 template <>
 void buffer::put<uint16_t>(uint16_t a)
 {
-	*(uint16_t *)now_ptr = 
+	*(uint16_t *)now_ptr = //a;
 			boost::asio::detail::socket_ops::host_to_network_short(a);
 	now_ptr += 2;
 }
@@ -88,7 +88,8 @@ void buffer::put<uint16_t>(uint16_t a)
 template <>
 void buffer::put<uint32_t>(uint32_t a)
 {
-	uint32_t i=boost::asio::detail::socket_ops::host_to_network_long(a);
+	uint32_t i= //a;
+		boost::asio::detail::socket_ops::host_to_network_long(a);
 	*(uint32_t *)now_ptr = i;
 			
 	now_ptr += 4;
