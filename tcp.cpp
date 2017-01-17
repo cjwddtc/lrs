@@ -132,9 +132,7 @@ class tcp_listener : public socket_getter
 	    c->soc,
 	    [c, this](const boost::system::error_code& ec) { accept(c, ec); });
 	std::thread([io = io_service]() {
-	    std::cout << "start" << std::endl;
 	    io->run();
-	    std::cout << "finish" << std::endl;
 	}).swap(thr);
     }
 

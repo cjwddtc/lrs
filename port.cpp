@@ -9,7 +9,7 @@ lsy::port_all::port_all(assocket& soc_)
 	head.reset();
 	uint16_t port;
 	head.get(port);
-	buffer data(head.remain());
+	buffer data(mes.remain());
 	data.put(mes);
 	ports[port]->OnMessage(data);
     });
