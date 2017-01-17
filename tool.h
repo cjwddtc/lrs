@@ -68,4 +68,25 @@ uint16_t buffer::get<uint16_t>() const;
 
 template <>
 uint32_t buffer::get<uint32_t>() const;
+
+template <class T>
+class writer
+{
+	T &value;
+public:
+	writer(T &a):value(a){}
+	boost::signals2::signal<void()> OnWrite;
+    void send(buffer message){
+		value.write(message,[this]()
+		{
+			OnWrite();
+			delete this;
+		});
+	}
+};
+template <class T>
+writer<T> &get_writer(T &value)
+{
+	return *new writer<T>(value);
+}
 }

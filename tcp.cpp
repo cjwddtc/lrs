@@ -25,7 +25,6 @@ public:
 	std::atomic<int> count;
 	std::atomic<bool> is_closing;
 	tcp(boost::asio::io_service &io, size_t buf_size) :soc(io), buf(buf_size), count(0), is_closing(false){}
-    virtual writer& write();
 	virtual void read() {
 		count++;
 		soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
@@ -52,6 +51,24 @@ public:
 			}
 		});
 	}
+	virtual void write(buffer message,std::function<void()> func)
+	{
+		if (is_closing) {
+			throw closing_write();
+		}
+		auto buf = boost::asio::buffer(message.data(), message.size());
+		count++;
+		soc.async_write_some(buf, [message ,func, this](const boost::system::error_code& error,
+			std::size_t bytes_transferred){
+			count--;
+			func();
+			if (is_closing && count == 0)
+			{
+				count = -1;
+				soc.get_io_service().post([this]() {delete this; });
+			}
+		});
+	}
 	virtual void close() 
 	{
 		soc.close();
@@ -61,40 +78,6 @@ public:
         OnDestroy();
     }
 };
-
-class tcp_write:public writer
-{
-    tcp &soc;
-public:
-    tcp_write(tcp &soc_):soc(soc_){}
-    virtual void send(buffer message);
-    virtual ~tcp_write()=default;
-};
-
-writer& tcp::write()
-{
-    return *new tcp_write(*this);
-}
-
-void tcp_write::send(buffer message)
-{
-    if (soc.is_closing) {
-        throw closing_write();
-    }
-    auto buf = boost::asio::buffer(message.data(), message.size());
-    soc.count++;
-    soc.soc.async_write_some(buf, [message , this](const boost::system::error_code& error,
-        std::size_t bytes_transferred){
-        soc.count--;
-        OnWrite(bytes_transferred);
-        soc.soc.get_io_service().post([this]() {delete this; });
-        if (soc.is_closing && soc.count == 0)
-        {
-            soc.count = -1;
-            soc.soc.get_io_service().post([this]() {delete &soc; });
-        }
-    });
-}
 
 class tcp_listener :public socket_getter
 {

@@ -13,15 +13,15 @@ int main(int n,char *argv[]) {
 	listener li;
 	li.add_group(pt.find("net_dll")->second);
 	li.OnConnect.connect([&li](port_all &p){
-		auto ptr4=p.resign_port(5);
-		auto ptr5=p.resign_port(4);
+		auto ptr4=p.resign_port(4);
+		auto ptr5=p.resign_port(5);
 		std::string str("Hello");
 		buffer buf(str.size());
 		buf.put((const unsigned char *)str.data(), str.size());
-		auto &w=ptr4->write();
-		w.OnWrite.connect([](size_t size) {std::cout << "Hello writed" << std::endl; });
+		auto &w=get_writer(*ptr5);
+		w.OnWrite.connect([]() {std::cout << "Hello writed" << std::endl; });
 		w.send(buf);
-		ptr5->OnMessage.connect([ptr4,&p,&li](buffer a)
+		ptr4->OnMessage.connect([&p,&li](buffer a)
 		{
 			std::string b(a.begin(), a.end()); 
 			std::cout << "revice:" << b << std::endl;
@@ -37,8 +37,8 @@ int main(int n,char *argv[]) {
 		p5->OnMessage.connect([&p](buffer a) {
 			std::cout << "qwe" << std::endl;
 			auto p4=p.resign_port(4); 
-			auto &w=p4->write();
-			w.OnWrite.connect([](size_t size) {std::cout << "response" << std::endl; });
+			auto &w=get_writer(*p4);
+			w.OnWrite.connect([]() {std::cout << "response" << std::endl; });
 			w.send(a);
 		});
 	});
