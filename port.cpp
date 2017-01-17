@@ -1,10 +1,17 @@
 #include "port.h"
 
-lsy::port_all::port_all(assocket &soc_):soc(soc_),buf(0),head(6),is_head(true), ports(65536)
+lsy::port_all::port_all(assocket &soc_):soc(soc_)
 {
 	soc.OnMessage.connect([this](buffer mes)
 	{
-		Message_handle(mes);
+		buffer head(2);
+		head.put(mes);
+		head.reset();
+		uint16_t port;
+		head.get(port);
+		buffer data(head.remain());
+		data.put(mes);
+		ports[port]->OnMessage(data);
 	});
 	soc.OnDestroy.connect([this]()
 	{
@@ -12,58 +19,11 @@ lsy::port_all::port_all(assocket &soc_):soc(soc_),buf(0),head(6),is_head(true), 
 		{
 			if (ports[i]) 
 			{
-				delete ports[i];
+				ports[i]->close();
 			}
 		}
 		delete this;
 	});
-}
-
-void lsy::port_all::Message_handle(buffer mes) 
-{
-	while (mes.remain())
-	{
-		if (is_head)
-		{
-			head.put(mes);
-			if (head.remain() == 0)
-			{
-				is_head = false;
-				head.reset();
-				auto size = head.get<uint32_t>();
-				buf.renew(size);
-			}
-		}
-		else {
-			buf.put(mes);
-			if (buf.remain() == 0)
-			{
-				auto po = ports[head.get<uint16_t>()];
-				if (po) 
-				{
-					po->OnMessage(buf);
-				}
-				head.reset();
-				is_head = true;
-			}
-		}
-	}
-}
-
-lsy::port_write::port_write(port &soc_):soc(soc_){}
-
-void lsy::port_write::send(buffer buf)
-{
-	assert(buf.size() < 0xfffffff0);
-	uint32_t size = buf.size();
-	buffer head(6);
-
-	head.put(size);
-	head.put(soc.num);
-    auto &w=soc.all.soc.write();
-    w.OnWrite.connect([this](auto a){OnWrite(a);});
-    soc.all.soc.write().send(head);
-    w.send(buf);
 }
 
 lsy::port::port(port_all &all_, uint16_t num_):all(all_),num(num_)
@@ -103,7 +63,15 @@ void lsy::port_all::close()
 	soc.close();
 }
 
-lsy::writer& lsy::port::write()
+void lsy::port::write(buffer buf,std::function<void()> func)
 {
-	return *new port_write(*this);
+	all.write(num,buf,func);
+}
+
+void lsy::port_all::write(uint16_t port, buffer buf,std::function<void()> func)
+{
+	buffer head(2+buf.size());
+	head.put(port);
+	head.put(buf);
+	soc.write(head,func);
 }

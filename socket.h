@@ -8,20 +8,14 @@
 namespace lsy{
 class assocket;
 
-class BOOST_SYMBOL_EXPORT writer
-{
-public:
-	boost::signals2::signal<void(size_t)> OnWrite;
-    virtual void send(buffer message)=0;
-    virtual ~writer()=default;
-};
-
 class BOOST_SYMBOL_EXPORT assocket
 {
 public:
-	boost::signals2::signal<void(buffer)> OnMessage;
+	assocket(const assocket&)=delete;
+	assocket()=default;
+	boost::signals2::signal<void(const buffer)> OnMessage;
 	boost::signals2::signal<void()> OnDestroy;
-    virtual writer& write()=0;
+	virtual void write(buffer buf,std::function<void()> func=[](){})=0;
 	virtual void close() = 0;
 
 protected:
