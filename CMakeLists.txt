@@ -23,19 +23,19 @@ endif(UNIX)
 
 add_subdirectory(sqlite)
 
-add_library(tool SHARED tool.cpp)
+add_library(tool SHARED tool.h socket.h tool.cpp)
 target_link_libraries(tool ${Boost_LIBRARIES})
 
-add_library(tcp SHARED tcp.cpp)
+add_library(tcp SHARED tool.h socket.h tcp.cpp)
 target_link_libraries(tcp ${Boost_LIBRARIES} tool)
 
-add_library(websocket SHARED websocket.cpp)
+add_library(websocket SHARED tool.h socket.h websocket.cpp)
 target_link_libraries(websocket ${Boost_LIBRARIES} tool)
 
-add_library(network SHARED server.cpp listener.cpp port.cpp message.cpp)
+add_library(network SHARED tool.h socket.h server.h listener.h port.h message.h server.cpp listener.cpp port.cpp message.cpp)
 target_link_libraries(network tool)
 
-add_library(database SHARED database.cpp)
+add_library(database SHARED database.h database.cpp)
 target_link_libraries(database libsqlite)
 
 add_executable(main main.cpp)
