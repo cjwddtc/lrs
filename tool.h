@@ -1,3 +1,4 @@
+#pragma once
 #include <boost/asio/detail/socket_ops.hpp>
 #include <boost/config.hpp>
 #include <boost/signals2.hpp>

@@ -38,6 +38,9 @@ target_link_libraries(network tool)
 add_library(database SHARED database.h database.cpp)
 target_link_libraries(database libsqlite)
 
+add_library(engine SHARED engine.cpp engine.h)
+target_link_libraries(engine database network)
+
 add_executable(main main.cpp)
 target_link_libraries(main tool network database)
 

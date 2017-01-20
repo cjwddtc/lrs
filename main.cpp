@@ -6,13 +6,41 @@
 #include <iostream>
 #include <thread>
 using namespace lsy;
+#include "database.h"
+#include <stdlib.h>
+#include <time.h>
+
+class test
+{
+  public:
+    value< int >         a;
+    value< double >      b;
+    value< std::string > c;
+};
 
 int main(int n, char* argv[])
 {
+    database db("asd.db");
+    // database::statement st(db, "insert into asd values(?,?,?);");
+    srand(time(0));
+    int               i = 0;
+    bind_base< test > bb(db);
+    bb.add(&test::a, "asd.a");
+    bb.add(&test::b, "asd.b");
+    bb.add(&test::c, "asd.c");
+    bb.gen_select();
+    std::cout << bb.select << std::endl;
+    bind_base< test >::statement st(bb, ";");
+    // st.bind("fyhnaz");
+    std::function< void() > fun = [&fun, &st, &i]() {
+        st.async_run([&i, &fun](test& t) { t.a = 4; });
+    };
+    fun();
+    db.stop();
     /*
         boost::dll::import<void()>(
             "libwebsocket.so",
-            "asd")(); */
+            "asd")();
     boost::property_tree::ptree pt;
     boost::property_tree::read_xml("asd.xml", pt);
     listener li;
@@ -24,7 +52,7 @@ int main(int n, char* argv[])
    buf.put((const unsigned char *)str.data(), str.size());
    auto &w=get_writer(*ptr5);
    w.OnWrite.connect([]() {std::cout << "Hello writed" << std::endl; });
-   w.send(buf);*/
+   w.send(buf);
         ptr4->OnMessage.connect([&p, &li](buffer a) {
             std::cout << "asd:" << a.get< uint16_t >() << a.get< uint32_t >()
                       << std::endl;
@@ -49,6 +77,6 @@ int main(int n, char* argv[])
                 w.send(a);
         });
  });
- lii.join();*/
-    li.join();
+ lii.join();
+    li.join();*/
 }
