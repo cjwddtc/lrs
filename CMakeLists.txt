@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.7)
 project(main)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sqlite)
 
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+include(cotire)
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -30,11 +33,13 @@ include_directories(net_api)
 aux_source_directory(net_api NET_API_SRC)
 add_library(net_api ${NET_API_SRC})
 target_link_libraries(net_api ${Boost_LIBRARIES})
+cotire(net_api)
 
 include_directories(network)
 aux_source_directory(network NETWORK_SRC)
 add_library(network SHARED ${NETWORK_SRC})
 target_link_libraries(network net_api ${Boost_LIBRARIES})
+cotire(network)
 
 add_subdirectory(net_dll)
 
@@ -44,6 +49,7 @@ include_directories(database)
 aux_source_directory(database DATABASE_SRC)
 add_library(database SHARED ${DATABASE_SRC})
 target_link_libraries(database libsqlite)
+cotire(database)
 
 add_library(engine SHARED engine.cpp engine.h)
 target_link_libraries(engine database network ${Boost_LIBRARIES})
