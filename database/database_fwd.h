@@ -9,7 +9,7 @@
 namespace lsy
 {
     template < class T >
-    class value
+    class BOOST_SYMBOL_EXPORT value
     {
       public:
         T    val[2];
@@ -19,7 +19,7 @@ namespace lsy
         void set(T value_);
     };
 
-    class const_blob
+    class BOOST_SYMBOL_EXPORT const_blob
     {
       public:
         const void* ptr;
@@ -27,7 +27,7 @@ namespace lsy
         const_blob(const void* ptr, size_t size);
     };
 
-    class blob
+    class BOOST_SYMBOL_EXPORT blob
     {
       public:
         void*  ptr;
@@ -43,7 +43,7 @@ namespace lsy
         run_sql_fail_exception(std::string str_);
     };
 
-    class database
+    class BOOST_SYMBOL_EXPORT database
     {
         sqlite3*                      db;
         std::thread                   thr;

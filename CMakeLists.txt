@@ -22,6 +22,7 @@ ADD_DEFINITIONS(-fPIC)
 endif(UNIX)
 
 IF (WIN32)  
+add_compile_options("/EHsc")
 link_libraries(ws2_32.lib mswsock.lib)
 endif(WIN32)
 
@@ -33,7 +34,7 @@ target_link_libraries(net_api ${Boost_LIBRARIES})
 include_directories(network)
 aux_source_directory(network NETWORK_SRC)
 add_library(network SHARED ${NETWORK_SRC})
-target_link_libraries(network net_api)
+target_link_libraries(network net_api ${Boost_LIBRARIES})
 
 add_subdirectory(net_dll)
 
@@ -45,7 +46,7 @@ add_library(database SHARED ${DATABASE_SRC})
 target_link_libraries(database libsqlite)
 
 add_library(engine SHARED engine.cpp engine.h)
-target_link_libraries(engine database network)
+target_link_libraries(engine database network ${Boost_LIBRARIES})
 
 add_executable(main main.cpp)
-target_link_libraries(main net_api network database statement)
+target_link_libraries(main net_api network database ${Boost_LIBRARIES})
