@@ -44,14 +44,8 @@ aux_source_directory(database DATABASE_SRC)
 add_library(database SHARED ${DATABASE_SRC})
 target_link_libraries(database libsqlite)
 
-
-include_directories(statement)
-aux_source_directory(statement STATEMENT_SRC)
-add_library(statement SHARED ${STATEMENT_SRC})
-target_link_libraries(statement database)
-
 add_library(engine SHARED engine.cpp engine.h)
 target_link_libraries(engine database network)
 
 add_executable(main main.cpp)
-target_link_libraries(main net_api network database)
+target_link_libraries(main net_api network database statement)

@@ -6,17 +6,10 @@
 #include <iostream>
 #include <thread>
 using namespace lsy;
-#include "database.h"
 #include <stdlib.h>
 #include <time.h>
 
-class test
-{
-  public:
-    value< int >         a;
-    value< double >      b;
-    value< std::string > c;
-};
+#include "player.h"
 
 int main(int n, char* argv[])
 {
@@ -24,16 +17,15 @@ int main(int n, char* argv[])
     // database::statement st(db, "insert into asd values(?,?,?);");
     srand(time(0));
     int               i = 0;
-    bind_base< test > bb(db);
-    bb.add(&test::a, "asd.a");
-    bb.add(&test::b, "asd.b");
-    bb.add(&test::c, "asd.c");
+    bind_base< db::player > bb(db);
+    bb.add(&db::player::id, "player.id");
+    bb.add(&db::player::passwd, "player.passwd");
     bb.gen_select();
     std::cout << bb.select << std::endl;
-    bind_base< test >::statement st(bb, ";");
+    bind_base< db::player >::statement st(bb, ";");
     // st.bind("fyhnaz");
     std::function< void() > fun = [&fun, &st, &i]() {
-        st.async_run([&i, &fun](test& t) { t.a = 4; });
+        st.async_run([&i, &fun](db::player& t) { });
     };
     fun();
     db.stop();
