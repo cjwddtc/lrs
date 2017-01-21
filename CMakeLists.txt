@@ -20,23 +20,36 @@ IF (UNIX)
 link_libraries(${CMAKE_DL_LIBS})
 endif(UNIX)
 
+include_directories(net_api)
+aux_source_directory(net_api NET_API_SRC)
+add_library(net_api ${NET_API_SRC})
+target_link_libraries(tool ${Boost_LIBRARIES})
+
+include_directories(network)
+aux_source_directory(network NETWORK_SRC)
+add_library(network ${NETWORK_SRC})
+target_link_libraries(network tool)
+
+add_subdirectory(net_dll)
 
 add_subdirectory(sqlite)
 
-add_library(tool SHARED tool.h socket.h tool.cpp)
-target_link_libraries(tool ${Boost_LIBRARIES})
+include_directories(database)
+aux_source_directory(database DATABASE_SRC)
+add_library(database ${DATABASE_SRC})
+target_link_libraries(database libsqlite)
+
+
+include_directories(statement)
+aux_source_directory(statement STATEMENT_SRC)
+add_library(statement ${STATEMENT_SRC})
+target_link_libraries(statement database)
 
 add_library(tcp SHARED tool.h socket.h tcp.cpp)
 target_link_libraries(tcp ${Boost_LIBRARIES} tool)
 
 add_library(websocket SHARED tool.h socket.h websocket.cpp)
 target_link_libraries(websocket ${Boost_LIBRARIES} tool)
-
-add_library(network SHARED tool.h socket.h server.h listener.h port.h message.h server.cpp listener.cpp port.cpp message.cpp)
-target_link_libraries(network tool)
-
-add_library(database SHARED database.h database.cpp)
-target_link_libraries(database libsqlite)
 
 add_library(engine SHARED engine.cpp engine.h)
 target_link_libraries(engine database network)
