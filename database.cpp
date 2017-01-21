@@ -9,6 +9,12 @@ namespace lsy
     {
     }
 
+
+    run_sql_fail_exception::run_sql_fail_exception(std::string str_)
+        : str(str_)
+    {
+    }
+
     void database::statement::bind_(const std::string& str, int n)
     {
         char* ptr = (char*)malloc(str.size() + 1);
@@ -42,6 +48,24 @@ namespace lsy
     database::statement::~statement()
     {
         sqlite3_finalize(st);
+    }
+
+    bool database::statement::run()
+    {
+        switch (sqlite3_step(st))
+        {
+            case SQLITE_BUSY:
+                throw unexpect_busy();
+                break;
+            case SQLITE_ROW:
+                return true;
+            case SQLITE_DONE:
+                return false;
+            default:
+                // I know it is the wrong using just change later
+                throw(run_sql_fail_exception(
+                    std::string(sqlite3_errmsg(sqlite3_db_handle(st)))));
+        }
     }
 
     database::statement::statement(database& db, std::string sql)
@@ -112,5 +136,13 @@ namespace lsy
     sqlite3* database::get_db()
     {
         return db;
+    }
+
+    void database::statement::async_run(std::function< void() > func)
+    {
+        io.post([func, this]() {
+            run();
+            func();
+        });
     }
 }
