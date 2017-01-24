@@ -1,0 +1,6 @@
+{
+    "player": {
+        "id": "string",
+        "passed": "string"
+    }
+}

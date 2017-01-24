@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(main)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sqlite)
 
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(cotire)
 
 find_program(CCACHE_FOUND ccache)
@@ -28,6 +28,10 @@ IF (WIN32)
 add_compile_options("/EHsc")
 link_libraries(ws2_32.lib mswsock.lib)
 endif(WIN32)
+
+include_directories(db_tools)
+add_subdirectory(db_tools)
+db_gen_file(asd ${CMAKE_SOURCE_DIR})
 
 include_directories(net_api)
 aux_source_directory(net_api NET_API_SRC)
