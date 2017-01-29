@@ -3,13 +3,11 @@
 #include <boost/dll/import.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <iostream>
-#include <thread>
 
 typedef lsy::socket_getter* acceptor_fun();
 
 void lsy::listener::add(std::string name, boost::property_tree::ptree& pt)
 {
-    std::thread thr;
     auto        ptr = boost::dll::import< acceptor_fun >(
         pt.get< std::string >("lib_path"), pt.get("listen", "listen"))();
     auto& value = accs[name];
@@ -44,7 +42,9 @@ void lsy::listener::join()
 {
     for (auto& a : accs)
     {
+    	printf("join\n");
         a.second.second.join();
+    	printf("joined\n");
     }
 }
 

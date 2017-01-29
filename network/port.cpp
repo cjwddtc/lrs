@@ -43,6 +43,12 @@ lsy::port* lsy::port_all::resign_port(uint16_t num)
     return ports[num];
 }
 
+
+lsy::assocket &lsy::port_all::get_soc()
+{
+	return soc;
+}
+
 void lsy::port::close()
 {
     all.ports[num] = 0;

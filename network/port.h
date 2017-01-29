@@ -40,6 +40,7 @@ namespace lsy
 
         port* resign_port(uint16_t num);
         void close();
+        assocket &get_soc();
         void write(uint16_t port, buffer buf, std::function< void() > fun);
     };
 }
