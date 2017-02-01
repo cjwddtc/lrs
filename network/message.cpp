@@ -7,8 +7,8 @@ namespace lsy
         , head(4)
         , is_head(true)
     {
-        aso.OnMessage.connect([this](const buffer buf_) {
-            ;
+        aso->OnMessage.connect([this](const buffer buf_) {
+
 
             while (buf_.remain())
             {
@@ -37,10 +37,7 @@ namespace lsy
                 }
             }
         });
-        aso.OnDestroy.connect([this]() {
-            OnDestroy();
-            delete this;
-        });
+        bind_father(aso);
     }
     void message_socket::write(buffer buf_, std::function< void() > func)
     {

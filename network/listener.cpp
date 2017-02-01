@@ -8,7 +8,7 @@ typedef lsy::socket_getter* acceptor_fun();
 
 void lsy::listener::add(std::string name, boost::property_tree::ptree& pt)
 {
-    auto        ptr = boost::dll::import< acceptor_fun >(
+    auto ptr = boost::dll::import< acceptor_fun >(
         pt.get< std::string >("lib_path"), pt.get("listen", "listen"))();
     auto& value = accs[name];
     value.first = ptr;
@@ -42,9 +42,9 @@ void lsy::listener::join()
 {
     for (auto& a : accs)
     {
-    	printf("join\n");
+        printf("join\n");
         a.second.second.join();
-    	printf("joined\n");
+        printf("joined\n");
     }
 }
 

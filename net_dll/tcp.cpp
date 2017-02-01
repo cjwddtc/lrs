@@ -25,105 +25,79 @@ namespace lsy
       public:
         boost::asio::ip::tcp::socket soc;
         buffer                       buf;
-        std::atomic< int >           count;
-        std::atomic< bool >          is_closing;
         tcp(boost::asio::io_service& io, size_t buf_size)
             : soc(io)
             , buf(buf_size)
-            , count(0)
-            , is_closing(false)
         {
         }
         virtual void read()
         {
-            count++;
             soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
-                                [this](const boost::system::error_code& error,
-                                       std::size_t bytes_transferred) {
-                                    count--;
+                                [self = shared_from_this()](
+                                    const boost::system::error_code& error,
+                                    std::size_t bytes_transferred) {
 
                                     if (error != 0)
                                     {
-                                        is_closing = true;
-                                    }
-
-                                    if (is_closing && count == 0)
-                                    {
-                                        count = -1;
-                                        soc.get_io_service().post(
-                                            [this]() { delete this; });
+                                        self->OnError(error);
+                                        self->close();
                                     }
                                     else
                                     {
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
                                         buf.reset();
-                                        OnMessage(buf_);
-                                        read();
+                                        self->OnMessage(buf_);
+                                        self->read();
                                     }
                                 });
         }
         virtual void write(buffer message, std::function< void() > func)
         {
-            if (is_closing)
-            {
-                throw closing_write();
-            }
-
             auto buf = boost::asio::buffer(message.data(), message.size());
-            count++;
-            soc.async_write_some(
-                buf,
-                [message, func, this](const boost::system::error_code& error,
-                                      std::size_t bytes_transferred) {
-                    count--;
-                    func();
-
-                    if (is_closing && count == 0)
-                    {
-                        count = -1;
-                        soc.get_io_service().post([this]() { delete this; });
-                    }
-                });
+            soc.async_write_some(buf,
+                                 [ message, func, self = shared_from_this() ](
+                                     const boost::system::error_code& error,
+                                     std::size_t bytes_transferred) {
+                                     if (error != 0)
+                                     {
+                                         self->OnError(error);
+                                     }
+                                     func();
+                                 });
         }
         virtual void close()
         {
             soc.close();
-            is_closing = true;
         }
         virtual ~tcp()
         {
-            OnDestroy();
         }
     };
-
+    typedef std::shared_ptr< tcp > tcp_ptr;
     class tcp_listener : public socket_getter
     {
-        std::shared_ptr< boost::asio::io_service > io_service;
-        size_t                                     buf_size;
-        boost::asio::ip::tcp::acceptor*            acc;
-        std::atomic< bool >                        is_closing;
+        boost::asio::io_service                            io_service;
+        size_t                                             buf_size;
+        std::unique_ptr< boost::asio::ip::tcp::acceptor* > acc;
 
       public:
         tcp_listener()
-            : io_service(new boost::asio::io_service)
-            , acc(0)
-            , is_closing(false)
         {
         }
 
-        void accept(tcp* ptr, const boost::system::error_code& ec)
+        void accept(tcp_ptr ptr, const boost::system::error_code& ec)
         {
-            if (is_closing)
-                return;
-
-            boost::asio::detail::throw_error(ec, "accept");
-            auto c = new tcp(*io_service, buf_size);
-            acc->async_accept(c->soc,
-                              [c, this](const boost::system::error_code& ec) {
-                                  accept(c, ec);
-                              });
-            OnNewSocket(*ptr);
+            if (ec != 0)
+            {
+                OnError(ec);
+            }
+            auto c = std::make_shared< tcp >(*io_service, buf_size);
+            c->bind_father(shared_from_this());
+            acc->async_accept(c->soc, [
+                c, self = shared_from_this()
+            ](const boost::system::error_code& ec) { self->accept(c, ec); });
+            NewSocket(ptr);
             ptr->read();
         }
 
@@ -131,27 +105,26 @@ namespace lsy
                            std::thread&                 thr)
         {
             buf_size = config.get("buf_size", 256);
-            acc      = new boost::asio::ip::tcp::acceptor(
-                *io_service,
+            acc.swap(std::make_unique< boost::asio::ip::tcp::acceptor >(
+                io_service,
                 boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(),
-                                               config.get("port", 12345)));
-            auto c = new tcp(*io_service, buf_size);
-            acc->async_accept(c->soc,
-                              [c, this](const boost::system::error_code& ec) {
-                                  accept(c, ec);
-                              });
-            std::thread([io = io_service]() { io->run(); }).swap(thr);
+                                               config.get("port", 12345))));
+            auto c = std::make_shared< tcp >(*io_service, buf_size);
+            acc->async_accept(c->soc, [
+                c, self = shared_from_this()
+            ](const boost::system::error_code& ec) { self->accept(c, ec); });
+            std::thread([self = shared_from_this()]() {
+                self->io_service.run();
+            }).swap(thr);
         }
 
-        virtual void stop()
+        virtual void close()
         {
-            is_closing = true;
             acc->close();
-            io_service->post([this]() { delete this; });
+            for_each([](assocket_ptr ptr) { ptr->close(); });
         }
         virtual ~tcp_listener()
         {
-            delete acc;
         }
     };
 
@@ -177,14 +150,14 @@ namespace lsy
                 [this, soc](const boost::system::error_code& error) {
                     boost::asio::detail::throw_error(error, "start");
                     soc->read();
-                    OnNewSocket(*soc);
+                    NewSocket(soc);
                 });
             std::thread([io = io_service]() { io->run(); }).swap(thr);
         }
 
-        virtual void stop()
+        virtual void close()
         {
-            io_service->post([this]() { delete this; });
+            destroy();
         }
     };
 

@@ -5,15 +5,10 @@
 #include <stdlib.h>
 namespace lsy
 {
-	void as_mem_man::destroy(){
-		OnDestroy();
-		delete this;
-	}
-	void as_mem_man::bind_father(as_mem_man *fm){
-		fm->OnDestroy.connect([this](){
-			this->close();
-		})
-	}
+    virtual lsy::as_close::~as_close()
+    {
+        OnDestroy();
+    }
     buffer::buffer(size_t size)
         : ptr((count_block*)malloc(size + sizeof(size_t)))
         , size_(size)

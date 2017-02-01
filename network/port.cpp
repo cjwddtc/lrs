@@ -44,9 +44,9 @@ lsy::port* lsy::port_all::resign_port(uint16_t num)
 }
 
 
-lsy::assocket &lsy::port_all::get_soc()
+lsy::assocket& lsy::port_all::get_soc()
 {
-	return soc;
+    return soc;
 }
 
 void lsy::port::close()

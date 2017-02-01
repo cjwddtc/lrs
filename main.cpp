@@ -6,15 +6,15 @@
 #include <iostream>
 #include <thread>
 using namespace lsy;
+#include "engine.h"
 #include <stdlib.h>
 #include <time.h>
-#include "engine.h"
 int main(int n, char* argv[])
 {
-	std::cout << "test" << std::endl;
-	engine en("asd.xml");
-	std::cout << "asd" << std::endl;
-	en.li.join();
+    std::cout << "test" << std::endl;
+    engine en("asd.xml");
+    std::cout << "asd" << std::endl;
+    en.li.join();
 
 
 
