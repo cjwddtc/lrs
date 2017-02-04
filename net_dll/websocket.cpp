@@ -14,6 +14,9 @@ namespace lsy
         websocket(connect::ptr con_)
             : con(con_)
         {
+        }
+        virtual void start()
+        {
             con->set_message_handler([this](auto ab, auto ptr) {
                 auto&  a = ptr->get_payload();
                 buffer buf(a.size());
@@ -43,12 +46,11 @@ namespace lsy
             m_endpoint.init_asio();
             m_endpoint.set_open_handler([this](auto hd) {
                 websocketpp::lib::error_code ec;
-                OnNewSocket(
-                    *new websocket(m_endpoint.get_con_from_hdl(hd, ec)));
+                OnNewSocket(new websocket(m_endpoint.get_con_from_hdl(hd, ec)));
             });
         }
 
-        virtual void stop()
+        virtual void close()
         {
         }
 

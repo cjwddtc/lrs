@@ -1,15 +1,13 @@
 #include "message.h"
 namespace lsy
 {
-    message_socket::message_socket(assocket& aso_)
-        : aso(aso_)
+    message_socket::message_socket(assocket* aso)
+        : as_contain< assocket >(aso)
         , buf(1)
         , head(4)
         , is_head(true)
     {
-        aso->OnMessage.connect([this](const buffer buf_) {
-
-
+        ptr->OnMessage.connect([this](const buffer buf_) {
             while (buf_.remain())
             {
                 if (is_head)
@@ -37,7 +35,6 @@ namespace lsy
                 }
             }
         });
-        bind_father(aso);
     }
     void message_socket::write(buffer buf_, std::function< void() > func)
     {
@@ -47,15 +44,12 @@ namespace lsy
         buf.reset();
         uint32_t a;
         buf.get(a);
-        aso.write(buf);
-        aso.write(buf_, func);
+        ptr->write(buf);
+        ptr->write(buf_, func);
     }
 
     void message_socket::close()
     {
-        aso.close();
-    }
-    message_socket::~message_socket()
-    {
+        ptr->close();
     }
 }

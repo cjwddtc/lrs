@@ -6,12 +6,10 @@ mainly about buffer
 #include <boost/asio/detail/socket_ops.hpp>
 #include <boost/config.hpp>
 #include <boost/signals2.hpp>
-#include <memory>
-#include <set>
-#include <shared_mutex>
-#include <mutex>
 #include <stdint.h>
 
+class as_ptr;
+class as_ptr;
 namespace lsy
 {
     struct count_block
@@ -20,11 +18,9 @@ namespace lsy
         unsigned char ptr[1];
     };
 
-    typedef boost::signals2::signal< void() >       signal;
-    typedef boost::signals2::signal< void(size_t) > error_signal;
+    typedef boost::signals2::signal< void() > signal;
 
     class BOOST_SYMBOL_EXPORT as_close
-        : public std::enable_shared_from_this< as_close >
     {
       protected:
         as_close() = default;
@@ -32,53 +28,97 @@ namespace lsy
       public:
         virtual void close() = 0;
         signal       OnDestroy;
+        virtual void start() = 0;
         virtual ~as_close();
     };
-    typedef std::shared_ptr< as_close > as_close_ptr;
 
     template < class T >
-    class son_close : public T
+    class as_contain
     {
       protected:
-        as_close_ptr                father;
-        boost::signals2::connection con;
-        void bind_father(as_close_ptr father_)
+        T* ptr;
+
+      public:
+        as_contain(T* ptr_)
+            : ptr(ptr_)
         {
-            father.swap(father_);
-            con = father->OnDestroy.connect([self = T::share_from_this()]() {
-                self->close();
-            });
+            ptr->OnDestroy.connect([this]() { delete this; });
         }
-        virtual ~son_close()
+
+        T* operator->() const
         {
-            con.disconnect();
+            return ptr;
         }
     };
 
     template < class T >
-    class as_gather
+    class as_ptr
     {
-        std::shared_mutex              mut;
-        std::set< std::weak_ptr< T > > as_closes;
-        void add_as(std::shared_ptr< T > ptr)
+        T*                          ptr;
+        boost::signals2::connection con;
+
+      public:
+        as_ptr(T* ptr_)
+            : ptr(ptr_)
+            , con(ptr->OnDestroy.connect([this]() { ptr = 0; }))
         {
-            mut.lock();
-            as_closes.insert(ptr);
-            mut.unlock();
-            ptr->OnDestroy.connect([ wptr = (std::weak_ptr< T >)ptr, this ]() {
-                mut.lock();
-                as_closes.remove(wptr);
-                mut.unlock();
-            });
         }
-        void for_each(std::function< void(std::shared_ptr< T >) > func)
+        as_ptr()
+            : ptr(nullptr)
         {
-            mut.lock_shared();
-            for (auto a : as_closes)
+        }
+
+        as_ptr(const as_ptr& other)
+            : ptr(other.ptr)
+            , con(ptr->OnDestroy.connect([this]() { ptr = 0; }))
+        {
+        }
+
+        void detach()
+        {
+            if (ptr)
             {
-                func(a.lock());
+                ptr = nullptr;
+                con.disconnect();
             }
-            unlock_shared();
+        }
+
+        as_ptr< T >& operator=(const as_ptr< T >& other)
+        {
+            detach();
+            new (this) as_ptr< T >(other);
+            return std::ref(*this);
+        }
+
+        as_ptr< T >& operator=(T* other)
+        {
+            detach();
+            new (this) as_ptr< T >(other);
+            return std::ref(*this);
+        }
+
+        T& operator*() const
+        {
+            assert(valid());
+            return std::ref(*ptr);
+        }
+
+        T* operator->() const
+        {
+            assert(valid());
+            return ptr;
+        }
+        bool valid() const
+        {
+            return ptr == nullptr;
+        }
+        T* get() const
+        {
+            return ptr;
+        }
+        ~as_ptr()
+        {
+            detach();
         }
     };
 

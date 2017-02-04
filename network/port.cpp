@@ -1,9 +1,9 @@
 #include "port.h"
 
-lsy::port_all::port_all(assocket& soc_)
-    : soc(soc_)
+lsy::port_all::port_all(assocket* soc)
+    : as_contain< assocket >(soc)
 {
-    soc.OnMessage.connect([this](buffer mes) {
+    ptr->OnMessage.connect([this](buffer mes) {
         buffer head(2);
         head.put(mes);
         head.reset();
@@ -13,45 +13,32 @@ lsy::port_all::port_all(assocket& soc_)
         data.put(mes);
         ports[port]->OnMessage(data);
     });
-    soc.OnDestroy.connect([this]() {
-        for (int i = 0; i < 65536; i++)
-        {
-            if (ports[i])
-            {
-                ports[i]->close();
-            }
-        }
-
-        delete this;
-    });
 }
 
-lsy::port::port(port_all& all_, uint16_t num_)
-    : all(all_)
+lsy::port::port(port_all* all, uint16_t num_)
+    : as_contain< port_all >(all)
     , num(num_)
 {
 }
 
 lsy::port* lsy::port_all::resign_port(uint16_t num)
 {
-    if (ports[num])
+    if (ports[num].valid())
     {
         throw port_using(num);
     }
-
-    ports[num] = new port(*this, num);
-    return ports[num];
+    return new port(this, num);
 }
 
 
-lsy::assocket& lsy::port_all::get_soc()
+lsy::assocket* lsy::port_all::get_soc()
 {
-    return soc;
+    return ptr;
 }
 
 void lsy::port::close()
 {
-    all.ports[num] = 0;
+    ptr->ports[num].detach();
     delete this;
 }
 
@@ -60,19 +47,14 @@ lsy::port_all::port_using::port_using(uint16_t port_)
 {
 }
 
-lsy::port::~port()
-{
-    OnDestroy();
-}
-
 void lsy::port_all::close()
 {
-    soc.close();
+    ptr->close();
 }
 
 void lsy::port::write(buffer buf, std::function< void() > func)
 {
-    all.write(num, buf, func);
+    ptr->write(num, buf, func);
 }
 
 void lsy::port_all::write(uint16_t port, buffer buf,
@@ -81,5 +63,20 @@ void lsy::port_all::write(uint16_t port, buffer buf,
     buffer head(2 + buf.size());
     head.put(port);
     head.put(buf);
-    soc.write(head, func);
+    ptr->write(head, func);
+}
+
+void lsy::port_all::start()
+{
+    ptr->start();
+}
+
+void lsy::port::start()
+{
+    ptr->add_map(this);
+}
+
+void lsy::port_all::add_map(port* p)
+{
+    ports[p->num] = p;
 }

@@ -12,7 +12,7 @@ namespace lsy
         std::map< std::string, std::pair< socket_getter*, std::thread > > accs;
 
       public:
-        boost::signals2::signal< void(port_all& port) > OnConnect;
+        boost::signals2::signal< void(port_all* port) > OnConnect;
         listener();
         void add(std::string name, boost::property_tree::ptree& pt);
         void add_group(boost::property_tree::ptree& pt);

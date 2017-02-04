@@ -1,20 +1,20 @@
-#include "engine.h"
 #include "database.h"
+#include "engine.h"
 #include "listener.h"
 #include "socket.h"
 #include <boost/property_tree/xml_parser.hpp>
 
 
-lsy::player::player(port_all& soc_)
-    : soc(soc_)
+lsy::player::player(port_all* soc)
+    : as_contain< port_all >(soc)
 {
     std::cout << "connect" << std::endl;
-    port* p = soc.resign_port(0);
+    port* p = ptr->resign_port(0);
     p->OnMessage.connect([this, p](buffer buf) {
         id.assign((char*)buf.data(), buf.size());
         std::cout.write((char*)buf.data(), buf.size());
         p->close();
-        port*              p_  = soc.resign_port(1);
+        port*              p_  = ptr->resign_port(1);
         const std::string& c_r = "create room";
         uint16_t           i   = 1;
         for (const std::string& c_r :
@@ -26,7 +26,8 @@ lsy::player::player(port_all& soc_)
             p_->write(buf, [this]() {});
         }
     });
-    soc.get_soc().OnDestroy.connect([this]() {
+    p->start();
+    ptr->get_soc()->OnDestroy.connect([this]() {
         std::cout << "desconnect" << std::endl;
         delete this;
     });

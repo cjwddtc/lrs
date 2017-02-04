@@ -3,14 +3,13 @@
 #include "listener.h"
 namespace lsy
 {
-    class player
+    class player : private as_contain< port_all >
     {
       protected:
-        port_all&   soc;
         std::string id;
 
       public:
-        player(port_all& soc_);
+        player(port_all* soc);
     };
     class room
     {

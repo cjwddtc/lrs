@@ -8,23 +8,24 @@ namespace lsy
 {
 
     class port_all;
-    class BOOST_SYMBOL_EXPORT port : public assocket
+    class BOOST_SYMBOL_EXPORT port : public assocket,
+                                     private as_contain< port_all >
     {
-        port_all* all;
 
       public:
         uint16_t num;
-        port(port_all* all_, uint16_t num_);
+        port(port_all* all, uint16_t num_);
         virtual void write(buffer buf, std::function< void() > func);
         virtual void close();
+        virtual void start();
 
       protected:
         virtual ~port();
     };
 
-    class BOOST_SYMBOL_EXPORT port_all : public as_mem_man
+    class BOOST_SYMBOL_EXPORT port_all : public as_close,
+                                         private as_contain< assocket >
     {
-        assocket* soc;
 
       public:
         class port_using : public std::exception
@@ -33,14 +34,15 @@ namespace lsy
             uint16_t port;
             port_using(uint16_t port);
         };
+        std::array< as_ptr< port >, 65536 > ports;
 
-        std::array< port*, 65536 > ports;
-
-        port_all(assocket& soc_);
+        port_all(assocket* soc);
 
         port* resign_port(uint16_t num);
-        void      close();
-        assocket& get_soc();
+        void add_map(port* p);
+        virtual void close();
+        virtual void start();
+        assocket*    get_soc();
         void write(uint16_t port, buffer buf, std::function< void() > fun);
     };
 }

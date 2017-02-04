@@ -13,14 +13,14 @@ void lsy::listener::add(std::string name, boost::property_tree::ptree& pt)
     auto& value = accs[name];
     value.first = ptr;
     ptr->OnNewSocket.connect(
-        [ this, is_stream = pt.get< bool >("is_stream") ](assocket & p) {
+        [ this, is_stream = pt.get< bool >("is_stream") ](assocket * p) {
             if (is_stream)
             {
-                OnConnect(*new port_all(*new message_socket(p)));
+                OnConnect(new port_all(new message_socket(p)));
             }
             else
             {
-                OnConnect(*new port_all(p));
+                OnConnect(new port_all(p));
             }
         });
     ptr->start(pt, value.second);
@@ -52,6 +52,6 @@ void lsy::listener::close()
 {
     for (auto& a : accs)
     {
-        a.second.first->stop();
+        a.second.first->close();
     }
 }

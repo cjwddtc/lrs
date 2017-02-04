@@ -17,7 +17,12 @@ namespace lsy
     /*
         this is the socket class which is the basic class of a async socket
     */
-    typedef std::shared_ptr< assocket > assocket_ptr;
+
+    typedef as_ptr< assocket > assocket_ptr;
+
+    typedef boost::signals2::signal< void(size_t) >       error_signal;
+    typedef boost::signals2::signal< void(const buffer) > message_signal;
+    typedef boost::signals2::signal< void(assocket*) >    new_signal;
 
     class BOOST_SYMBOL_EXPORT assocket : public as_close
     {
@@ -32,8 +37,8 @@ namespace lsy
            the socket
                         the buffer will contain the message
         */
-        boost::signals2::signal< void(const buffer) > OnMessage;
-        boost::signals2::signal< void(size_t error_code) > OnError;
+        message_signal OnMessage;
+        error_signal   OnError;
         /*
                         this function will write buf to the socket an return
            immediately,when the write operator finish func will be called
@@ -51,18 +56,15 @@ namespace lsy
     /*
     this class is a class to async get assocket
     */
-    typedef std::shared_ptr< socket_getter > socket_getter_ptr;
-    class BOOST_SYMBOL_EXPORT                socket_getter : public as_close,
-                                              as_gather< assocket >
+
+    class BOOST_SYMBOL_EXPORT socket_getter : public as_close
     {
       public:
         /*
                         this is the signal when new socekt is build
         */
-        boost::signals2::signal< void(assocket_ptr) > OnNewSocket;
-        boost::signals2::signal< void(size_t) >       OnError;
-
-        void NewSocket(assocket_ptr soc);
+        new_signal   OnNewSocket;
+        error_signal OnError;
         /*
                         start getting new socket on the given config and viven
            thread

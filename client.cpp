@@ -1,6 +1,6 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <iostream>
-#include <listener.h>
+#include <listener.h>/*
 #include <nana/gui/place.hpp>
 #include <nana/gui/widgets/button.hpp>
 #include <nana/gui/widgets/label.hpp>
@@ -57,4 +57,4 @@ int main()
     fm.show();
     exec();
     li.join();
-}
+}*/

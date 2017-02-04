@@ -5,7 +5,7 @@
 #include <stdlib.h>
 namespace lsy
 {
-    virtual lsy::as_close::~as_close()
+    lsy::as_close::~as_close()
     {
         OnDestroy();
     }
