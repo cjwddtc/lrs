@@ -3,12 +3,10 @@
 #include "listener.h"
 #include "socket.h"
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/log/trivial.hpp>
 
 lsy::player::player(port_all* soc)
     : as_contain< port_all >(soc)
 {
-	BOOST_LOG_TRIVIAL(trace) << "connect:" << this;
     port* p = ptr->resign_port(0);
     p->OnMessage.connect([this, p](buffer buf) {
         id.assign((char*)buf.data(), buf.size());
@@ -26,10 +24,7 @@ lsy::player::player(port_all* soc)
         }
     });
     p->start();
-    ptr->get_soc()->OnDestroy.connect([this]() {
-		BOOST_LOG_TRIVIAL(trace) << "desconnect:" << this;
-        delete this;
-    });
+    ptr->get_soc()->OnDestroy.connect([this]() { delete this; });
 }
 lsy::engine::engine(std::string file)
 {
@@ -41,6 +36,6 @@ lsy::engine::engine(std::string file)
 
 void lsy::engine::ConnectHandle(port_all* po)
 {
-	po->start();
+    po->start();
     auto p = new player(po);
 }
