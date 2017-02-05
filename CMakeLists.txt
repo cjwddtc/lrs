@@ -22,8 +22,6 @@ if(CCACHE_FOUND)
 
 endif(CCACHE_FOUND)
 
-
-
 find_package(Threads REQUIRED)
 
 link_libraries(Threads::Threads)
@@ -45,6 +43,8 @@ IF (UNIX)
 link_libraries(${CMAKE_DL_LIBS})
 
 ADD_DEFINITIONS(-fPIC)
+
+ADD_DEFINITIONS(-fvisibility=hidden)
 
 endif(UNIX)
 

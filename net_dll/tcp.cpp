@@ -53,7 +53,7 @@ namespace lsy
 
         virtual ~count_close() = default;
     };
-    class tcp : public assocket, private count_close
+    class BOOST_SYMBOL_EXPORT tcp : public assocket, private count_close
     {
       public:
         boost::asio::ip::tcp::socket soc;
@@ -113,8 +113,8 @@ namespace lsy
         }
     };
 
-    typedef tcp* tcp_ptr;
-    class tcp_listener : public socket_getter
+    typedef tcp*              tcp_ptr;
+    class BOOST_SYMBOL_EXPORT tcp_listener : public socket_getter
     {
         boost::asio::io_service                           io_service;
         size_t                                            buf_size;
@@ -124,6 +124,8 @@ namespace lsy
         tcp_listener()
         {
         }
+
+        static BOOST_SYMBOL_EXPORT size_t size();
 
         void accept(tcp_ptr ptr, const boost::system::error_code& ec)
         {
@@ -156,8 +158,7 @@ namespace lsy
             std::thread([this]() {
                 io_service.run();
                 delete this;
-            })
-                .swap(thr);
+            }).swap(thr);
         }
 
         virtual void close()
@@ -165,7 +166,10 @@ namespace lsy
             acc->close();
         }
     };
-
+    size_t tcp_listener::size()
+    {
+        return sizeof(tcp_listener);
+    }
     class tcp_connector : public socket_getter
     {
         boost::asio::io_service io_service;
@@ -193,8 +197,7 @@ namespace lsy
             std::thread([this]() {
                 io_service.run();
                 delete this;
-            })
-                .swap(thr);
+            }).swap(thr);
         }
 
         virtual void close()
