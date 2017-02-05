@@ -27,18 +27,18 @@ endif(CCACHE_FOUND)
 find_package(Threads REQUIRED)
 
 link_libraries(Threads::Threads)
+ 
 
 
-
-find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Boost REQUIRED COMPONENTS system filesystem log)
 
 include_directories(${Boost_INCLUDE_DIR})
 
 link_directories(${Boost_LIBRARY_DIRS})
 
+link_libraries(${Boost_LIBRARIES})
 
-
-
+message(${Boost_LIBRARIES})
 
 IF (UNIX)  
 
@@ -74,7 +74,7 @@ aux_source_directory(net_api NET_API_SRC)
 
 add_library(net_api SHARED ${NET_API_SRC})
 
-target_link_libraries(net_api ${Boost_LIBRARIES})
+target_link_libraries(net_api)
 
 cotire(net_api)
 
@@ -86,7 +86,7 @@ aux_source_directory(network NETWORK_SRC)
 
 add_library(network SHARED ${NETWORK_SRC})
 
-target_link_libraries(network net_api ${Boost_LIBRARIES})
+target_link_libraries(network net_api )
 
 cotire(network)
 
@@ -114,18 +114,18 @@ cotire(database)
 
 add_library(engine SHARED engine.cpp engine.h)
 
-target_link_libraries(engine database network ${Boost_LIBRARIES})
+target_link_libraries(engine database network )
 
 
 
 add_executable(main main.cpp)
 
-target_link_libraries(main net_api network database engine ${Boost_LIBRARIES})
+target_link_libraries(main net_api network database engine )
 
 
 add_executable(client client.cpp)
 
-target_link_libraries(client net_api network ${Boost_LIBRARIES})
+target_link_libraries(client net_api network )
 
 IF (UNIX)  
 

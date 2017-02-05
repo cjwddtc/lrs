@@ -1,5 +1,5 @@
 #include "port.h"
-
+#include <boost/log/trivial.hpp>
 lsy::port_all::port_all(assocket* soc)
     : as_contain< assocket >(soc)
 {
@@ -11,7 +11,12 @@ lsy::port_all::port_all(assocket* soc)
         head.get(port);
         buffer data(mes.remain());
         data.put(mes);
-        ports[port]->OnMessage(data);
+		if (ports[port].valid()) {
+			ports[port]->OnMessage(data);
+		}
+		else {
+			BOOST_LOG_TRIVIAL(warning) << "port:" << port << " is not open,skip the message\n";
+		}
     });
 }
 

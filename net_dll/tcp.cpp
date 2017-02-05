@@ -80,7 +80,7 @@ namespace lsy
                                     {
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
-                                        buf.reset();
+                                        buf.renew();
                                         start();
                                         OnMessage(buf_);
                                     }
@@ -156,7 +156,8 @@ namespace lsy
             std::thread([this]() {
                 io_service.run();
                 delete this;
-            }).swap(thr);
+            })
+                .swap(thr);
         }
 
         virtual void close()
@@ -192,7 +193,8 @@ namespace lsy
             std::thread([this]() {
                 io_service.run();
                 delete this;
-            }).swap(thr);
+            })
+                .swap(thr);
         }
 
         virtual void close()

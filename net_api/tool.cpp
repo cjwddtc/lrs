@@ -3,6 +3,7 @@
 #include <boost/config.hpp>
 #include <memory>
 #include <stdlib.h>
+#include <iostream>
 namespace lsy
 {
     lsy::as_close::~as_close()
@@ -192,4 +193,22 @@ unsigned char* lsy::buffer::begin()
 unsigned char* lsy::buffer::end()
 {
     return ptr->ptr + size_;
+}
+
+struct asd {
+	char char16[16];
+	asd() {
+		for (int i = 0; i < 10; i++) {
+			char16[i] = '0' + i;
+		}
+		for (int i = 0; i < 6; i++) {
+			char16[i+10] = 'a' + i;
+		}
+	}
+};
+asd test_asd;
+void lsy::buffer::print() {
+	for (unsigned char a : *this) {
+		std::cout << test_asd.char16[a & 0xf] << test_asd.char16[a >> 4];
+	}
 }

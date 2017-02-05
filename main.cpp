@@ -11,9 +11,7 @@ using namespace lsy;
 #include <time.h>
 int main(int n, char* argv[])
 {
-    std::cout << "test" << std::endl;
     engine en("server.xml");
-    std::cout << "asd" << std::endl;
     en.li.join();
 
 

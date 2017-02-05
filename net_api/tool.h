@@ -242,6 +242,7 @@ namespace lsy
         */
         void renew();
 
+		void print();
         ~buffer();
     };
 

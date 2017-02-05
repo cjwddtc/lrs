@@ -19,7 +19,11 @@ namespace lsy
                         head.reset();
                         uint32_t a;
                         head.get(a);
+						if (a == 0) {
+							a++;
+						}
                         buf.renew(a);
+						head.reset();
                         is_head = false;
                     }
                 }
@@ -40,10 +44,6 @@ namespace lsy
     {
         buffer buf(4);
         buf.put((uint32_t)buf_.size());
-
-        buf.reset();
-        uint32_t a;
-        buf.get(a);
         ptr->write(buf);
         ptr->write(buf_, func);
     }
