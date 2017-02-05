@@ -72,7 +72,7 @@ include_directories(net_api)
 
 aux_source_directory(net_api NET_API_SRC)
 
-add_library(net_api ${NET_API_SRC})
+add_library(net_api SHARED ${NET_API_SRC})
 
 target_link_libraries(net_api ${Boost_LIBRARIES})
 

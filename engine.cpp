@@ -41,5 +41,6 @@ lsy::engine::engine(std::string file)
 
 void lsy::engine::ConnectHandle(port_all* po)
 {
+	po->start();
     auto p = new player(po);
 }

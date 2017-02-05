@@ -109,7 +109,7 @@ namespace lsy
         }
         bool valid() const
         {
-            return ptr == nullptr;
+            return ptr != nullptr;
         }
         T* get() const
         {
@@ -249,25 +249,25 @@ namespace lsy
         put uint16_t of host endian to the buffer
     */
     template <>
-    void buffer::put< uint16_t >(uint16_t a);
+    void BOOST_SYMBOL_EXPORT buffer::put< uint16_t >(uint16_t a);
 
     /*
         put uint32_t of host endian to the buffer
     */
     template <>
-    void buffer::put< uint32_t >(uint32_t a);
+    void BOOST_SYMBOL_EXPORT buffer::put< uint32_t >(uint32_t a);
 
     /*
         get uint16_t of host endian from the buffer
     */
     template <>
-    uint16_t buffer::get< uint16_t >() const;
+    uint16_t BOOST_SYMBOL_EXPORT buffer::get< uint16_t >() const;
 
     /*
         get uint32_t of host endian from the buffer
     */
     template <>
-    uint32_t buffer::get< uint32_t >() const;
+    uint32_t BOOST_SYMBOL_EXPORT buffer::get< uint32_t >() const;
 
     /*
         a template class used to convert the call back style socket write to

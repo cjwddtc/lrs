@@ -1,19 +1,25 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <iostream>
-#include <listener.h>
+#include <listener.h>/*
 #include <nana/gui/place.hpp>
 #include <nana/gui/widgets/button.hpp>
 #include <nana/gui/widgets/label.hpp>
 #include <nana/gui/widgets/textbox.hpp>
-#include <nana/gui/wvl.hpp>
+#include <nana/gui/wvl.hpp>*/
 int main()
 {
-    using namespace nana;
+    //using namespace nana;
     boost::property_tree::ptree pt;
     boost::property_tree::read_xml("client.xml", pt);
     lsy::listener li;
-    // li.OnConnect.connect([](){});
+	li.OnConnect.connect([](auto port) {port->start();
+	auto p=port->resign_port(0);
+	p->start();
+	lsy::buffer buf(4);
+	buf.put<uint32_t>(10);
+	p->write(buf, []() {}); });
     li.add_group(pt.find("client")->second);
+	/*
     // Define widgets
     form    fm;
     textbox usr{fm}, pswd{fm};
@@ -55,6 +61,6 @@ int main()
     // until the form is resized.
     plc.collocate();
     fm.show();
-    exec();
+    exec();*/
     li.join();
 }
