@@ -64,7 +64,7 @@ namespace lsy
             , buf(buf_size)
         {
         }
-        virtual void read()
+        virtual void start()
         {
             inc();
             soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
@@ -73,7 +73,7 @@ namespace lsy
                                     dec();
                                     if (error != 0)
                                     {
-                                        OnError((size_t)error);
+                                        OnError(error);
                                         enable();
                                     }
                                     else
@@ -81,7 +81,7 @@ namespace lsy
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
                                         buf.reset();
-                                        read();
+                                        start();
                                         OnMessage(buf_);
                                     }
                                 });
@@ -116,9 +116,9 @@ namespace lsy
     typedef tcp* tcp_ptr;
     class tcp_listener : public socket_getter
     {
-        boost::asio::io_service                            io_service;
-        size_t                                             buf_size;
-        std::unique_ptr< boost::asio::ip::tcp::acceptor* > acc;
+        boost::asio::io_service                           io_service;
+        size_t                                            buf_size;
+        std::unique_ptr< boost::asio::ip::tcp::acceptor > acc;
 
       public:
         tcp_listener()
@@ -136,23 +136,24 @@ namespace lsy
                               [c, this](const boost::system::error_code& ec) {
                                   accept(c, ec);
                               });
-            NewSocket(ptr);
+            OnNewSocket(ptr);
         }
 
         virtual void start(boost::property_tree::ptree& config,
                            std::thread&                 thr)
         {
             buf_size = config.get("buf_size", 256);
-            acc.swap(std::make_unique< boost::asio::ip::tcp::acceptor >(
+            std::make_unique< boost::asio::ip::tcp::acceptor >(
                 io_service,
                 boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(),
-                                               config.get("port", 12345))));
+                                               config.get("port", 12345)))
+                .swap(acc);
             auto c = new tcp(io_service, buf_size);
             acc->async_accept(c->soc,
                               [c, this](const boost::system::error_code& ec) {
-                                  self->accept(c, ec);
+                                  accept(c, ec);
                               });
-            std::thread([self = shared_from_this()]() {
+            std::thread([this]() {
                 io_service.run();
                 delete this;
             }).swap(thr);
@@ -171,7 +172,6 @@ namespace lsy
 
       public:
         tcp_connector()
-            : io_service(new boost::asio::io_service)
         {
         }
 
@@ -186,28 +186,28 @@ namespace lsy
                     config.get("port", 12345)),
                 [this](const boost::system::error_code& error) {
                     boost::asio::detail::throw_error(error, "start");
-                    soc->read();
-                    NewSocket(soc);
+                    soc->start();
+                    OnNewSocket(soc);
                 });
-            std::thread([&io_service]() {
-                io->run();
+            std::thread([this]() {
+                io_service.run();
                 delete this;
             }).swap(thr);
         }
 
         virtual void close()
         {
-            soc.close();
+            soc->close();
         }
     };
 
-    extern "C" BOOST_SYMBOL_EXPORT socket_getter& tcp_listner_socket_getter()
+    extern "C" BOOST_SYMBOL_EXPORT socket_getter* tcp_listner_socket_getter()
     {
-        return *new tcp_listener();
+        return new tcp_listener();
     }
 
-    extern "C" BOOST_SYMBOL_EXPORT socket_getter& tcp_connecter_socket_getter()
+    extern "C" BOOST_SYMBOL_EXPORT socket_getter* tcp_connecter_socket_getter()
     {
-        return *new tcp_connector();
+        return new tcp_connector();
     }
 }

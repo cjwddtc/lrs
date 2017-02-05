@@ -8,6 +8,7 @@ dynamic link library and used by the system
 #include <boost/config.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/signals2.hpp>
+#include <boost/system/error_code.hpp>
 #include <memory>
 #include <thread>
 namespace lsy
@@ -20,7 +21,8 @@ namespace lsy
 
     typedef as_ptr< assocket > assocket_ptr;
 
-    typedef boost::signals2::signal< void(size_t) >       error_signal;
+    typedef boost::signals2::signal< void(const boost::system::error_code&) >
+                                                          error_signal;
     typedef boost::signals2::signal< void(const buffer) > message_signal;
     typedef boost::signals2::signal< void(assocket*) >    new_signal;
 
@@ -43,6 +45,7 @@ namespace lsy
                         this function will write buf to the socket an return
            immediately,when the write operator finish func will be called
         */
+        virtual void start() = 0;
         virtual void write(buffer buf, std::function< void() > func = []() {})
             = 0;
 

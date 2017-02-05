@@ -50,6 +50,10 @@ namespace lsy
             });
         }
 
+        void start()
+        {
+        }
+
         virtual void close()
         {
         }
@@ -63,8 +67,8 @@ namespace lsy
         }
     };
 
-    extern "C" BOOST_SYMBOL_EXPORT socket_getter& websocket_socket_getter()
+    extern "C" BOOST_SYMBOL_EXPORT socket_getter* websocket_socket_getter()
     {
-        return *new websocket_listner();
+        return new websocket_listner();
     }
 };

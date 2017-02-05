@@ -28,7 +28,6 @@ namespace lsy
       public:
         virtual void close() = 0;
         signal       OnDestroy;
-        virtual void start() = 0;
         virtual ~as_close();
     };
 

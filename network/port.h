@@ -20,7 +20,7 @@ namespace lsy
         virtual void start();
 
       protected:
-        virtual ~port();
+        virtual ~port() = default;
     };
 
     class BOOST_SYMBOL_EXPORT port_all : public as_close,

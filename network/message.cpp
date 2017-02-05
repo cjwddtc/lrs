@@ -52,4 +52,9 @@ namespace lsy
     {
         ptr->close();
     }
+
+    void message_socket::start()
+    {
+        ptr->start();
+    }
 }

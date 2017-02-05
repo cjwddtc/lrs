@@ -8,8 +8,10 @@ typedef lsy::socket_getter* acceptor_fun();
 
 void lsy::listener::add(std::string name, boost::property_tree::ptree& pt)
 {
-    auto ptr = boost::dll::import< acceptor_fun >(
-        pt.get< std::string >("lib_path"), pt.get("listen", "listen"))();
+    auto p = boost::dll::import< acceptor_fun >(
+        pt.get< std::string >("lib_path"), pt.get("listen", "listen"));
+
+    auto  ptr   = p();
     auto& value = accs[name];
     value.first = ptr;
     ptr->OnNewSocket.connect(

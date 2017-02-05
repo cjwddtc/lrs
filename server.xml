@@ -1,0 +1,7 @@
+<engine>
+	<net_name>
+		<lib_path>libtcp.so</lib_path>
+		<listen>tcp_listner_socket_getter</listen>
+		<is_stream>true</is_stream>
+	</net_name>
+</engine>

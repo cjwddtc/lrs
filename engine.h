@@ -47,6 +47,6 @@ namespace lsy
       public:
         listener li;
         engine(std::string file);
-        void ConnectHandle(port_all& port);
+        void ConnectHandle(port_all* port);
     };
 }
