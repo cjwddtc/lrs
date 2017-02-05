@@ -125,8 +125,6 @@ namespace lsy
         {
         }
 
-        static BOOST_SYMBOL_EXPORT size_t size();
-
         void accept(tcp_ptr ptr, const boost::system::error_code& ec)
         {
             if (ec != 0)
@@ -166,10 +164,6 @@ namespace lsy
             acc->close();
         }
     };
-    size_t tcp_listener::size()
-    {
-        return sizeof(tcp_listener);
-    }
     class tcp_connector : public socket_getter
     {
         boost::asio::io_service io_service;
