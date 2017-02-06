@@ -24,7 +24,6 @@ lsy::player::player(port_all* soc)
         }
     });
     p->start();
-    ptr->get_soc()->OnDestroy.connect([this]() { delete this; });
 }
 lsy::engine::engine(std::string file)
 {

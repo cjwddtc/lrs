@@ -1,6 +1,6 @@
-/*
+/*! \file tool.h
 this file is network tool for the net_api
-mainly about buffer
+mainly about buffer and close_api
 */
 #pragma once
 #include <boost/asio/detail/socket_ops.hpp>
@@ -9,53 +9,57 @@ mainly about buffer
 #include <iostream>
 #include <stdint.h>
 
-class as_ptr;
-class as_ptr;
 namespace lsy
 {
+    /*!use for buffer's refrence count*/
     struct count_block
     {
-        size_t        count;
+        /// refrence count
+        size_t count;
+        /// the end of the struct
         unsigned char ptr[1];
     };
-
+    /// the no return no param signal
     typedef boost::signals2::signal< void() > signal;
-
+    /*!the base class of async close
+    the async network class cannot be close immediately
+    this class define some virtual function for the async close module*/
     class BOOST_SYMBOL_EXPORT as_close
     {
       protected:
         as_close() = default;
 
       public:
+        /// async class the class
         virtual void close() = 0;
-        signal       OnDestroy;
+        /// the class destroy's signal
+        signal OnDestroy;
+
+      protected:
+        /// async close should delete itself so destructer is protected
         virtual ~as_close();
     };
-
+    /*! Helper Classes for the async close module
+    private inherent from this class and give the contain async class as the
+    template param to this template class
+    then pass the contain async class to the construct function,this class will
+    delete this when contain async class is destroyed*/
     template < class T >
     class as_contain
     {
       protected:
+        /// pointer to the contain async class
         T* ptr;
-
-      public:
+        /// Constructor Construct from the pointer to the contain async class
+        ///@param pointer to the contain async class
         as_contain(T* ptr_)
             : ptr(ptr_)
         {
-            std::clog << "bind " << this << " to " << ptr << '\n';
-            ptr->OnDestroy.connect([this]() {
-                std::clog << "delete " << this << "because the bind " << ptr
-                          << '\n';
-                delete this;
-            });
-        }
-
-        T* operator->() const
-        {
-            return ptr;
+            ptr->OnDestroy.connect([this]() { delete this; });
         }
     };
-
+    /*!async close ptr:safe pointer to the async close class
+    it will be nullptr when the async close object is closed*/
     template < class T >
     class as_ptr
     {
@@ -63,22 +67,26 @@ namespace lsy
         boost::signals2::connection con;
 
       public:
+        /// Constructor Construct from the pointer to the contain async class
+        ///@param pointer to the contain async class
         as_ptr(T* ptr_)
             : ptr(ptr_)
             , con(ptr->OnDestroy.connect([this]() { ptr = 0; }))
         {
         }
+        /// Constructor Construct from nullptr
         as_ptr()
             : ptr(nullptr)
         {
         }
-
+        /// Copy Constructor Construct
         as_ptr(const as_ptr& other)
             : ptr(other.ptr)
             , con(ptr->OnDestroy.connect([this]() { ptr = 0; }))
         {
         }
 
+        /// detach the ptr
         void detach()
         {
             if (ptr)
@@ -88,13 +96,16 @@ namespace lsy
             }
         }
 
+        /// assign operator
+        ///@param other the other async close ptr
         as_ptr< T >& operator=(const as_ptr< T >& other)
         {
             detach();
             new (this) as_ptr< T >(other);
             return std::ref(*this);
         }
-
+        /// assign operator
+        ///@param other pointer pointe to the async close class
         as_ptr< T >& operator=(T* other)
         {
             detach();
@@ -102,34 +113,40 @@ namespace lsy
             return std::ref(*this);
         }
 
+        ///* operator
         T& operator*() const
         {
             assert(valid());
             return std::ref(*ptr);
         }
-
+        ///-> operator
         T* operator->() const
         {
             assert(valid());
             return ptr;
         }
+
+        /// valid function
+        ///@return wether the ptr is not a nullptr
         bool valid() const
         {
             return ptr != nullptr;
         }
+
+        /// get function
+        ///@return the pointer it point to
         T* get() const
         {
             return ptr;
         }
+        /// Destructor
         ~as_ptr()
         {
             detach();
         }
     };
 
-    /*
-                buffer class is a set of binary datas manage by refrence counter
-    */
+    /// buffer class is a set of binary datas manage by refrence counter
     class BOOST_SYMBOL_EXPORT buffer
     {
         count_block*           ptr;
@@ -137,22 +154,17 @@ namespace lsy
         mutable unsigned char* now_ptr;
 
       public:
-        /*
-                create a new buffer which size is given
-        */
+        /// create a new buffer from the given size
+        ///@param size_ the size of the buffer
         buffer(size_t size_);
-        /*
-                create a buffer which share the same data with the gived buf
-                but the read_write pointer will be set to start
-        */
+        /// Copy Constructor
+        /// the read_write pointer will be set to start
         buffer(const buffer& buf);
-        /*
-                get the start of the buf
-        */
+        /// begin funcion
+        ///@return return the begin of the buffer
         unsigned char* begin();
-        /*
-                get the end of the buf
-        */
+        /// end funcion
+        ///@return return the end of the buffer
         unsigned char* end();
         /*
                 get the raw data of the buffer

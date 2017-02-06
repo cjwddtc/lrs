@@ -19,11 +19,12 @@ namespace lsy
                         head.reset();
                         uint32_t a;
                         head.get(a);
-						if (a == 0) {
-							a++;
-						}
+                        if (a == 0)
+                        {
+                            a++;
+                        }
                         buf.renew(a);
-						head.reset();
+                        head.reset();
                         is_head = false;
                     }
                 }
@@ -39,6 +40,7 @@ namespace lsy
                 }
             }
         });
+        ptr->OnError.connect([this](auto a) { OnError(std::ref(a); });
     }
     void message_socket::write(buffer buf_, std::function< void() > func)
     {
