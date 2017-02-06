@@ -80,9 +80,11 @@ namespace lsy
                                     {
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
-                                        buf.renew();
-                                        start();
                                         OnMessage(buf_);
+                                        if (soc.is_open())
+                                        {
+                                            start();
+                                        }
                                     }
                                 });
         }
@@ -119,24 +121,28 @@ namespace lsy
         boost::asio::io_service                           io_service;
         size_t                                            buf_size;
         std::unique_ptr< boost::asio::ip::tcp::acceptor > acc;
+        std::unique_ptr< tcp >                            ptr;
 
       public:
         tcp_listener()
         {
         }
 
-        void accept(tcp_ptr ptr, const boost::system::error_code& ec)
+        void accept(const boost::system::error_code& ec)
         {
             if (ec != 0)
             {
                 OnError(ec);
+                OnNewSocket(ptr.release());
             }
-            auto c = new tcp(io_service, buf_size);
-            acc->async_accept(c->soc,
-                              [c, this](const boost::system::error_code& ec) {
-                                  accept(c, ec);
-                              });
-            OnNewSocket(ptr);
+            if (acc->is_open())
+            {
+                std::make_unique< tcp >(io_service, buf_size).swap(ptr);
+                acc->async_accept(ptr->soc,
+                                  [this](const boost::system::error_code& ec) {
+                                      accept(ec);
+                                  });
+            }
         }
 
         virtual void start(boost::property_tree::ptree& config,
@@ -148,11 +154,10 @@ namespace lsy
                 boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(),
                                                config.get("port", 12345)))
                 .swap(acc);
-            auto c = new tcp(io_service, buf_size);
-            acc->async_accept(c->soc,
-                              [c, this](const boost::system::error_code& ec) {
-                                  accept(c, ec);
-                              });
+            std::make_unique< tcp >(io_service, buf_size).swap(ptr);
+            acc->async_accept(
+                ptr->soc,
+                [this](const boost::system::error_code& ec) { accept(ec); });
             std::thread([this]() {
                 io_service.run();
                 delete this;

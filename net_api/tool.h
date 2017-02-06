@@ -6,6 +6,7 @@ mainly about buffer
 #include <boost/asio/detail/socket_ops.hpp>
 #include <boost/config.hpp>
 #include <boost/signals2.hpp>
+#include <iostream>
 #include <stdint.h>
 
 class as_ptr;
@@ -41,7 +42,12 @@ namespace lsy
         as_contain(T* ptr_)
             : ptr(ptr_)
         {
-            ptr->OnDestroy.connect([this]() { delete this; });
+            std::clog << "bind " << this << " to " << ptr << '\n';
+            ptr->OnDestroy.connect([this]() {
+                std::clog << "delete " << this << "because the bind " << ptr
+                          << '\n';
+                delete this;
+            });
         }
 
         T* operator->() const
@@ -242,7 +248,7 @@ namespace lsy
         */
         void renew();
 
-		void print();
+        void print();
         ~buffer();
     };
 
