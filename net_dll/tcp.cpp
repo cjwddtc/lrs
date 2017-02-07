@@ -35,6 +35,7 @@ namespace lsy
         void enable()
         {
             is_enable = true;
+            assert(count);
             if (!count)
                 delete this;
         }
@@ -43,12 +44,19 @@ namespace lsy
         {
             ++count;
         }
-        void dec()
+        bool dec()
         {
             assert(count);
             --count;
             if (is_enable && !count)
+            {
                 delete this;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         virtual ~count_close() = default;
@@ -70,13 +78,12 @@ namespace lsy
             soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
                                 [this](const boost::system::error_code& error,
                                        std::size_t bytes_transferred) {
-                                    dec();
                                     if (error != 0)
                                     {
                                         OnError(error);
                                         enable();
                                     }
-                                    else
+                                    if (dec() && error == 0)
                                     {
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
@@ -96,13 +103,15 @@ namespace lsy
                 buf,
                 [message, func, this](const boost::system::error_code& error,
                                       std::size_t bytes_transferred) {
-                    dec();
                     if (error != 0)
                     {
                         OnError(error);
                         enable();
                     }
-                    func();
+                    if (dec())
+                    {
+                        func();
+                    }
                 });
         }
         virtual void close()

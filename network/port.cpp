@@ -19,7 +19,6 @@ lsy::port_all::port_all(assocket* soc)
             std::clog << "port:" << port << " is not open,skip the message\n";
         }
     });
-    ptr->OnError.connect([this](auto a) { OnError(std::ref(a); });
 }
 
 lsy::port::port(port_all* all, uint16_t num_)
@@ -35,7 +34,7 @@ lsy::port* lsy::port_all::resign_port(uint16_t num)
         throw port_using(num);
     }
     auto p   = new port(this, num);
-    auto con = ptr->OnError.connect([p](auto ec) { p->OnError(std::ref(ec); });
+    auto con = ptr->OnError.connect([p](auto ec) { p->OnError(std::ref(ec)); });
     p->OnDestroy.connect([con]() { con.disconnect(); });
     return p;
 }

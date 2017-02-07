@@ -17,9 +17,8 @@ int main()
         port->start();
         auto p = port->resign_port(0);
         p->start();
-        lsy::buffer buf(4);
-        buf.put< uint32_t >(10);
-        p->write(buf, []() { std::cout << "writed\n"; });
+        const std::string str = "hello";
+        p->write(str, []() { std::cout << "writed\n"; });
         auto pp = port->resign_port(1);
         pp->start();
         pp->OnMessage.connect([](auto a) {

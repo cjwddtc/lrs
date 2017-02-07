@@ -57,6 +57,7 @@ namespace lsy
         {
             ptr->OnDestroy.connect([this]() { delete this; });
         }
+        virtual ~as_contain() = default;
     };
     /*!async close ptr:safe pointer to the async close class
     it will be nullptr when the async close object is closed*/
@@ -160,133 +161,96 @@ namespace lsy
         /// Copy Constructor
         /// the read_write pointer will be set to start
         buffer(const buffer& buf);
+        /// Constructor from std::string
+        ///@param str the string
+        buffer(const std::string& str);
         /// begin funcion
         ///@return return the begin of the buffer
         unsigned char* begin();
         /// end funcion
         ///@return return the end of the buffer
         unsigned char* end();
-        /*
-                get the raw data of the buffer
-        */
-        void* data() const;
-        /*
-                get the raw data of the buffer
-        */
-        void* data();
-        /*
-                get the size of the buffer
-        */
-        size_t size() const;
 
-        /*
-                change the logical size of the buffer
-                **warning this function will no change the real size of the
-           buffer's data so size should be smaller than the real size of the
-           buffer's data
-                if you want to change the real size use renew
-        */
+        /// get the raw data of the buffer
+        ///@return return the ptr point to the raw data
+        void* data() const;
+
+        /// change the logical size of the buffer
+        ///@warning this function will no change the real size of the buffer's
+        /// data so size should be smaller than the real size of the buffer's
+        /// data if you want to change the real size use renew
+        ///@param size the logical size of the buffer
         void resize(size_t size);
 
-        /*
-                the remain byte which is not read or write
-        */
+        /// get the size of the buffer
+        ///@return the size of the buffer
+        size_t size() const;
+        /// get the remain byte which is not read or write
+        ///@return the remain byte which is not read or write
         size_t remain() const;
-        /*
-                the remain byte which is read or write
-        */
+        /// get the remain byte which is read or write
+        ///@return the remain byte which is read or write
         size_t readed() const;
-        /*
-                template funciont which should never be called
-        */
-        template < class T >
-        void put(T a)
-        {
-            assert(false);
-        }
-        /*
-                put a data ptr point to which size is size
-        */
-        void put(const unsigned char* ptr, size_t size);
-        /*
-                put a buffer into this buffer as much as possibly
-        */
-        void put(const buffer&);
-        /*
-                get a uint16_t from the buffer which is host endian
-        */
-        void get(uint16_t& t) const;
-        /*
-                get a uint32_t from the buffer which is host endian
-        */
-        void get(uint32_t& t) const;
-        /*
-                get data to ptr which size is size
-        */
-        void get(unsigned char* ptr, size_t size) const;
-        /*
-        get data to buffer from another buffer
-        */
-        void get(const buffer&) const;
 
-        /*
-                template funciont which should never be called
-        */
+        /// put uint16_t to the buffer
+        ///@param a the uint16_t
+        void put(uint16_t a);
+        /// put uint32_t to the buffer
+        ///@param a the uint32_t
+        void put(uint32_t a);
+        /// put a data to the buffer
+        ///@param ptr point to the data
+        ///@param size size of the data
+        void put(const unsigned char* ptr, size_t size);
+        /// put another buffer to the buffer
+        ///@param buf another buffe
+        void put(const buffer& buf);
+
+
+        /// get a uint16_t from the buffer
+        ///@param t the uint16_t to save
+        void get(uint16_t& t) const;
+        /// get a uint32_t from the buffer
+        ///@param t the uint32_t to save
+        void get(uint32_t& t) const;
+        /// put a data from the buffer
+        ///@param ptr save the data the to ptr
+        ///@param size size of the data to get
+        ///@warning size should smaller than remain()
+        void get(unsigned char* ptr, size_t size) const;
+        /// read data to another buffer as much as possible
+        ///@param buf another buffe
+        void get(buffer& buf) const;
+        /// template return version of get
+        ///@return the value get
         template < class T >
         T get() const
         {
-            assert(false);
+            T a;
+            get(a);
         }
-
-        /*
-                get data to a pointer which size is size and return the pointer
-        */
+        /// get size of data from the buffer
+        ///@param size the size of the data to get
+        ///@return the ptr point to the data
         unsigned char* get(size_t size) const;
 
-        /*
-        reset the read_write pointer to the start
-        */
+        /// reset the read_write point to the start
         void reset() const;
-        /*
-                alloc a new memory of new_size for this buffer
-                if the old memory is only own by this buffer it will be free or
-           count will be decrease
-        */
+        /// realloc the memory of this buffer
+        /// if the old memory is only own by this buffer it will be free orcount
+        /// will be decrease
+        ///@param the new size
         void renew(size_t new_size);
-        /*
-                alloc a new memory of old size for this buffer
-                if the old memory is only own by this buffer it will be free or
-           count will be decrease
-        */
+        /// realloc the memory which have same size as the previous buffer of
+        /// this buffer
+        /// if the old memory is only own by this buffer it will be free orcount
+        /// will be decrease
         void renew();
-
+        /// print the buffer by hex
         void print();
+        /// Destructor
         ~buffer();
     };
-
-    /*
-        put uint16_t of host endian to the buffer
-    */
-    template <>
-    void BOOST_SYMBOL_EXPORT buffer::put< uint16_t >(uint16_t a);
-
-    /*
-        put uint32_t of host endian to the buffer
-    */
-    template <>
-    void BOOST_SYMBOL_EXPORT buffer::put< uint32_t >(uint32_t a);
-
-    /*
-        get uint16_t of host endian from the buffer
-    */
-    template <>
-    uint16_t BOOST_SYMBOL_EXPORT buffer::get< uint16_t >() const;
-
-    /*
-        get uint32_t of host endian from the buffer
-    */
-    template <>
-    uint32_t BOOST_SYMBOL_EXPORT buffer::get< uint32_t >() const;
 
     /*
         a template class used to convert the call back style socket write to

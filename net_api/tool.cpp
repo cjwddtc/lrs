@@ -28,6 +28,13 @@ namespace lsy
         ptr->count++;
     }
 
+    buffer::buffer(const std::string& str)
+        : ptr((count_block*)malloc(str.size() + sizeof(size_t)))
+        , size_(str.size())
+        , now_ptr(ptr->ptr)
+    {
+    }
+
     void buffer::get(uint16_t& t) const
     {
         t = boost::asio::detail::socket_ops::network_to_host_short(
@@ -43,11 +50,6 @@ namespace lsy
     }
 
     void* buffer::data() const
-    {
-        return ptr->ptr;
-    }
-
-    void* buffer::data()
     {
         return ptr->ptr;
     }
@@ -86,16 +88,14 @@ namespace lsy
         other.now_ptr += size;
     }
 
-    template <>
-    void buffer::put< uint16_t >(uint16_t a)
+    void buffer::put(uint16_t a)
     {
         *(uint16_t*)now_ptr = // a;
             boost::asio::detail::socket_ops::host_to_network_short(a);
         now_ptr += 2;
     }
 
-    template <>
-    void buffer::put< uint32_t >(uint32_t a)
+    void buffer::put(uint32_t a)
     {
         uint32_t i = // a;
             boost::asio::detail::socket_ops::host_to_network_long(a);
@@ -110,22 +110,6 @@ namespace lsy
         unsigned char* p = now_ptr;
         now_ptr += size;
         return p;
-    }
-
-    template <>
-    uint16_t buffer::get< uint16_t >() const
-    {
-        uint16_t t = *(uint16_t*)now_ptr;
-        now_ptr += 2;
-        return boost::asio::detail::socket_ops::network_to_host_short(t);
-    }
-
-    template <>
-    uint32_t buffer::get< uint32_t >() const
-    {
-        uint32_t t = *(uint32_t*)now_ptr;
-        now_ptr += 4;
-        return boost::asio::detail::socket_ops::network_to_host_long(t);
     }
 
     void buffer::reset() const
@@ -149,7 +133,7 @@ void lsy::buffer::get(unsigned char* ptr_, size_t size) const
     now_ptr += size;
 }
 
-void lsy::buffer::get(const buffer& other) const
+void lsy::buffer::get(buffer& other) const
 {
     size_t size = std::min(other.remain(), remain());
     get(other.now_ptr, size);
