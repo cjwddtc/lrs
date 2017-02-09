@@ -109,7 +109,7 @@ add_executable(main main.cpp)
 target_link_libraries(main net_api network database engine )
 
 set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
-find_package(wxwidgets)
+find_package(wxWidgets)
 include(${wxWidgets_USE_FILE})
 
 add_executable(client client.cpp client.h)
