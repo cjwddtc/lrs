@@ -48,18 +48,27 @@ namespace lsy
     {
       protected:
         /// pointer to the contain async class
-        T* ptr;
+        T*                          ptr;
+        boost::signals2::connection con;
         /// Constructor Construct from the pointer to the contain async class
         ///@param pointer to the contain async class
         as_contain(T* ptr_)
             : ptr(ptr_)
         {
-            ptr->OnDestroy.connect([this]() { delete this; });
+            ptr->OnDestroy
+                .connect([this]() {
+                    boost::signals2::connection().swap(con);
+                    delete this;
+                })
+                .swap(con);
         }
 
       protected:
         /// virtual Destructor
-        virtual ~as_contain() = default;
+        virtual ~as_contain()
+        {
+            con.disconnect();
+        }
     };
     /// async close ptr:safe pointer to the async close class
     /// it will be nullptr when the async close object is closed
@@ -230,7 +239,7 @@ namespace lsy
         {
             T a;
             get(a);
-			return a;
+            return a;
         }
         /// get size of data from the buffer
         ///@param size the size of the data to get
