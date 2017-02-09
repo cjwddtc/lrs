@@ -249,6 +249,9 @@ namespace lsy
         /// if the old memory is only own by this buffer it will be free orcount
         /// will be decrease
         void renew();
+		/// get the refrence count
+		///@return refrence count
+		size_t count()const ;
         /// print the buffer by hex
         void print() const;
         /// Destructor

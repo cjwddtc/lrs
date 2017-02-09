@@ -66,14 +66,23 @@ namespace lsy
       public:
         boost::asio::ip::tcp::socket soc;
         buffer                       buf;
-
+#ifndef NDEBUG
+		bool flag;
+#endif
         tcp(boost::asio::io_service& io, size_t buf_size)
             : soc(io)
             , buf(buf_size)
         {
+#ifndef NDEBUG
+			flag = true;
+#endif
         }
         virtual void start()
         {
+#ifndef NDEBUG
+			assert(flag);
+			flag = false;
+#endif
             inc();
             soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
                                 [this](const boost::system::error_code& error,
@@ -91,6 +100,9 @@ namespace lsy
                                         OnMessage(buf_);
                                         if (soc.is_open())
                                         {
+#ifndef NDEBUG
+											flag = true;
+#endif
                                             start();
                                         }
                                     }
@@ -200,7 +212,6 @@ namespace lsy
                     config.get("port", 12345)),
                 [this](const boost::system::error_code& error) {
                     boost::asio::detail::throw_error(error, "start");
-                    soc->start();
                     OnNewSocket(soc);
                 });
             std::thread([this]() {

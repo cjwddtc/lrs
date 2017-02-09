@@ -172,6 +172,11 @@ void lsy::buffer::renew()
     now_ptr = ptr->ptr;
 }
 
+
+size_t lsy::buffer::count()const {
+	return ptr->count;
+}
+
 unsigned char* lsy::buffer::begin()
 {
     return ptr->ptr;
