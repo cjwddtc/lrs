@@ -200,7 +200,7 @@ struct asd
 asd  test_asd;
 void lsy::buffer::print() const
 {
-    for (unsigned char a : *(lsy::buffer *)this)
+    for (unsigned char a : *(lsy::buffer*)this)
     {
         std::cout << test_asd.char16[a & 0xf] << test_asd.char16[a >> 4];
     }

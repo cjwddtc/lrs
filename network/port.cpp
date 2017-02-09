@@ -19,7 +19,7 @@ lsy::port_all::port_all(assocket* soc)
             std::clog << "port:" << port << " is not open,skip the message\n";
         }
     });
-	ptr->OnError.connect([this](auto a) {OnError(a); });
+    ptr->OnError.connect([this](auto a) { OnError(a); });
 }
 
 lsy::port::port(port_all* all, uint16_t num_)
