@@ -1,5 +1,6 @@
-#include "socket.h"
+#include "tool.h"
 #include <algorithm>
+#include <boost/asio/detail/socket_ops.hpp>
 #include <boost/config.hpp>
 #include <iostream>
 #include <memory>
@@ -197,9 +198,9 @@ struct asd
     }
 };
 asd  test_asd;
-void lsy::buffer::print()
+void lsy::buffer::print() const
 {
-    for (unsigned char a : *this)
+    for (unsigned char a : *(lsy::buffer *)this)
     {
         std::cout << test_asd.char16[a & 0xf] << test_asd.char16[a >> 4];
     }

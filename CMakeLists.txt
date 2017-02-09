@@ -12,7 +12,7 @@ include(cotire)
 
 
 
-find_program(CCACHE_FOUND ccache)
+find_program(CCAauCHE_FOUND ccache)
 
 if(CCACHE_FOUND)
 
@@ -35,8 +35,6 @@ include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 link_libraries(${Boost_LIBRARIES})
-
-message(${Boost_LIBRARIES})
 
 IF (UNIX)  
 
@@ -67,38 +65,26 @@ add_subdirectory(db_tools)
 #db_gen_file(asd ${CMAKE_SOURCE_DIR})
 
 
+function(lsy_add_directoy dir)
 
-include_directories(net_api)
-
-aux_source_directory(net_api NET_API_SRC)
-
-add_library(net_api SHARED ${NET_API_SRC})
-
-target_link_libraries(net_api)
+include_directories(${dir})
+foreach(type "cpp" "c" "h" "hpp")
+file(GLOB_RECURSE FILE_TMP "${dir}/*.${type}")
+set(SRC "${SRC};${FILE_TMP}")
+endforeach(type)
+add_library(${dir} SHARED ${SRC})
 
 cotire(net_api)
 
+endfunction(lsy_add_directoy)
 
-
-include_directories(network)
-
-aux_source_directory(network NETWORK_SRC)
-
-add_library(network SHARED ${NETWORK_SRC})
-
-target_link_libraries(network net_api )
-
-cotire(network)
-
-
+lsy_add_directoy(net_api)
+lsy_add_directoy(network net_api)
+target_link_libraries(network net_api)
 
 add_subdirectory(net_dll)
 
-
-
 add_subdirectory(sqlite)
-
-
 
 include_directories(database)
 
@@ -122,13 +108,9 @@ add_executable(main main.cpp)
 
 target_link_libraries(main net_api network database engine )
 
+set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
+find_package(wxwidgets)
+include(${wxWidgets_USE_FILE})
 
-add_executable(client client.cpp)
-
-target_link_libraries(client net_api network )
-
-IF (UNIX)  
-
-target_link_libraries(client nana X11 pthread rt Xft png asound)
-
-endif(UNIX)
+add_executable(client client.cpp client.h)
+target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})

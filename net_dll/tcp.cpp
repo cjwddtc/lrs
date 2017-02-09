@@ -20,7 +20,7 @@ namespace lsy
     {
     };
 
-    class BOOST_SYMBOL_EXPORT count_close
+    class count_close
     {
         std::atomic< unsigned > count;
         bool                    is_enable;
@@ -87,6 +87,7 @@ namespace lsy
                                     {
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
+										std::cout << "in:"; buf_.print(); std::cout << std::endl;
                                         OnMessage(buf_);
                                         if (soc.is_open())
                                         {
@@ -97,6 +98,7 @@ namespace lsy
         }
         virtual void write(buffer message, std::function< void() > func)
         {
+			std::cout << "out:"; message.print(); std::cout << std::endl;
             auto buf = boost::asio::buffer(message.data(), message.size());
             inc();
             soc.async_write_some(
@@ -108,10 +110,8 @@ namespace lsy
                         OnError(error);
                         enable();
                     }
-                    if (dec())
-                    {
-                        func();
-                    }
+                    func();
+                    dec();
                 });
         }
         virtual void close()
@@ -142,8 +142,9 @@ namespace lsy
             if (ec != 0)
             {
                 OnError(ec);
-                OnNewSocket(ptr.release());
-            }
+            }else{
+				OnNewSocket(ptr.release());
+			}
             if (acc->is_open())
             {
                 std::make_unique< tcp >(io_service, buf_size).swap(ptr);

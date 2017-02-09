@@ -37,7 +37,7 @@ namespace lsy
         std::array< as_ptr< port >, 65536 > ports;
 
         port_all(assocket* soc);
-
+		error_signal OnError;
         port* resign_port(uint16_t num);
         void add_map(port* p);
         virtual void close();

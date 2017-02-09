@@ -1,9 +1,8 @@
-/*! \file tool.h
-this file is network tool for the net_api
+/*! @file
+\brief this file is network tool for the net_api
 mainly about buffer and close_api
 */
 #pragma once
-#include <boost/asio/detail/socket_ops.hpp>
 #include <boost/config.hpp>
 #include <boost/signals2.hpp>
 #include <iostream>
@@ -57,10 +56,13 @@ namespace lsy
         {
             ptr->OnDestroy.connect([this]() { delete this; });
         }
+
+      protected:
+        /// virtual Destructor
         virtual ~as_contain() = default;
     };
-    /*!async close ptr:safe pointer to the async close class
-    it will be nullptr when the async close object is closed*/
+    /// async close ptr:safe pointer to the async close class
+    /// it will be nullptr when the async close object is closed
     template < class T >
     class as_ptr
     {
@@ -192,10 +194,10 @@ namespace lsy
         ///@return the remain byte which is read or write
         size_t readed() const;
 
-        /// put uint16_t to the buffer
+        /// put uint16_t to the buffer by the network endian
         ///@param a the uint16_t
         void put(uint16_t a);
-        /// put uint32_t to the buffer
+        /// put uint32_t to the buffer by the network endian
         ///@param a the uint32_t
         void put(uint32_t a);
         /// put a data to the buffer
@@ -207,10 +209,10 @@ namespace lsy
         void put(const buffer& buf);
 
 
-        /// get a uint16_t from the buffer
+        /// get a uint16_t from the buffer to the host endian
         ///@param t the uint16_t to save
         void get(uint16_t& t) const;
-        /// get a uint32_t from the buffer
+        /// get a uint32_t from the buffer to the host endian
         ///@param t the uint32_t to save
         void get(uint32_t& t) const;
         /// put a data from the buffer
@@ -228,6 +230,7 @@ namespace lsy
         {
             T a;
             get(a);
+			return a;
         }
         /// get size of data from the buffer
         ///@param size the size of the data to get
@@ -247,41 +250,8 @@ namespace lsy
         /// will be decrease
         void renew();
         /// print the buffer by hex
-        void print();
+        void print() const;
         /// Destructor
         ~buffer();
     };
-
-    /*
-        a template class used to convert the call back style socket write to
-       signal style
-    */
-    template < class T >
-    class writer
-    {
-        T& value;
-
-      public:
-        writer(T& a)
-            : value(a)
-        {
-        }
-        boost::signals2::signal< void() > OnWrite;
-        void send(buffer message)
-        {
-            value.write(message, [this]() {
-                OnWrite();
-                delete this;
-            });
-        }
-    };
-
-    /*
-        get the write signal
-    */
-    template < class T >
-    writer< T >& get_writer(T& value)
-    {
-        return *new writer< T >(value);
-    }
 }

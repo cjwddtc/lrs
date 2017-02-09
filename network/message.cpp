@@ -8,6 +8,9 @@ namespace lsy
         , is_head(true)
     {
         ptr->OnMessage.connect([this](const buffer buf_) {
+			std::cout << "message in:";
+			buf_.print();
+			std::cout << "\n";
             while (buf_.remain())
             {
                 if (is_head)
