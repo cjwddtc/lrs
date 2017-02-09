@@ -173,8 +173,9 @@ void lsy::buffer::renew()
 }
 
 
-size_t lsy::buffer::count()const {
-	return ptr->count;
+size_t lsy::buffer::count() const
+{
+    return ptr->count;
 }
 
 unsigned char* lsy::buffer::begin()

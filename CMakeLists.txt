@@ -12,7 +12,7 @@ include(cotire)
 
 
 
-find_program(CCAauCHE_FOUND ccache)
+find_program(CCACHE_FOUND ccache)
 
 if(CCACHE_FOUND)
 
@@ -108,9 +108,10 @@ add_executable(main main.cpp)
 
 target_link_libraries(main net_api network database engine )
 
-set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
-find_package(wxWidgets)
+#set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
+#find_package(wxwidgets)
+find_package(wxWidgets REQUIRED net gl core base xrc)
 include(${wxWidgets_USE_FILE})
-
+message("\n|${wxWidgets_LIBRARIES}|\n")
 add_executable(client client.cpp client.h)
 target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})

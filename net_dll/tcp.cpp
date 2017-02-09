@@ -67,21 +67,21 @@ namespace lsy
         boost::asio::ip::tcp::socket soc;
         buffer                       buf;
 #ifndef NDEBUG
-		bool flag;
+        bool flag;
 #endif
         tcp(boost::asio::io_service& io, size_t buf_size)
             : soc(io)
             , buf(buf_size)
         {
 #ifndef NDEBUG
-			flag = true;
+            flag = true;
 #endif
         }
         virtual void start()
         {
 #ifndef NDEBUG
-			assert(flag);
-			flag = false;
+            assert(flag);
+            flag = false;
 #endif
             inc();
             soc.async_read_some(boost::asio::buffer(buf.data(), buf.size()),
@@ -103,7 +103,7 @@ namespace lsy
                                         if (soc.is_open())
                                         {
 #ifndef NDEBUG
-											flag = true;
+                                            flag = true;
 #endif
                                             start();
                                         }

@@ -98,3 +98,6 @@ bool DerivedApp::OnInit()
     // the_frame->Show(true);
     return true;
 }
+#ifdef wxIMPLEMENT_WXWIN_MAIN_CONSOLE
+wxIMPLEMENT_WXWIN_MAIN_CONSOLE
+#endif
