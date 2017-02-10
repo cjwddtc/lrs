@@ -2,6 +2,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <iostream>
 #include <listener.h>
+#include <memory>
 #include <stdint.h>
 class DerivedApp : public wxApp
 {
@@ -51,11 +52,15 @@ bool DerivedApp::OnInit()
                 buf.put((unsigned char*)passwd.data(), passwd.size() + 1);
                 auto p = pa->resign_port(0);
                 p->start();
-                p->OnMessage.connect([this](auto buf) {
+                auto num_ptr = std::make_shared< uint16_t >();
+                p->OnMessage.connect([this, p, num_ptr](auto buf) {
                     buf.print();
-                    uint16_t i;
-                    buf.get(i);
-                    std::cout << "\n" << i << std::endl;
+                    buf.get(*num_ptr);
+                    p->close();
+                });
+                p->OnDestroy.connect([this, num_ptr]() {
+                    dlg->Close();
+                    auto p = pa->resign_port(0);
                 });
                 p->write(buf, []() {});
                 dlg->SetTitle("logining");
@@ -92,11 +97,7 @@ bool DerivedApp::OnInit()
                  std::cout << std::endl;
          });*/
     });
-    li.add_group(pt.find("client")->second);
-    // wxFrame* the_frame = new wxFrame(0, wxID_ANY,"asd", wxPoint(50, 50),
-    // wxSize(450, 340));
-    // the_frame->Show(true);
-    return true;
+    li.add_group(pt.find("client")->second) return true;
 }
 #ifdef wxIMPLEMENT_WXWIN_MAIN_CONSOLE
 wxIMPLEMENT_WXWIN_MAIN_CONSOLE
