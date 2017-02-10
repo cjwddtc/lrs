@@ -79,30 +79,20 @@ cotire(net_api)
 endfunction(lsy_add_directoy)
 
 lsy_add_directoy(net_api)
-lsy_add_directoy(network net_api)
+lsy_add_directoy(network)
 target_link_libraries(network net_api)
 
 add_subdirectory(net_dll)
 
 add_subdirectory(sqlite)
 
-include_directories(database)
-
-aux_source_directory(database DATABASE_SRC)
-
-add_library(database SHARED ${DATABASE_SRC})
+lsy_add_directoy(database)
 
 target_link_libraries(database libsqlite)
-
-cotire(database)
-
-
 
 add_library(engine SHARED engine.cpp engine.h)
 
 target_link_libraries(engine database network )
-
-
 
 add_executable(main main.cpp)
 
