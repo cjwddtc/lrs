@@ -14,7 +14,7 @@ class DerivedApp : public wxApp
     virtual bool OnInit();
     virtual int  OnExit();
 };
-IMPLEMENT_APP(DerivedApp);
+IMPLEMENT_APP_CONSOLE(DerivedApp);
 
 typedef std::function< void() > func_type;
 void gui_run(func_type func)
@@ -97,8 +97,9 @@ bool DerivedApp::OnInit()
                  std::cout << std::endl;
          });*/
     });
-    li.add_group(pt.find("client")->second) return true;
+    li.add_group(pt.find("client")->second);
+    // wxFrame* the_frame = new wxFrame(0, wxID_ANY,"asd", wxPoint(50, 50),
+    // wxSize(450, 340));
+    // the_frame->Show(true);
+    return true;
 }
-#ifdef wxIMPLEMENT_WXWIN_MAIN_CONSOLE
-wxIMPLEMENT_WXWIN_MAIN_CONSOLE
-#endif
