@@ -1,14 +1,12 @@
 [requires]
 sqlite3/3.15.2@jgsogo/stable
 Boost/1.62.0@lasote/testing
-wxWidgets_custom/3.1.0@sl/stable
 websocketpp/0.7.0@TyRoXx/stable
 
 [generators]
 cmake
 
 [options]
-wxWidgets_custom:shared=True
 Boost:shared=True
 
 [imports]
