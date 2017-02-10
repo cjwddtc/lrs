@@ -97,7 +97,7 @@ bool DerivedApp::OnInit()
                  std::cout << std::endl;
          });*/
     });
-    li.add_group(pt.find("client")->second) return true;
+	li.add_group(pt.find("client")->second); return true;
 }
 #ifdef wxIMPLEMENT_WXWIN_MAIN_CONSOLE
 wxIMPLEMENT_WXWIN_MAIN_CONSOLE

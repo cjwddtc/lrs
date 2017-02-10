@@ -2,14 +2,10 @@ cmake_minimum_required(VERSION 3.7)
 
 project(main)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sqlite)
+include(${CMAKE_SOURCE_DIR}/cmake/cotire.cmake)
 
-
-
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-include(cotire)
-
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
 
 find_program(CCACHE_FOUND ccache)
@@ -22,12 +18,6 @@ if(CCACHE_FOUND)
 
 endif(CCACHE_FOUND)
 
-find_package(Threads REQUIRED)
-
-link_libraries(Threads::Threads)
- 
-
-
 find_package(Boost REQUIRED COMPONENTS system filesystem log)
 
 include_directories(${Boost_INCLUDE_DIR})
@@ -38,15 +28,11 @@ link_libraries(${Boost_LIBRARIES})
 
 IF (UNIX)  
 
-link_libraries(${CMAKE_DL_LIBS})
-
 ADD_DEFINITIONS(-fPIC)
 
 ADD_DEFINITIONS(-fvisibility=hidden)
 
 endif(UNIX)
-
-
 
 IF (WIN32)  
 
@@ -84,19 +70,11 @@ target_link_libraries(network net_api)
 
 add_subdirectory(net_dll)
 
-add_subdirectory(sqlite)
+find_package(SQLite3 REQUIRED)
 
-include_directories(database)
+lsy_add_directoy(database)
 
-aux_source_directory(database DATABASE_SRC)
-
-add_library(database SHARED ${DATABASE_SRC})
-
-target_link_libraries(database libsqlite)
-
-cotire(database)
-
-
+target_link_libraries(database ${SQLITE3_LIBRARIES})
 
 add_library(engine SHARED engine.cpp engine.h)
 
@@ -112,6 +90,5 @@ target_link_libraries(main net_api network database engine )
 #find_package(wxwidgets)
 find_package(wxWidgets REQUIRED net gl core base xrc)
 include(${wxWidgets_USE_FILE})
-message("\n|${wxWidgets_LIBRARIES}|\n")
 add_executable(client client.cpp client.h)
 target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})
