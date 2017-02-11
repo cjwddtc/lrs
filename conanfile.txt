@@ -1,13 +1,15 @@
 [requires]
 sqlite3/3.15.2@jgsogo/stable
-Boost/1.62.0@lasote/testing
+Boost/1.63.0@cjwddtc/testing
 websocketpp/0.7.0@TyRoXx/stable
+wxWidgets/3.0.3@cjwddtc/testing
 
 [generators]
 cmake
 
 [options]
 Boost:shared=True
+wxWidgets:shared=True
 
 [imports]
 bin, *.dll -> ./bin

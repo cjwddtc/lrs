@@ -5,13 +5,15 @@ include(${CMAKE_SOURCE_DIR}/cmake/cotire.cmake)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
+message("\n:${wxWidgets_ROOT_DIR}:\n")
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-find_package(Boost REQUIRED COMPONENTS system filesystem log)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
 link_libraries(${Boost_LIBRARIES})
 
 IF (UNIX)  
@@ -45,10 +47,10 @@ target_link_libraries(network net_api)
 
 add_subdirectory(net_dll)
 
-add_subdirectory(sqlite)
+find_package(SQLite3 REQUIRED)
 
 lsy_add_directoy(database)
-target_link_libraries(database libsqlite)
+target_link_libraries(database ${SQLITE3_LIBRARY})
 
 add_library(engine SHARED engine.cpp engine.h)
 target_link_libraries(engine database network )
@@ -57,10 +59,9 @@ add_executable(main main.cpp)
 target_link_libraries(main net_api network database engine )
 
 #set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
-find_package(wxwidgets)
+#find_package(wxwidgets)
 find_package(wxWidgets REQUIRED net gl core base xrc)
 include(${wxWidgets_USE_FILE})
-message("\n|${wxWidgets_LIBRARIES}|\n")
 add_executable(client client.cpp client.h)
 target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})
  
