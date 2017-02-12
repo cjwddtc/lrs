@@ -1,8 +1,8 @@
 [requires]
 sqlite3/3.15.2@jgsogo/stable
-Boost/1.63.0@cjwddtc/testing
+Boost/1.63.0@cjwddtc/stable
 websocketpp/0.7.0@TyRoXx/stable
-wxWidgets/3.0.3@cjwddtc/testing
+wxWidgets/3.0.3@cjwddtc/stable
 
 [generators]
 cmake
@@ -14,3 +14,4 @@ wxWidgets:shared=True
 [imports]
 bin, *.dll -> ./bin
 lib, *.dylib* -> ./bin
+lib, *.so -> ./bin
