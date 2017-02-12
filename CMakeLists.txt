@@ -15,10 +15,13 @@ endif(CCACHE_FOUND)
 
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 link_libraries(${Boost_LIBRARIES})
+message("${Boost_LIBRARIES}")
 
 IF (UNIX)  
+add_compile_options(-pthread)
 ADD_DEFINITIONS(-fPIC)
 ADD_DEFINITIONS(-fvisibility=hidden)
+Link_libraries(dl)
 endif(UNIX)
 
 IF (WIN32)  
@@ -26,8 +29,12 @@ add_compile_options("/EHsc")
 link_libraries(ws2_32.lib mswsock.lib)
 endif(WIN32)
 
-include_directories(db_tools)
-add_subdirectory(db_tools)
+#include_directories(db_tools)
+#add_subdirectory(db_tools)
+
+#include_directories(sqlite)
+#add_subdirectory(sqlite)
+
 #db_gen_file(asd ${CMAKE_SOURCE_DIR})
 
 function(lsy_add_directoy dir)
@@ -47,16 +54,16 @@ target_link_libraries(network net_api)
 
 add_subdirectory(net_dll)
 
-find_package(SQLite3 REQUIRED)
+#find_package(SQLite3 REQUIRED)
 
-lsy_add_directoy(database)
-target_link_libraries(database ${SQLITE3_LIBRARY})
+#lsy_add_directoy(database)
+#target_link_libraries(database libsqlite pthread)
 
 add_library(engine SHARED engine.cpp engine.h)
-target_link_libraries(engine database network )
+target_link_libraries(engine network )
 
 add_executable(main main.cpp)
-target_link_libraries(main net_api network database engine )
+target_link_libraries(main net_api network engine )
 
 #set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
 #find_package(wxwidgets)
