@@ -1,2 +1,4 @@
 build
 format.bat
+*.dir
+x64

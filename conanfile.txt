@@ -1,5 +1,5 @@
 [requires]
-sqlite3/3.15.2@jgsogo/stable
+sqlite3/3.16.2@cjwddtc/develop
 Boost/1.63.0@cjwddtc/stable
 websocketpp/0.7.0@TyRoXx/stable
 wxWidgets/3.0.3@cjwddtc/stable

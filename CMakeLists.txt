@@ -54,10 +54,10 @@ target_link_libraries(network net_api)
 
 add_subdirectory(net_dll)
 
-#find_package(SQLite3 REQUIRED)
+find_package(SQLite3 REQUIRED)
 
-#lsy_add_directoy(database)
-#target_link_libraries(database libsqlite pthread)
+lsy_add_directoy(database)
+target_link_libraries(database ${SQLITE3_LIBRARIES})
 
 add_library(engine SHARED engine.cpp engine.h)
 target_link_libraries(engine network )
@@ -69,7 +69,6 @@ target_link_libraries(main net_api network engine )
 #find_package(wxwidgets)
 find_package(wxWidgets REQUIRED core base xrc)
 link_directories("${wxWidgets_LIBRARY_DIRS}")
-message("\n|${wxWidgets_LIBRARY_DIRS}"|\n)
 include(${wxWidgets_USE_FILE})
 add_executable(client client.cpp client.h)
 target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})
