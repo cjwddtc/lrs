@@ -15,6 +15,14 @@ namespace lsy
     {
     }
 
+    database::database(database&& other)
+        : db(other.db)
+        , work(io)
+    {
+        other.work.~work();
+        other.thr.join();
+        std::thread([this]() { io.run(); }).swap(thr);
+    }
     void database::statement::bind_(const std::string& str, int n)
     {
         char* ptr = (char*)malloc(str.size() + 1);
@@ -120,7 +128,13 @@ namespace lsy
 
     database::~database()
     {
+        stop();
         sqlite3_close(db);
+    }
+
+    database::statement* database::new_statement(std::string sql)
+    {
+        return new database::statement(this, sql);
     }
 
     boost::asio::io_service& database::get_io_service()

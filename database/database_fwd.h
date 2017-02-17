@@ -42,11 +42,15 @@ namespace lsy
         boost::asio::io_service::work work;
 
       public:
+        database(database&& other);
         database(std::string path);
+
+        void stop();
         ~database();
+
         sqlite3*                 get_db();
-        void                     stop();
         boost::asio::io_service& get_io_service();
+
         class statement
         {
           protected:
@@ -84,5 +88,6 @@ namespace lsy
 
             proxy operator[](int n);
         };
+        database::statement* new_statement(std::string sql);
     };
 }

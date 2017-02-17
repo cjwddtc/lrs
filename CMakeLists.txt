@@ -59,7 +59,7 @@ find_package(SQLite3 REQUIRED)
 lsy_add_directoy(database)
 target_link_libraries(database ${SQLITE3_LIBRARIES})
 
-add_library(engine SHARED engine.cpp engine.h)
+lsy_add_directoy(engine)
 target_link_libraries(engine network database)
 
 add_executable(main main.cpp)

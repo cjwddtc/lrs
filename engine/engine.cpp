@@ -1,17 +1,11 @@
-//#include "database.h"
+
+#include "database.h"
+#include "db_mgr.h"
 #include "engine.h"
 #include "listener.h"
 #include "socket.h"
 #include <boost/property_tree/xml_parser.hpp>
-
-static lsy::db_manager::db_set*dbs=(lsy::db_manager::db_set*)malloc(sizeof(lsy::db_manager::db_set));
-void lsy::db_manager::init(std::string file) 
-{
-	boost::property_tree::ptree pt;
-	boost::property_tree::read_xml(file, pt);
-	auto p = pt.find("database")->second;
-	new (&(db_manager::dbs->user))database(p.get<std::string>("user"));
-}
+db_manager dbs("server.xml");
 lsy::player::player(port_all* soc)
     : as_contain< port_all >(soc)
 {
@@ -19,7 +13,7 @@ lsy::player::player(port_all* soc)
     p->OnMessage.connect([this, p](buffer buf) {
         std::string id((char*)buf.data());
         std::string passwd((char*)buf.data() + id.size() + 1);
-		database::statement st(db_manager.dbs->user,"select passwd");
+        auto        st = dbs["user"].new_statement("");
         std::cout << id << " login" << std::endl;
         std::cout << "passwd" << passwd << std::endl;
         buffer size(2);
