@@ -1,8 +1,18 @@
 #pragma once
-//#include "database_fwd.h"
+#include "database_fwd.h"
 #include "listener.h"
 namespace lsy
 {
+	class db_manager
+	{
+	public:
+		struct db_set 
+		{
+			database user;
+		};
+		static db_set*dbs;
+		static void init(std::string file);
+	};
     class player : private as_contain< port_all >
     {
       protected:
