@@ -60,13 +60,11 @@ lsy_add_directoy(database)
 target_link_libraries(database ${SQLITE3_LIBRARIES})
 
 add_library(engine SHARED engine.cpp engine.h)
-target_link_libraries(engine network )
+target_link_libraries(engine network database)
 
 add_executable(main main.cpp)
-target_link_libraries(main net_api network engine )
+target_link_libraries(main net_api network engine database)
 
-#set(wxWidgets_FIND_COMPONENTS "core;base;xrc")
-#find_package(wxwidgets)
 find_package(wxWidgets REQUIRED core base xrc)
 link_directories("${wxWidgets_LIBRARY_DIRS}")
 include(${wxWidgets_USE_FILE})

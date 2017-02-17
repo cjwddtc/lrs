@@ -1,24 +1,10 @@
 #pragma once
 #include <boost/asio/io_service.hpp>
-#include <boost/variant.hpp>
-#include <functional>
-#include <map>
+#include <boost/signals2.hpp>
 #include <sqlite3.h>
 #include <thread>
-#include <utility>
 namespace lsy
 {
-    template < class T >
-    class BOOST_SYMBOL_EXPORT value
-    {
-      public:
-        T    val[2];
-        bool is_change;
-        operator const T&();
-        value& operator=(T value_);
-        void set(T value_);
-    };
-
     class BOOST_SYMBOL_EXPORT const_blob
     {
       public:
@@ -43,6 +29,11 @@ namespace lsy
         run_sql_fail_exception(std::string str_);
     };
 
+
+    class unexpect_busy : public std::exception
+    {
+    };
+
     class BOOST_SYMBOL_EXPORT database
     {
         sqlite3*                      db;
@@ -62,20 +53,19 @@ namespace lsy
             sqlite3_stmt*            st;
             boost::asio::io_service& io;
             void                     reset();
-
-          public:
             void bind_(const std::string& str, int n);
             void bind_(const_blob& m, int n);
             void bind_(int m, int n);
             void bind_(double m, int n);
+            bool run();
 
-
+          public:
             ~statement();
-            statement(database& db, std::string sql);
+            statement(database* db, std::string sql);
 
             template < size_t n = 1, class T, class... ARG >
             void bind(T a, ARG... arg);
-            template < size_t n >
+            template < size_t n = -1 >
             void              bind();
             class proxy
             {
@@ -90,49 +80,9 @@ namespace lsy
                 operator double();
             };
 
-            class unexpect_busy : public std::exception
-            {
-            };
+            boost::signals2::signal< void(bool) > OnData;
 
             proxy operator[](int n);
-
-
-            bool run();
-            template < class T >
-            void async_run(std::function< void(T) > func);
-            void async_run(std::function< void() > func);
-        };
-    };
-
-    template < class T >
-    class bind_base
-    {
-      public:
-        database&   db;
-        std::string select;
-        class value_type
-        {
-          public:
-            template < class F >
-            value_type(value< F > T::*a, const std::string& name_);
-            boost::variant< value< const_blob > T::*, value< int > T::*,
-                            value< double > T::*, value< std::string > T::* >
-                        val;
-            std::string name;
-        };
-        bind_base(database& db_);
-        std::map< std::string, std::vector< value_type > > values;
-        template < class F >
-        void add(value< F > T::*a, const std::string& name);
-        void gen_select();
-        class statement : public database::statement
-        {
-            bind_base< T >& bind_class;
-
-          public:
-            statement(bind_base< T >& bind_, std::string condition);
-            void async_run_func(std::function< void(T&) > func);
-            void async_run(std::function< void(T&) > func);
         };
     };
 }
