@@ -50,7 +50,6 @@ namespace lsy
 
         sqlite3*                 get_db();
         boost::asio::io_service& get_io_service();
-
         class statement
         {
           protected:
@@ -84,10 +83,15 @@ namespace lsy
                 operator double();
             };
 
+            void close();
+
             boost::signals2::signal< void(bool) > OnData;
+
 
             proxy operator[](int n);
         };
+        void join();
+
         database::statement* new_statement(std::string sql);
     };
 }

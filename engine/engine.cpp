@@ -5,7 +5,7 @@
 #include "listener.h"
 #include "socket.h"
 #include <boost/property_tree/xml_parser.hpp>
-db_manager dbs("server.xml");
+lsy::db_manager dbs("db.json");
 lsy::player::player(port_all* soc)
     : as_contain< port_all >(soc)
 {
@@ -13,7 +13,7 @@ lsy::player::player(port_all* soc)
     p->OnMessage.connect([this, p](buffer buf) {
         std::string id((char*)buf.data());
         std::string passwd((char*)buf.data() + id.size() + 1);
-        auto        st = dbs["user"].new_statement("");
+        auto        st = dbs["user"]->new_statement("");
         std::cout << id << " login" << std::endl;
         std::cout << "passwd" << passwd << std::endl;
         buffer size(2);

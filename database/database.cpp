@@ -19,9 +19,14 @@ namespace lsy
         : db(other.db)
         , work(io)
     {
+        other.db = nullptr;
         other.work.~work();
         other.thr.join();
         std::thread([this]() { io.run(); }).swap(thr);
+    }
+    void database::join()
+    {
+        thr.join();
     }
     void database::statement::bind_(const std::string& str, int n)
     {
@@ -82,6 +87,11 @@ namespace lsy
         sqlite3_prepare_v2(db->db, sql.c_str(), -1, &st, 0);
     }
 
+    void database::statement::close()
+    {
+        io.post([this]() { delete this; });
+    }
+
     database::statement::proxy database::statement::operator[](int n)
     {
         return database::statement::proxy(sqlite3_column_value(st, n));
@@ -121,15 +131,21 @@ namespace lsy
     {
         sqlite3_open(path.c_str(), &db);
         std::thread([this]() { io.run(); }).swap(thr);
-        auto p = std::make_shared< database::statement >(
-            this, "PRAGMA synchronous=OFF");
+        auto p = new database::statement(this, "PRAGMA synchronous=OFF");
         p->bind();
+        p->OnData.connect([p](bool flag) {
+            assert(flag);
+            p->close();
+        });
     }
 
     database::~database()
     {
-        stop();
-        sqlite3_close(db);
+        if (db)
+        {
+            stop();
+            sqlite3_close(db);
+        }
     }
 
     database::statement* database::new_statement(std::string sql)

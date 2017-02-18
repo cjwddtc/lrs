@@ -1,0 +1,6 @@
+{
+    "player": {
+        "id": "varchar",
+        "passed": "varchar"
+    }
+}
