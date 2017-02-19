@@ -17,8 +17,8 @@ namespace lsy
             // checkout if database exist
             bool flag = boost::filesystem::exists(dbfile);
             // connect database
-            auto it = dbs.emplace((std::string)a.first, db_proxy(dbfile));
-            assert(it.second);
+            auto pro_it = emplace((std::string)a.first, tmp::database(dbfile));
+            assert(pro_it.second);
             // if database not exist create the table
             if (!flag)
             {
@@ -40,8 +40,8 @@ namespace lsy
                         create_stream << b.first << " " << b.second.data();
                     }
                     create_stream << ");";
-                    auto st
-                        = it.first->second->new_statement(create_stream.str());
+                    auto st = pro_it.first->second.new_statement(
+                        create_stream.str());
                     st->OnData.connect([st](bool flag) {
                         assert(flag);
                         st->close();
@@ -51,49 +51,31 @@ namespace lsy
             }
             for (auto& c : a.second.find("statement")->second)
             {
-                std::stringstream create_stream;
-                create_stream << "create table " << c.first << " (";
-                bool flag = false;
                 for (auto& b : c.second)
                 {
-                    if (flag)
-                    {
-                        create_stream << ",";
-                    }
-                    else
-                    {
-                        flag = true;
-                    }
-                    create_stream << b.first << " " << b.second.data();
+                    pro_it.first->second.emplace(
+                        b.first, database::statement(&(pro_it.first->second),
+                                                     b.second.data()));
                 }
-                create_stream << ");";
-                auto st = it.first->second->new_statement(create_stream.str());
-                st->OnData.connect([st](bool flag) {
-                    assert(flag);
-                    st->close();
-                });
-                st->bind();
             }
         }
     }
-
-    db_manager::db_proxy& db_manager::operator[](const std::string& str)
+    tmp::database& db_manager::operator[](const std::string& str)
     {
-        assert(dbs.find(str) != dbs.end());
-        return dbs.find(str)->second;
+        auto it = find(str);
+        assert(it != end());
+        return it->second;
     }
-
-    db_manager::db_proxy::db_proxy(db_proxy&& other)
-        : db(std::move(other.db))
+    namespace tmp
     {
-        assert(sts.empty());
-    }
-    db_manager::db_proxy::db_proxy(const std::string& str)
-        : db(str)
-    {
-    }
-    database* db_manager::db_proxy::operator->()
-    {
-        return &db;
+        database::database(database&& other)
+            : lsy::database(std::move(other))
+        {
+            assert(empty());
+        }
+        database::database(const std::string& str)
+            : lsy::database(str)
+        {
+        }
     }
 }

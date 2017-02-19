@@ -2,23 +2,21 @@
 #include <map>
 namespace lsy
 {
-    class db_manager
+    namespace tmp
     {
-        class db_proxy
+        class database
+            : public lsy::database,
+              public std::map< std::string, lsy::database::statement >
         {
-            lsy::database db;
-            std::map< std::string, lsy::database::statement > sts;
-
           public:
-            db_proxy(db_proxy&&);
-            db_proxy(const std::string& str);
-            lsy::database* operator->();
-            lsy::database::statement& operator[](const std::string& str);
+            database(database&& other);
+            database(const std::string& str);
         };
-
+    }
+    class db_manager : public std::map< std::string, tmp::database >
+    {
       public:
-        std::map< std::string, db_proxy > dbs;
         db_manager(std::string file);
-        db_proxy& operator[](const std::string& str);
+        tmp::database& operator[](const std::string&);
     };
 }

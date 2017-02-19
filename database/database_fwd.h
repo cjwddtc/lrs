@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/asio/io_service.hpp>
 #include <boost/signals2.hpp>
+#include <mutex>
 #include <sqlite3.h>
 #include <thread>
 namespace lsy
@@ -64,6 +65,7 @@ namespace lsy
 
           public:
             ~statement();
+            statement(statement&& other);
             statement(database* db, std::string sql);
 
             template < size_t n = 1, class T, class... ARG >

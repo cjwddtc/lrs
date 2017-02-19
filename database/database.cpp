@@ -60,7 +60,16 @@ namespace lsy
 
     database::statement::~statement()
     {
-        sqlite3_finalize(st);
+        if (st)
+        {
+            sqlite3_finalize(st);
+        }
+    }
+    database::statement::statement(statement&& other)
+        : st(other.st)
+        , io(other.io)
+    {
+        other.st = nullptr;
     }
 
     bool database::statement::run()
