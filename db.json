@@ -1,6 +1,14 @@
 {
-    "player": {
-        "id": "varchar",
-        "passed": "varchar"
-    }
+	"main":{
+		"table":{
+	    	"player": {
+		        "id": "varchar",
+		        "passwd": "varchar"
+		    }
+		},
+		"statement":{
+			"insert":"INSERT INTO player VALUES (?,?);",
+			"select":"select passwd from player where id=?;"
+		}
+	}
 }

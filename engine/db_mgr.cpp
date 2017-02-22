@@ -51,20 +51,11 @@ namespace lsy
             }
             for (auto& c : a.second.find("statement")->second)
             {
-                for (auto& b : c.second)
-                {
-                    pro_it.first->second.emplace(
-                        b.first, database::statement(&(pro_it.first->second),
-                                                     b.second.data()));
-                }
+                pro_it.first->second.emplace(
+                    c.first, database::statement(&(pro_it.first->second),
+                                                 c.second.data()));
             }
         }
-    }
-    tmp::database& db_manager::operator[](const std::string& str)
-    {
-        auto it = find(str);
-        assert(it != end());
-        return it->second;
     }
     namespace tmp
     {

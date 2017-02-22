@@ -37,6 +37,14 @@ endif(WIN32)
 
 #db_gen_file(asd ${CMAKE_SOURCE_DIR})
 
+function(direct_copy srcname desname name)
+message("${CMAKE_BINARY_DIR}/${desname}:${CMAKE_SOURCE_DIR}/${srcname}")
+add_custom_command(OUTPUT	${CMAKE_BINARY_DIR}/${desname}
+				   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${srcname}" "${CMAKE_BINARY_DIR}/${desname}"
+				   DEPENDS	${CMAKE_SOURCE_DIR}/${srcname})
+add_custom_target(${name} ALL DEPENDS ${CMAKE_BINARY_DIR}/${desname})
+endfunction(direct_copy)
+
 function(lsy_add_directoy dir)
 	include_directories(${dir})
 	foreach(type "cpp" "c" "h" "hpp")
@@ -70,4 +78,10 @@ link_directories("${wxWidgets_LIBRARY_DIRS}")
 include(${wxWidgets_USE_FILE})
 add_executable(client client.cpp client.h)
 target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})
- 
+if(UNIX)
+direct_copy(server.xml.linux server.xml server_config)
+endif(UNIX)
+if(WIN32)
+direct_copy(server.xml.win32 server.xml server_config)
+endif(WIN32)
+direct_copy(db.json db.json db_config)

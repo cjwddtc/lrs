@@ -32,6 +32,16 @@ lsy::engine::engine(std::string file)
     boost::property_tree::read_xml(file, pt);
     li.add_group(pt.find("engine")->second);
     li.OnConnect.connect([this](auto a) { this->ConnectHandle(a); });
+    dbs["main"]["insert"].bind("fff", "zzz");
+    auto& st = dbs["main"]["select"];
+    st.OnData.connect([&st](bool flag) {
+        if (!flag)
+        {
+            std::cout << (std::string)st[0] << std::endl;
+        }
+        std::cout << flag << std::endl;
+    });
+    st.bind("qwe");
 }
 
 void lsy::engine::ConnectHandle(port_all* po)
