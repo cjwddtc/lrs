@@ -8,97 +8,78 @@
 #include <sstream>
 #include <string.h>
 
-std::string wrap_type(const std::string& type_name,
-                      const std::string& value_template)
-{
-    std::string str(value_template);
-    if (type_name == "int")
-    {
-        str += "<int> ";
-    }
-    else if (type_name == "double")
-    {
-        str += "<double> ";
-    }
-    else if (type_name == "string")
-    {
-        str += "<std::string> ";
-    }
-    else if (type_name == "blob")
-    {
-        str += "<blob> ";
-    }
-    else
-    {
-        std::cerr << "unrecognize type:" << type_name << std::endl;
-    }
-    return str;
-}
-
-typedef std::pair< std::string, std::string > value;
-
 int main(int argv, char* args[])
 {
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(args[2], pt);
-    std::list< std::pair< std::string, std::list< value > > > vec;
-    for (auto& a : pt)
-    {
-        vec.push_back(std::make_pair(a.first, std::list< value >()));
-        for (auto& b : a.second)
-            vec.back().second.push_back(
-                std::make_pair(b.first, b.second.data()));
-    }
     if (strcmp(args[1], "-h") == 0)
-    {
-        std::stringstream steam;
-        std::stringstream db_steam;
-        steam << "namespace db_class{\n";
-        for (auto& a : vec)
+        for (auto& a : pt)
         {
-            steam << "struct " << a.first << "{\n";
-            db_steam << "extern struct "
-                     << "{\n";
-            for (auto& b : a.second)
+            std::cout << "class " << name << "\n";
+            std::cout << ",public database \n{\n";
+            std::cout << "public:\n";
+            std::cout << name << ";\n";
+            for (auto& c : a.second.find("statement")->second)
             {
-                steam << wrap_type(b.second, "value") << b.first << ";\n";
-                db_steam << "db_attribute " << b.first << ";\n";
-            }
-            steam << "};\n";
-            db_steam << "}" << a.first << ";\n";
-            db_steam << "std::string get_table_name(decltype(\"" << a.first
-                     << "\")&);\n";
-        }
-        steam << "}\n";
-        std::cout << "#pragma once" << std::endl;
-        std::cout << "#include <string>" << std::endl;
-        std::cout << "#include <db_tools.h>" << std::endl;
-        std::cout << steam.str() << std::endl;
-        std::cout << db_steam.str() << std::endl;
-    }
-    else if (strcmp(args[1], "-cpp") == 0)
-    {
-        std::cout << "#include \"" << args[3] << '"' << std::endl;
-        for (auto& a : vec)
-        {
-            std::cout << "decltype(" << a.first << ") " << a.first << "={";
-            bool flag = false;
-            for (auto& b : a.second)
-            {
-                if (flag)
-                    std::cout << ',';
-                std::cout << '.' << b.first << '=' << "db_attribute(\""
-                          << a.first << "\",\"" << b.first << "\")";
-                flag = true;
+                std::cout << "statement " << c.first << ";\n";
             }
             std::cout << "};\n";
-            std::cout << "std::string get_table_name(decltype(\"" << a.first
-                      << "\")&){\n return \"" << a.first << "\";\n}\n";
         }
-    }
-    else
-    {
-        return 1;
-    }
+    else if (strcmp(args[1], "-cpp") == 0)
+        for (auto& a : pt)
+        {
+            std::cout << name << "::" << name << "()\n";
+            std::cout << "database(\"" << name << ".db\")\n{";
+            std::cout << "	if(expire)\n{\n";
+            std::cout << "		"
+
+                std::cout
+                      << "class " << name << ":public lsy::database \n{\n";
+            std::cout << "public:\n";
+            std::cout << name << ";";
+            std::cout << "" std::string dbfile = a.first;
+            dbfile += ".db";
+            // checkout if database exist
+            bool flag = boost::filesystem::exists(dbfile);
+            // connect database
+            auto pro_it = emplace((std::string)a.first, tmp::database(dbfile));
+            assert(pro_it.second);
+            // if database not exist create the table
+            if (!flag)
+            {
+                for (auto& c : a.second.find("table")->second)
+                {
+                    std::stringstream create_stream;
+                    create_stream << "create table " << c.first << " (";
+                    bool flag = false;
+                    for (auto& b : c.second)
+                    {
+                        if (flag)
+                        {
+                            create_stream << ",";
+                        }
+                        else
+                        {
+                            flag = true;
+                        }
+                        create_stream << b.first << " " << b.second.data();
+                    }
+                    create_stream << ");";
+                    auto st = pro_it.first->second.new_statement(
+                        create_stream.str());
+                    st->OnData.connect([st](bool flag) {
+                        assert(flag);
+                        st->close();
+                    });
+                    st->bind();
+                }
+            }
+            for (auto& c : a.second.find("statement")->second)
+            {
+                pro_it.first->second.emplace(
+                    c.first, database::statement(&(pro_it.first->second),
+                                                 c.second.data()));
+            }
+        }
     return 0;
 }
