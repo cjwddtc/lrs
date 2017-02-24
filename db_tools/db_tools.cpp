@@ -1,7 +1,4 @@
 #include "db_tools.h"
-void select_(db_statement& db_st, db_attribute& db_at)
-{
-    db_st.stream << db_at.str();
+is_expire::is_expire(const std::string& base,const std::string &derive):expire(last_write_time(base)>last_write_time(derive)){
+	
 }
-
-void db_statement::from();

@@ -52,7 +52,7 @@ function(lsy_add_directoy dir)
 		set(SRC "${SRC};${FILE_TMP}")
 	endforeach(type)
 	add_library(${dir} SHARED ${SRC})
-	cotire(net_api)
+	cotire(${dir})
 endfunction(lsy_add_directoy)
 
 lsy_add_directoy(net_api)
@@ -67,7 +67,17 @@ find_package(SQLite3 REQUIRED)
 lsy_add_directoy(database)
 target_link_libraries(database ${SQLITE3_LIBRARIES})
 
+add_executable(db_gen db_gen.cpp)
+add_custom_command(OUTPUT	${CMAKE_SOURCE_DIR}/engine/db_auto.cpp
+				   COMMAND	db_gen -cpp "${CMAKE_SOURCE_DIR}/db.json">"${CMAKE_SOURCE_DIR}/engine/db_auto.cpp"
+				   DEPENDS	"${CMAKE_SOURCE_DIR}/db.json" db_gen)
+add_custom_command(OUTPUT	${CMAKE_SOURCE_DIR}/engine/db_auto.h
+				   COMMAND	db_gen -h "${CMAKE_SOURCE_DIR}/db.json">"${CMAKE_SOURCE_DIR}/engine/db_auto.h"
+				   DEPENDS	"${CMAKE_SOURCE_DIR}/db.json" db_gen)
+add_custom_target(gen_db ALL DEPENDS ${CMAKE_SOURCE_DIR}/engine/db_auto.cpp ${CMAKE_SOURCE_DIR}/engine/db_auto.h)
+
 lsy_add_directoy(engine)
+add_dependencies(engine gen_db)
 target_link_libraries(engine network database)
 
 add_executable(main main.cpp)

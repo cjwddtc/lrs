@@ -12,16 +12,17 @@ int main(int argv, char* args[])
 	if (x | y)
 	{
 		//for h
-		std::cout << "#include \"database.h\"";
+		std::cout << "#include \"database.h\"\n";
+		std::cout << "#include <boost/filesystem.hpp>\n";
 		std::cout << "class is_expire\n{\n";
 		std::cout << "protected:\n";
 		std::cout << "bool expire; \n";
-		std::cout << "is_expire(const std::string &derive); \n}\n";
+		std::cout << "is_expire(const std::string &derive); \n};\n";
 		for (auto& a : pt)
 		{
 			std::string name = a.first + "_class";
 			std::cout << "class " << name << "\n";
-			std::cout << ":private is_expire \n{\n";
+			std::cout << ":private is_expire \n";
 			std::cout << ",public lsy::database \n{\n";
 			std::cout << "public:\n";
 			std::cout << name << "();\n";
@@ -34,6 +35,10 @@ int main(int argv, char* args[])
 		}
 	}
 	if (x) {
+		std::cout << "using boost::filesystem::last_write_time;\n";
+		std::cout << "using boost::filesystem::exists;\n";
+		std::cout << "is_expire::is_expire(const std::string &derive)\n";
+		std::cout << ":expire(!exists(derive) || last_write_time(\"" << args[2] << "\")>last_write_time(derive)){}";
 		//for cpp
 		for (auto& a : pt)
 		{
@@ -48,9 +53,9 @@ int main(int argv, char* args[])
 			std::cout << "{\n";
 			std::cout << "if(expire){\n";
 			for (auto& c : a.second.find("table")->second) {
-				std::cout << "auto p=new_statement(\"DROP TABLE " << a.first << "\");";
-				std::cout << "p->OnData.connect([p](bool flag){assert(flag);delete this;});";
-				std::cout << "p->bind();";
+				std::cout << "auto p=new_statement(\"DROP TABLE " << a.first << "\");\n";
+				std::cout << "p->OnData.connect([p](bool flag){assert(flag);delete p;});\n";
+				std::cout << "p->bind();\n";
 				std::cout << "p=new_statement(\"CREATE TABLE " << a.first << "(";
 				bool flag = false;
 				for (auto &d : c.second) {
@@ -59,9 +64,9 @@ int main(int argv, char* args[])
 					flag = true;
 					std::cout << d.first << " " << d.second.data();
 				}
-				std::cout << "\");";
-				std::cout << "p->OnData.connect([p](bool flag){assert(flag);delete this;});";
-				std::cout << "p->bind();";
+				std::cout << "\");\n";
+				std::cout << "p->OnData.connect([p](bool flag){assert(flag);delete p;});\n";
+				std::cout << "p->bind();\n";
 			}
 			std::cout << "}\n}\n";
 			std::cout << name << " " << a.first << ";\n";
