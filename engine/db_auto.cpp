@@ -29,7 +29,7 @@ using boost::filesystem::last_write_time;
 using boost::filesystem::exists;
 using boost::filesystem::exists;
 is_expire::is_expire(const std::string &derive)
-:expire(!exists(derive) || last_write_time("/home/lsy/lrs/db.json")>last_write_time(derive)){}
+:expire(!exists(derive) || last_write_time("H:/code/lrs/db.json")>last_write_time(derive)){}
 main_class_base::main_class_base()
 :is_expire("main.db")
 ,lsy::database("main.db")

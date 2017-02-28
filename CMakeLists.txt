@@ -13,7 +13,7 @@ if(CCACHE_FOUND)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Boost REQUIRED COMPONENTS system filesystem thread)
 link_libraries(${Boost_LIBRARIES})
 message("${Boost_LIBRARIES}")
 
