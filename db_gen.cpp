@@ -63,9 +63,8 @@ int main(int argv, char* args[])
             {
                 std::cout << "auto p=new_statement(\"DROP TABLE IF EXISTS "
                           << c.first << "\");\n";
-                std::cout << "p->OnData.connect([p](bool "
-                             "flag){assert(flag);delete p;});\n";
-                std::cout << "p->bind();\n";
+                std::cout
+                    << "p->bind([p](bool flag){assert(flag);delete p;});\n";
                 std::cout << "p=new_statement(\"CREATE TABLE " << c.first
                           << "(";
                 bool flag = false;
@@ -77,9 +76,8 @@ int main(int argv, char* args[])
                     std::cout << d.first << " " << d.second.data();
                 }
                 std::cout << ")\");\n";
-                std::cout << "p->OnData.connect([p](bool "
-                             "flag){assert(flag);delete p;});\n";
-                std::cout << "p->bind();\n";
+                std::cout
+                    << "p->bind([p](bool flag){assert(flag);delete p;});\n";
             }
             std::cout << "}\n}\n";
 

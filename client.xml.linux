@@ -1,6 +1,6 @@
 <client>
 	<net_name>
-		<lib_path>libtcp.so</lib_path>
+		<lib_path>net_dll/libtcp.so</lib_path>
 		<listen>tcp_connecter_socket_getter</listen>
 		<is_stream>true</is_stream>
 	</net_name>

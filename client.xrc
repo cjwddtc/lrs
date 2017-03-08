@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
 	<object class="wxDialog" name="MyDialog1">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
-		<title></title>
+		<title/>
 		<centered>1</centered>
 		<object class="wxGridBagSizer">
 			<vgap>0</vgap>
 			<hgap>0</hgap>
-			<growablecols></growablecols>
-			<growablerows></growablerows>
+			<growablecols/>
+			<growablerows/>
 			<object class="sizeritem">
 				<cellpos>0,0</cellpos>
 				<cellspan>1,1</cellspan>
@@ -25,7 +25,7 @@
 				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND</flag>
 				<border>5</border>
 				<object class="wxTextCtrl" name="id_tc">
-					<value></value>
+					<value/>
 				</object>
 			</object>
 			<object class="sizeritem">
@@ -44,7 +44,7 @@
 				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND</flag>
 				<border>5</border>
 				<object class="wxTextCtrl" name="passwd_tc">
-					<value></value>
+					<value/>
 				</object>
 			</object>
 			<object class="sizeritem">

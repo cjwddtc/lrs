@@ -52,17 +52,24 @@ bool DerivedApp::OnInit()
                 buf.put((unsigned char*)passwd.data(), passwd.size() + 1);
                 auto p = pa->resign_port(0);
                 p->start();
-                auto num_ptr = std::make_shared< uint16_t >();
-                p->OnMessage.connect([this, p, num_ptr](auto buf) {
-                    buf.print();
-                    buf.get(*num_ptr);
-                    p->close();
+                p->OnMessage.connect([this, p](auto buf) {
+                    uint16_t flag;
+                    buf.get(flag);
+                    if (flag)
+                    {
+                        p->close();
+                    }
+                    else
+                    {
+                        dlg->SetTitle("wrong passwd or id!");
+                    }
                 });
-                p->OnDestroy.connect([this, num_ptr]() {
+                p->OnDestroy.connect([this]() {
                     dlg->Close();
-                    auto p = pa->resign_port(0);
+                    auto p = pa->resign_port(1);
                 });
-                p->write(buf, []() {});
+                p->write(buf,
+                         []() { std::cout << "finish write" << std::endl; });
                 dlg->SetTitle("logining");
                 dlg->Refresh();
             }

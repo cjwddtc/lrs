@@ -74,7 +74,7 @@ add_custom_command(OUTPUT	${CMAKE_SOURCE_DIR}/engine/db_auto.cpp
 add_custom_command(OUTPUT	${CMAKE_SOURCE_DIR}/engine/db_auto.h
 				   COMMAND	db_gen -h "${CMAKE_SOURCE_DIR}/db.json">"${CMAKE_SOURCE_DIR}/engine/db_auto.h"
 				   DEPENDS	"${CMAKE_SOURCE_DIR}/db.json" db_gen)
-add_custom_target(gen_db ALL DEPENDS ${CMAKE_SOURCE_DIR}/engine/db_auto.cpp ${CMAKE_SOURCE_DIR}/engine/db_auto.h)
+add_custom_target(gen_db ALL DEPENDS ${CMAKE_SOURCE_DIR}/engine/db_auto.cpp db_gen ${CMAKE_SOURCE_DIR}/engine/db_auto.h)
 
 lsy_add_directoy(engine)
 add_dependencies(engine gen_db)
@@ -90,8 +90,11 @@ add_executable(client client.cpp client.h)
 target_link_libraries(client net_api network ${wxWidgets_LIBRARIES})
 if(UNIX)
 direct_copy(server.xml.linux server.xml server_config)
+direct_copy(client.xml.linux client.xml client_config)
 endif(UNIX)
 if(WIN32)
 direct_copy(server.xml.win32 server.xml server_config)
+direct_copy(client.xml.win32 client.xml client_config)
 endif(WIN32)
 direct_copy(db.json db.json db_config)
+direct_copy(client.xrc client.xrc xrc_config)

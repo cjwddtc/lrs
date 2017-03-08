@@ -29,18 +29,16 @@ using boost::filesystem::last_write_time;
 using boost::filesystem::exists;
 using boost::filesystem::exists;
 is_expire::is_expire(const std::string &derive)
-:expire(!exists(derive) || last_write_time("H:/code/lrs/db.json")>last_write_time(derive)){}
+:expire(!exists(derive) || last_write_time("/home/lsy/lrs/db.json")>last_write_time(derive)){}
 main_class_base::main_class_base()
 :is_expire("main.db")
 ,lsy::database("main.db")
 {
 if(expire){
 auto p=new_statement("DROP TABLE IF EXISTS player");
-p->OnData.connect([p](bool flag){assert(flag);delete p;});
-p->bind();
+p->bind([p](bool flag){assert(flag);delete p;});
 p=new_statement("CREATE TABLE player(id varchar,passwd varchar)");
-p->OnData.connect([p](bool flag){assert(flag);delete p;});
-p->bind();
+p->bind([p](bool flag){assert(flag);delete p;});
 }
 }
 main_class::main_class()
