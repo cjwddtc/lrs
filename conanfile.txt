@@ -13,4 +13,5 @@ wxWidgets:shared=True
 
 [imports]
 bin, *.dll -> ./bin
+lib, *.dll -> ./bin
 lib, *.dylib* -> ./bin

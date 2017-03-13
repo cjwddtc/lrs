@@ -1,7 +1,7 @@
-<engine>
+<client>
 	<net_name>
 		<lib_path>bin/tcp.dll</lib_path>
-		<listen>tcp_listner_socket_getter</listen>
+		<listen>tcp_connecter_socket_getter</listen>
 		<is_stream>true</is_stream>
 	</net_name>
-</engine>
+</client>

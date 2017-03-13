@@ -8,6 +8,7 @@ class DerivedApp : public wxApp
 {
     lsy::listener                li;
     wxDialog*                    dlg;
+	wxFrame*					mf;
     lsy::as_ptr< lsy::port_all > pa;
 
   public:
@@ -45,7 +46,7 @@ bool DerivedApp::OnInit()
                 std::string id(
                     XRCCTRL(*dlg, "id_tc", wxTextCtrl)->GetValue().mb_str());
                 std::string passwd(
-                    XRCCTRL(*dlg, "id_tc", wxTextCtrl)->GetValue().mb_str());
+                    XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)->GetValue().mb_str());
                 lsy::buffer buf(id.size() + passwd.size() + 2);
                 char        ch = 0;
                 buf.put((unsigned char*)id.data(), id.size() + 1);
@@ -58,6 +59,8 @@ bool DerivedApp::OnInit()
                     if (flag)
                     {
                         p->close();
+						mf=wxXmlResource::Get()->LoadFrame(NULL, "MyFrame1");
+						mf->Show();
                     }
                     else
                     {
