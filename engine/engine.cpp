@@ -1,4 +1,3 @@
-
 #include "database.h"
 #include "db_auto.h"
 #include "engine.h"
@@ -14,23 +13,23 @@ lsy::player::player(port_all* soc)
         std::string id((char*)buf.data());
         std::string passwd((char*)buf.data() + id.size() + 1);
         main.select.bind(
-            [passwd, p](bool flag) {
-                if (!flag)
+            [ passwd, p, count = std::make_shared< bool >(0) ](bool have_data) {
+                if (have_data)
+                {
+                    buffer flag(2);
+                    flag.put((uint16_t)*count);
+                    p->write(flag, [p]() { p->close(); });
+                }
+                else
                 {
                     buffer flag(2);
                     std::cout << passwd << std::endl;
                     std::cout << (std::string)main.select[0] << std::endl;
                     if (passwd == (std::string)main.select[0])
                     {
+                        *count = 1;
                         std::cout << "login success" << std::endl;
-                        flag.put((uint16_t)1);
                     }
-                    else
-                    {
-                        std::cout << "login fail" << std::endl;
-                        flag.put((uint16_t)0);
-                    }
-                    p->write(flag, [p]() { p->close(); });
                 }
             },
             id);

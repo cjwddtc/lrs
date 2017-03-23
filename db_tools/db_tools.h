@@ -1,10 +1,10 @@
 #pragma once
-#include <string>
 #include "database.h"
+#include <string>
 
 class is_expire
 {
   protected:
     bool expire;
-    is_expire(const std::string& base,const std::string &derive);
+    is_expire(const std::string& base, const std::string& derive);
 }

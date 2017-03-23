@@ -11,8 +11,8 @@ using namespace lsy;
 #include <time.h>
 int main(int n, char* argv[])
 {
-	engine en("server.xml");
-	getchar();
-	en.li.close();
-	en.li.join();
+    engine en("server.xml");
+    getchar();
+    en.li.close();
+    en.li.join();
 }

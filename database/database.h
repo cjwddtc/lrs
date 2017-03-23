@@ -7,7 +7,7 @@ namespace lsy
     template < class... ARG >
     void database::statement::bind(std::function< void(bool) > func, ARG... arg)
     {
-        io.post([this, func, &arg...]() {
+        io.post([this, func, arg...]() {
             reset();
             bind_t< 1 >(arg...);
             try

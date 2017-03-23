@@ -12,38 +12,38 @@
 			<object class="sizeritem">
 				<cellpos>0,0</cellpos>
 				<cellspan>1,1</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
 				<object class="wxStaticText" name="m_staticText3">
-					<label>MyLabel</label>
+					<label>账号</label>
 					<wrap>-1</wrap>
 				</object>
 			</object>
 			<object class="sizeritem">
 				<cellpos>0,1</cellpos>
-				<cellspan>1,1</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+				<cellspan>1,2</cellspan>
+				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
-				<object class="wxTextCtrl" name="m_textCtrl3">
+				<object class="wxTextCtrl" name="id_tc">
 					<value></value>
 				</object>
 			</object>
 			<object class="sizeritem">
 				<cellpos>1,0</cellpos>
 				<cellspan>1,1</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
 				<object class="wxStaticText" name="m_staticText4">
-					<label>MyLabel</label>
+					<label>密码</label>
 					<wrap>-1</wrap>
 				</object>
 			</object>
 			<object class="sizeritem">
 				<cellpos>1,1</cellpos>
-				<cellspan>1,1</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+				<cellspan>1,2</cellspan>
+				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
-				<object class="wxTextCtrl" name="m_textCtrl4">
+				<object class="wxTextCtrl" name="passwd_tc">
 					<value></value>
 				</object>
 			</object>
@@ -52,9 +52,19 @@
 				<cellspan>1,2</cellspan>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
-				<object class="wxButton" name="m_button2">
-					<label>MyButton</label>
+				<object class="wxButton" name="login_b">
+					<label>登陆</label>
 					<default>0</default>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<cellpos>2,2</cellpos>
+				<cellspan>1,1</cellspan>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxButton" name="canel_b">
+					<label>取消</label>
+					<default>1</default>
 				</object>
 			</object>
 		</object>
@@ -73,7 +83,7 @@
 			<label>MyMenuBar</label>
 			<object class="wxMenu" name="m_menu1">
 				<label>游戏</label>
-				<object class="wxMenuItem" name="m_menuItem1">
+				<object class="wxMenuItem" name="menu_match">
 					<label>匹配</label>
 					<help></help>
 				</object>

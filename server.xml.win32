@@ -4,4 +4,9 @@
 		<listen>tcp_listner_socket_getter</listen>
 		<is_stream>true</is_stream>
 	</net_name>
+	<ws_name>
+		<lib_path>bin/websocket.dll</lib_path>
+		<listen>websocket_socket_getter</listen>
+		<is_stream>false</is_stream>
+	</ws_name>
 </engine>
