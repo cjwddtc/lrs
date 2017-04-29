@@ -34,7 +34,7 @@ namespace lsy
             void add(role& p);
             void send(buffer buf, std::function< void() > func = []() {});
         };
-
+   
         std::map< uint16_t, channel > channels;
         std::vector< role* > roles;
         uint16_t add(player& pl);

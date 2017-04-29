@@ -18,7 +18,7 @@ lsy::player::player(port_all* soc)
                 {
                     buffer flag(2);
                     flag.put((uint16_t)*count);
-                    p->write(flag, [p]() { p->close(); });
+					p->write(flag, [p, count]() {if (*count) { p->close(); } });
                 }
                 else
                 {
@@ -33,10 +33,6 @@ lsy::player::player(port_all* soc)
                 }
             },
             id);
-        p->OnDestroy.connect([this]() {
-            auto p = ptr->resign_port(0);
-            p->start();
-        });
     });
     p->start();
 }

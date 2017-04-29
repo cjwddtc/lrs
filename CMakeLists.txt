@@ -77,11 +77,14 @@ add_custom_command(OUTPUT	${CMAKE_SOURCE_DIR}/engine/db_auto.h
 add_custom_target(gen_db ALL DEPENDS ${CMAKE_SOURCE_DIR}/engine/db_auto.cpp db_gen ${CMAKE_SOURCE_DIR}/engine/db_auto.h)
 
 lsy_add_directoy(engine)
+find_package(Lua REQUIRED)
+include_directories(${LUA_INCLUDE_DIR})
 add_dependencies(engine gen_db)
-target_link_libraries(engine network database)
+target_link_libraries(engine ${LUA_LIBRARIES} network database)
 
 add_executable(main main.cpp)
 target_link_libraries(main net_api network engine database)
+
 
 find_package(wxWidgets REQUIRED core base xrc)
 link_directories("${wxWidgets_LIBRARY_DIRS}")

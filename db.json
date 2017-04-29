@@ -2,9 +2,19 @@
 	"main":{
 		"table":{
 	    	"player": {
-		        "id": "varchar",
-		        "passwd": "varchar"
-		    }
+				"id": "int",
+		        "name": "varchar",
+		        "passwd": "varchar",
+				"is_valid": "bool"
+		    },
+			"friend":{
+				"ida":"int",
+				"idb":"int",
+				"message":"varchar"
+			},
+			"role":{
+				"rolename"
+			}
 		},
 		"statement":{
 			"insert":"INSERT INTO player VALUES (?,?);",
