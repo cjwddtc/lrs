@@ -61,7 +61,7 @@ int main(int argv, char* args[])
             std::cout << "if(expire){\n";
             for (auto& c : a.second.find("table")->second)
             {
-                std::cout << "auto p=new_statement(\"DROP TABLE IF EXISTS "
+                std::cout << "{\nauto p=new_statement(\"DROP TABLE IF EXISTS "
                           << c.first << "\");\n";
                 std::cout
                     << "p->bind([p](bool flag){assert(flag);delete p;});\n";
@@ -77,7 +77,7 @@ int main(int argv, char* args[])
                 }
                 std::cout << ")\");\n";
                 std::cout
-                    << "p->bind([p](bool flag){assert(flag);delete p;});\n";
+				<< "p->bind([p](bool flag){assert(flag);delete p;});\n}\n";
             }
             std::cout << "}\n}\n";
 

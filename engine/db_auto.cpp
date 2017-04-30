@@ -35,10 +35,18 @@ main_class_base::main_class_base()
 ,lsy::database("main.db")
 {
 if(expire){
+{
 auto p=new_statement("DROP TABLE IF EXISTS player");
 p->bind([p](bool flag){assert(flag);delete p;});
-p=new_statement("CREATE TABLE player(id varchar,passwd varchar)");
+p=new_statement("CREATE TABLE player(id int,name varchar,passwd varchar,is_valid bool)");
 p->bind([p](bool flag){assert(flag);delete p;});
+}
+{
+auto p=new_statement("DROP TABLE IF EXISTS friend");
+p->bind([p](bool flag){assert(flag);delete p;});
+p=new_statement("CREATE TABLE friend(ida int,idb int,message varchar)");
+p->bind([p](bool flag){assert(flag);delete p;});
+}
 }
 }
 main_class::main_class()

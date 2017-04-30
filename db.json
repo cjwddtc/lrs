@@ -11,9 +11,6 @@
 				"ida":"int",
 				"idb":"int",
 				"message":"varchar"
-			},
-			"role":{
-				"rolename"
 			}
 		},
 		"statement":{
