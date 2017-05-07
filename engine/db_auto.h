@@ -21,6 +21,9 @@ public:
 main_class();
 statement insert;
 statement select;
+statement get_rule;
+statement get_role_ver;
+statement get_role;
 };
 extern main_class main;
 }

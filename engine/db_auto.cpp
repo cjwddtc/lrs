@@ -21,6 +21,9 @@ public:
 main_class();
 statement insert;
 statement select;
+statement get_rule;
+statement get_role_ver;
+statement get_role;
 };
 extern main_class main;
 }
@@ -47,12 +50,39 @@ p->bind([p](bool flag){assert(flag);delete p;});
 p=new_statement("CREATE TABLE friend(ida int,idb int,message varchar)");
 p->bind([p](bool flag){assert(flag);delete p;});
 }
+{
+auto p=new_statement("DROP TABLE IF EXISTS rule");
+p->bind([p](bool flag){assert(flag);delete p;});
+p=new_statement("CREATE TABLE rule(rulename varchar,explain varchar,configfile varchar,luafile varchar,onwerid int)");
+p->bind([p](bool flag){assert(flag);delete p;});
+}
+{
+auto p=new_statement("DROP TABLE IF EXISTS role");
+p->bind([p](bool flag){assert(flag);delete p;});
+p=new_statement("CREATE TABLE role(rolename varchar,explain varchar,configfile varchar,luafile varchar,onwerid int)");
+p->bind([p](bool flag){assert(flag);delete p;});
+}
+{
+auto p=new_statement("DROP TABLE IF EXISTS role_ver");
+p->bind([p](bool flag){assert(flag);delete p;});
+p=new_statement("CREATE TABLE role_ver(rolename varchar,vername varchar,explain varchar,configfile varchar,luafile varchar,onwerid int)");
+p->bind([p](bool flag){assert(flag);delete p;});
+}
+{
+auto p=new_statement("DROP TABLE IF EXISTS role_extend");
+p->bind([p](bool flag){assert(flag);delete p;});
+p=new_statement("CREATE TABLE role_extend(rolefather varchar,roleson varchar)");
+p->bind([p](bool flag){assert(flag);delete p;});
+}
 }
 }
 main_class::main_class()
 :main_class_base()
 ,insert(this,"INSERT INTO player VALUES (?,?);") 
 ,select(this,"select passwd from player where id=?;") 
+,get_rule(this,"select luafile from rule where rulename=?;") 
+,get_role_ver(this,"select luafile from role_ver where rolename=? AND vername=?") 
+,get_role(this,"select luafile from role where rolename=?") 
 {}
 main_class main;
 }

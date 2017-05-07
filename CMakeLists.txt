@@ -15,7 +15,14 @@ endif(CCACHE_FOUND)
 
 find_package(Boost REQUIRED COMPONENTS system filesystem thread)
 link_libraries(${Boost_LIBRARIES})
-message("${Boost_LIBRARIES}")
+
+find_package(Lua REQUIRED)
+include_directories(${LUA_INCLUDE_DIR})
+link_libraries(${LUA_LIBRARIES})
+
+#find_package(Lua REQUIRED)
+#include_directories(${LUA_INCLUDE_DIR})
+#link_libraries(${LUA_LIBRARIES})
 
 IF (UNIX)  
 add_compile_options(-pthread)
@@ -76,11 +83,11 @@ add_custom_command(OUTPUT	${CMAKE_SOURCE_DIR}/engine/db_auto.h
 				   DEPENDS	"${CMAKE_SOURCE_DIR}/db.json" db_gen)
 add_custom_target(gen_db ALL DEPENDS ${CMAKE_SOURCE_DIR}/engine/db_auto.cpp db_gen ${CMAKE_SOURCE_DIR}/engine/db_auto.h)
 
+lsy_add_directoy(lua_api)
+
 lsy_add_directoy(engine)
-find_package(Lua REQUIRED)
-include_directories(${LUA_INCLUDE_DIR})
 add_dependencies(engine gen_db)
-target_link_libraries(engine ${LUA_LIBRARIES} network database)
+target_link_libraries(engine lua_api network database)
 
 add_executable(main main.cpp)
 target_link_libraries(main net_api network engine database)

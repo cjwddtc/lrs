@@ -96,7 +96,7 @@ bool DerivedApp::OnInit()
     boost::property_tree::read_xml("client.xml", pt);
     li.OnConnect.connect([this](auto port) {
         pa = port;
-        port->OnError.connect(   
+        port->OnError.connect(
             [](auto er) { std::cout << er.message() << std::endl; });
         port->start();
         gui_run([this]() {

@@ -77,7 +77,7 @@ int main(int argv, char* args[])
                 }
                 std::cout << ")\");\n";
                 std::cout
-				<< "p->bind([p](bool flag){assert(flag);delete p;});\n}\n";
+                    << "p->bind([p](bool flag){assert(flag);delete p;});\n}\n";
             }
             std::cout << "}\n}\n";
 

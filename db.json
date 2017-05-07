@@ -11,11 +11,40 @@
 				"ida":"int",
 				"idb":"int",
 				"message":"varchar"
+			},
+			"rule":{
+				"rulename":"varchar",
+				"explain":"varchar",
+				"configfile":"varchar",
+				"luafile":"varchar",
+				"onwerid":"int"
+			},
+			"role":{
+				"rolename":"varchar",
+				"explain":"varchar",
+				"configfile":"varchar",
+				"luafile":"varchar",
+				"onwerid":"int"
+			},
+			"role_ver":{
+				"rolename":"varchar",
+				"vername":"varchar",
+				"explain":"varchar",
+				"configfile":"varchar",
+				"luafile":"varchar",
+				"onwerid":"int"
+			},
+			"role_extend":{
+				"rolefather":"varchar",
+				"roleson":"varchar"
 			}
 		},
 		"statement":{
 			"insert":"INSERT INTO player VALUES (?,?);",
-			"select":"select passwd from player where id=?;"
+			"select":"select passwd from player where id=?;",
+			"get_rule":"select luafile from rule where rulename=?;",
+			"get_role_ver":"select luafile from role_ver where rolename=? AND vername=?",
+			"get_role":"select luafile from role where rolename=?"
 		}
 	}
 }
