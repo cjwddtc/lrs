@@ -61,7 +61,7 @@ class signal
     }
 };
 
-class space_class :public std::map< std::string,
+class BOOST_SYMBOL_EXPORT space_class :public std::map< std::string,
 	boost::variant< signal< std::string >, signal< int32_t > > > {};
 
 thread_local  space_class *space;

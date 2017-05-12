@@ -4,7 +4,6 @@
 #include "listener.h"
 #include "socket.h"
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/asio/deadline_timer.hpp>
 using db_gen::main;
 thread_local boost::asio::io_service io_service;
 
@@ -20,9 +19,9 @@ lsy::room::room(std::string rule_name_, std::vector<role_info> vec , std::functi
 	}, rule_name_);
 	for (role_info &rf : vec)
 	{
-		//auto &role = roles[rf.first];
-		//role.first = rf.second;
-		//role.second = roles.size() - 1;
+		auto &role = roles[&rf.first];
+		role.first = rf.second;
+		role.second = roles.size() - 1;
 		size_t s=rf.second.find_first_of('.');
 		if (s != std::string::npos) {
 			std::string role(rf.second.begin() + s+1,rf.second.end());
@@ -48,6 +47,7 @@ lsy::room::room(std::string rule_name_, std::vector<role_info> vec , std::functi
 					run_lua(filename);
 				});
 			}}, rf.second);
+		//role.
 	}
 }
 /*

@@ -17,10 +17,10 @@ namespace lsy
     };
     class room
     {
-		space_class *space;
+		::space_class *space;
 		uint8_t count;
 		typedef std::pair<player&, std::string> role_info;
-		//std::map < player&, std::pair<std::string, uint8_t>> roles;
+		std::map < player*, std::pair<std::string, uint8_t>> roles;
 		std::string rule_name;
 		room(std::string rule_name,std::vector<role_info> vec,std::function<void()> func);
 		/*
