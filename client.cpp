@@ -5,6 +5,7 @@
 #include <listener.h>
 #include <memory>
 #include <stdint.h>
+#include <wx/notebook.h>
 class DerivedApp : public wxApp
 {
     lsy::listener                li;
@@ -83,12 +84,15 @@ bool DerivedApp::OnInit()
                 case 0:
                     gui_run([this]() {
                         mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
+						//wxMenu *p=XRCCTRL(mf, "m_menu1", wxMenu);
                         mf->Show();
-                        wxStaticCast(wxWindow::FindWindowByName("m_menu1"),
-                                     wxMenu)
-                            ->Bind(wxEVT_MENU_OPEN, [this](wxMenuEvent a) {
+						auto boptr = wxWindow::FindWindowByName("m_notebook1", mf);
+						wxStaticCast(boptr, wxNotebook)->AddPage(new wxPanel(boptr), "¶àÈËÓÎÏ·");
+						/*
+						mf->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent a) {
                                 wxWindow::FindWindowByName("muti_panel", mf)
                                     ->Show(true);
+								mf->Refresh();
                                 auto po
                                     = pa->resign_port(config::multiplay_port);
                                 po->OnMessage.connect([this](lsy::buffer buf) {
@@ -96,6 +100,7 @@ bool DerivedApp::OnInit()
                                                      "m_listBox2", mf),
                                                  wxListBox)
                                         ->Append(wxString((char*)buf.data()));
+									mf->Refresh();
                                 });
                                 po->OnDestroy.connect([this]() {
                                     wxStaticCast(wxWindow::FindWindowByName(
@@ -104,9 +109,10 @@ bool DerivedApp::OnInit()
                                         ->Clear();
 									wxWindow::FindWindowByName("muti_panel", mf)
 										->Show(false);
+									mf->Refresh();
                                 });
-                            });
-
+                            }, wxXmlResource::GetXRCID(wxT("m_menubar1")));
+							*/
                     });
                     p->close();
                     break;

@@ -6,61 +6,8 @@
 		<title></title>
 		<centered>1</centered>
 		<aui_managed>0</aui_managed>
-		<object class="wxMenuBar" name="m_menubar1">
-			<label>MyMenuBar</label>
-			<object class="wxMenu" name="m_menu1">
-				<label>多人游戏</label>
-			</object>
-			<object class="wxMenu" name="m_menu2">
-				<label>游戏大厅</label>
-			</object>
-			<object class="wxMenu" name="m_menu3">
-				<label>收藏</label>
-			</object>
-			<object class="wxMenu" name="m_menu4">
-				<label>帮助</label>
-			</object>
-		</object>
-		<object class="wxPanel" name="muti_panel">
-			<style>wxTAB_TRAVERSAL</style>
-			<hidden>1</hidden>
-			<object class="wxBoxSizer">
-				<orient>wxVERTICAL</orient>
-				<object class="sizeritem">
-					<option>1</option>
-					<flag>wxEXPAND</flag>
-					<border>5</border>
-					<object class="wxBoxSizer">
-						<orient>wxHORIZONTAL</orient>
-						<object class="sizeritem">
-							<option>0</option>
-							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
-							<border>5</border>
-							<object class="wxListBox" name="m_listBox2">
-								<content />
-							</object>
-						</object>
-						<object class="sizeritem">
-							<option>0</option>
-							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
-							<border>5</border>
-							<object class="wxStaticText" name="m_staticText5">
-								<label></label>
-								<wrap>-1</wrap>
-							</object>
-						</object>
-					</object>
-				</object>
-				<object class="sizeritem">
-					<option>0</option>
-					<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-					<border>5</border>
-					<object class="wxButton" name="m_button10">
-						<label>开始匹配</label>
-						<default>0</default>
-					</object>
-				</object>
-			</object>
+		<object class="wxNotebook" name="m_notebook1">
+			<style>wxNB_TOP</style>
 		</object>
 	</object>
 	<object class="wxDialog" name="MyDialog1">
