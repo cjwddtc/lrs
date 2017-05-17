@@ -9,14 +9,10 @@ extern "C" {
 #include <string>
 namespace lua
 {
-    template < class T >
-    void resign(std::string name, std::function< void(T) > func,
+	BOOST_SYMBOL_EXPORT void resign(std::string name, std::function< void() > func,
                 void* context = nullptr);
-    template < class T >
-    void trigger(std::string name, T value, void* context = nullptr);
+	BOOST_SYMBOL_EXPORT void trigger(std::string name,  void* context = nullptr);
 
-    template < class T >
-    void declare(std::string str, void* context = nullptr);
 
     BOOST_SYMBOL_EXPORT void set_context(void* context);
 

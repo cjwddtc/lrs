@@ -17,57 +17,42 @@ namespace lua
         lua_pushinteger(Ls, n);
     }
 
-    template < class T >
     class signal
     {
-        typedef boost::variant< std::string, std::function< void(T) > >
+        typedef boost::variant<int, std::function< void() > >
             function;
         class function_run : public boost::static_visitor<>
         {
-            T value;
 
           public:
-            function_run(T value_)
-                : value(value_)
+			  void operator()(int func) const;
+            void operator()(std::function< void() > func) const
             {
-            }
-            void operator()(std::string func) const
-            {
-                space->get_table();
-                lua_getfield(Ls, lua_gettop(Ls), func.c_str());
-                assert(lua_isfunction(Ls, lua_gettop(Ls)));
-                lua_push(value);
-                lua_call(Ls, 1, 0);
-            }
-            void operator()(std::function< void(T) > func) const
-            {
-                func(value);
+                func();
             }
         };
         std::vector< function > funcs;
 
       public:
-        static void run(function func, T& a)
+        static void run(function func)
         {
-            boost::apply_visitor(function_run(a), func);
+            boost::apply_visitor(function_run(), func);
         }
-        template < class T >
-        void resign(T func)
+        void resign(function func)
         {
             funcs.push_back(func);
         }
-        void trigger(T a)
+        void trigger()
         {
             for (function& f : funcs)
             {
-                run(f, a);
+                run(f);
             }
         }
     };
 
     class space_class
-        : public std::map< std::string, boost::variant< signal< std::string >,
-                                                        signal< int32_t > > >
+        : public std::map< std::string,signal >
     {
       public:
         int id;
@@ -84,104 +69,44 @@ namespace lua
 
     thread_local space_class* space;
 
-    template < class T >
-    void resign(std::string name, std::function< void(T) > func, void* sp)
+    void resign(std::string name, std::function< void() > func, void* sp)
     {
         if (sp == nullptr)
         {
             sp = (void*)space;
         }
-        boost::get< signal< T > >((*(space_class*)sp)[name]).resign(func);
+        (*(space_class*)sp)[name].resign(func);
     }
-    template < class T >
-    void trigger(std::string name, T value, void* sp)
+
+    void trigger(std::string name, void* sp)
     {
         if (sp != nullptr)
         {
             set_context(sp);
         }
-        printf("%s\n", (*space)[name].type().name());
-        boost::get< signal< T > >((*space)[name]).trigger(value);
+        (*space)[name].trigger();
     }
-
-
-    template < class T >
-    void declare(std::string str, void* sp)
-    {
-        if (sp == nullptr)
-        {
-            sp = (void*)space;
-        }
-        ((space_class*)sp)
-            ->insert(
-                std::pair< std::string, boost::variant< signal< std::string >,
-                                                        signal< int32_t > > >(
-                    str, signal< T >()));
-    }
-
-    template BOOST_SYMBOL_EXPORT void
-    resign< std::string >(std::string                        name,
-                          std::function< void(std::string) > func, void* sp);
-    template BOOST_SYMBOL_EXPORT void
-    resign< int32_t >(std::string name, std::function< void(int32_t) > func,
-                      void* sp);
-
-    template BOOST_SYMBOL_EXPORT void
-    trigger< std::string >(std::string name, std::string value, void* sp);
-
-    template BOOST_SYMBOL_EXPORT void
-    trigger< int32_t >(std::string name, int32_t value, void* sp);
-    template BOOST_SYMBOL_EXPORT void declare< std::string >(std::string,
-                                                             void* sp);
-    template BOOST_SYMBOL_EXPORT void declare< int32_t >(std::string, void* sp);
 
     int lua_resign(lua_State* L)
     {
         assert(lua_gettop(L) == 2);
-        assert(lua_isstring(L, 2));
+        assert(lua_isfunction(L, 2));
         assert(lua_isstring(L, 1));
         size_t      size;
         const char* name_ = lua_tolstring(L, 1, &size);
         std::string name(name_, size);
-        const char* func_ = lua_tolstring(L, 2, &size);
-        std::string func(func_, size);
-        boost::apply_visitor([func](auto& a) { a.resign(func); },
-                             (*space)[name]);
+		space->get_table();
+		lua_pushvalue(Ls,2);
+		int n=luaL_ref(Ls, -2);
+		(*space)[name].resign(n);
+		lua_pop(Ls, 1);
         return 0;
     }
 
     int lua_trigger(lua_State* L)
     {
-        assert(lua_gettop(L) == 2);
-        lua_value v(L, 2);
-        boost::apply_visitor([&v](auto& f) { f.trigger(v); },
-                             (*space)[lua_value(L, 1)]);
-        return 0;
-    }
-
-    int lua_declare(lua_State* L)
-    {
-        assert(lua_gettop(L) == 2);
-        assert(lua_isstring(L, 1));
-        assert(lua_isnumber(L, 2));
-        std::string str(lua_tostring(L, 1));
-        switch (lua_tointeger(L, 2))
-        {
-            case 1:
-                space->insert(std::pair< std::string,
-                                         boost::variant< signal< std::string >,
-                                                         signal< int32_t > > >(
-                    str, signal< int32_t >()));
-                break;
-            case 2:
-                space->insert(std::pair< std::string,
-                                         boost::variant< signal< std::string >,
-                                                         signal< int32_t > > >(
-                    str, signal< std::string >()));
-                break;
-            default:
-                break;
-        }
+        assert(lua_gettop(L) == 1);
+		(*space)[lua_value(L, 1)].trigger();
         return 0;
     }
 
@@ -229,7 +154,6 @@ namespace lua
         Ls = luaL_newstate();
         lua_register(Ls, "trigger", lua_trigger);
         lua_register(Ls, "resign", lua_resign);
-        lua_register(Ls, "declare", lua_declare);
         lua_newtable(Ls);
         assert(list_name.size() == list_func.size());
         for (size_t i = 0; i < list_name.size(); i++)
@@ -263,4 +187,12 @@ namespace lua
     {
         luaL_dofile(Ls, file.c_str());
     }
+	void signal::function_run::operator()(int func) const
+	{
+		space->get_table();
+		lua_rawgeti(Ls, -1, func);
+		assert(lua_isfunction(Ls, lua_gettop(Ls)));
+		lua_call(Ls, 1, 0);
+		lua_pop(Ls, 1);
+	}
 }
