@@ -67,8 +67,8 @@ lsy::room::room(std::string rule_name_, std::vector< role_info > vec)
 {
     lua::set_context(context);
     lua::declare< int32_t >(room_init);
-    main.get_rule.bind([ this, &io = io_service ](bool is_fin) {
-        if (!is_fin)
+    main.get_rule.bind_once([ this, &io = io_service ](bool is_fin) {
+        if (is_fin)
         {
             std::string filename = main.get_rule[0];
             io.post([filename, this]() {
@@ -77,7 +77,7 @@ lsy::room::room(std::string rule_name_, std::vector< role_info > vec)
             });
         }
     },
-                       rule_name_);
+                            rule_name_);
     for (role_info& rf : vec)
     {
         auto& role  = roles[&rf.first];
@@ -88,20 +88,21 @@ lsy::room::room(std::string rule_name_, std::vector< role_info > vec)
         {
             std::string role(rf.second.begin() + s + 1, rf.second.end());
             rf.second.resize(s);
-            main.get_role_ver.bind([ this, &io = io_service ](bool is_fin) {
-                if (!is_fin)
-                {
-                    std::string filename = main.get_role_ver[0];
-                    io.post([filename, this]() {
-                        lua::set_context(context);
-                        lua::run_lua(filename);
-                    });
-                }
-            },
-                                   rf.second, role);
+            main.get_role_ver.bind_once(
+                [ this, &io = io_service ](bool is_fin) {
+                    if (is_fin)
+                    {
+                        std::string filename = main.get_role_ver[0];
+                        io.post([filename, this]() {
+                            lua::set_context(context);
+                            lua::run_lua(filename);
+                        });
+                    }
+                },
+                rf.second, role);
         }
-        main.get_role.bind([ this, &io = io_service ](bool is_fin) {
-            if (!is_fin)
+        main.get_role.bind_once([ this, &io = io_service ](bool is_fin) {
+            if (is_fin)
             {
                 std::string filename = main.get_role[0];
                 io.post([filename, this]() {
@@ -115,74 +116,43 @@ lsy::room::room(std::string rule_name_, std::vector< role_info > vec)
                 });
             }
         },
-                           rf.second);
+                                rf.second);
     }
 }
-
-/*
-void lsy::room::add_role(player &p, std::string name, std::string version)
-{
-        roles.push_back(role(*this,p,roles.size(),name,version));
-        main.get_role.bind([this](bool is_fin) {
-                if (is_fin) {
-                        std::string filename = main.get_role[0];
-                        soc_get->post([filename, this]() {
-                                set_lua_State(L);
-                                run_lua(filename);
-                        });
-                }}, name);
-        if (version != "") {
-                main.get_role_ver.bind([this](bool is_fin) {
-                        if (is_fin) {
-                                std::string filename = main.get_role_ver[0];
-                                soc_get->post([filename, this]() {
-                                        set_lua_State(L);
-                                        run_lua(filename);
-                                        count--;
-                                        if (count == 0) {
-                                                OnReady();
-                                        }
-                                });
-                        }}, name, version);
-        }
-        //main.
-}*/
 lsy::player::player(port_all* soc)
     : as_contain< port_all >(soc)
-{ /*
-     port* p = ptr->resign_port(0);
-     p->OnMessage.connect([this, p](buffer buf) {
-         std::string id((char*)buf.data());
-         std::string passwd((char*)buf.data() + id.size() + 1);
-         main.select.bind(
-             [ passwd, p, count = std::make_shared< bool >(0) ](bool have_data)
-     {
-                 if (have_data)
-                 {
-                     buffer flag((size_t)2);
-                     flag.put((uint16_t)*count);
-                     p->write(flag, [p, count]() {
-                         if (*count)
-                         {
-                             p->close();
-                         }
-                     });
-                 }
-                 else
-                 {
-                     buffer flag((size_t)2);
-                     std::cout << passwd << std::endl;
-                     std::cout << (std::string)main.select[0] << std::endl;
-                     if (passwd == (std::string)main.select[0])
-                     {
-                         *count = 1;
-                         std::cout << "login success" << std::endl;
-                     }
-                 }
-             },
-             id);
-     });
-     p->start();*/
+{
+    lsy::as_ptr< lsy::port > multiplay_port
+        = ptr->resign_port(config::multiplay_port);
+    multiplay_port->OnMessage.connect([this, multiplay_port](buffer buf) {
+        main.get_base_room.bind(
+            [& io = io_service, multiplay_port ](bool is_fin) {
+                if (is_fin)
+                {
+                    multiplay_port->write(lsy::buffer(size_t(1)), []() {});
+                }
+                else
+                {
+                    std::string room_name = main.get_base_room[0];
+                    multiplay_port->write(room_name, []() {});
+                }
+            });
+    });
+
+    lsy::as_ptr< lsy::port > games_port = ptr->resign_port(config::games_port);
+    games_port->OnMessage.connect([this, games_port](buffer buf) {
+        main.get_base_room.bind([& io = io_service, games_port ](bool is_fin) {
+            if (is_fin)
+            {
+                games_port->write(lsy::buffer(size_t(1)), []() {});
+            }
+            else
+            {
+                std::string room_name = main.get_extra_room[0];
+                games_port->write(room_name, []() {});
+            }
+        });
+    });
 }
 using db_gen::main;
 lsy::engine::engine(std::string file)
@@ -194,35 +164,40 @@ lsy::engine::engine(std::string file)
     li.OnConnect.connect([ this, &io = io_service ](lsy::port_all * po) {
         io.post([this, po]() {
             port* p = po->resign_port(login_port);
+            // p->write("asd"s, []() {std::cout << "send success" << std::endl;
+            // });
             p->OnMessage.connect([this, p, po](buffer buf) {
                 std::string id((char*)buf.data());
                 std::string passwd((char*)buf.data() + id.size() + 1);
-                main.select.bind_once([passwd, p, po](bool sucess) {
-                    lsy::buffer buf((size_t)2);
-                    if (sucess)
-                    {
-                        std::cout << passwd << std::endl;
-                        std::cout << (std::string)main.select[0] << std::endl;
-                        if (passwd == (std::string)main.select[0])
+                main.select.bind_once(
+                    [passwd, p, po](bool sucess) {
+                        lsy::buffer buf((size_t)2);
+                        if (sucess)
                         {
-                            std::cout << "login success" << std::endl;
-                            buf.put((uint16_t)0);
-                            new player(po);
+                            std::cout << passwd << std::endl;
+                            std::cout << (std::string)main.select[0]
+                                      << std::endl;
+                            if (passwd == (std::string)main.select[0])
+                            {
+                                std::cout << "login success" << std::endl;
+                                buf.put((uint16_t)0);
+                                new player(po);
+                            }
+                            else
+                            {
+                                buf.put((uint16_t)1);
+                            }
                         }
                         else
                         {
-                            buf.put((uint16_t)1);
+                            buf.put((uint16_t)2);
                         }
-                    }
-                    else
-                    {
-                        buf.put((uint16_t)2);
-                    }
-                    p->write(buf, []() {});
-                });
-                po->start();
-                p->start();
+                        p->write(buf, []() {});
+                    },
+                    id);
             });
+            po->start();
+            p->start();
             // auto p = new player(po);
             // using role_info = lsy::room::role_info;
             // new room("test"s, { role_info(*p,"test"s), });

@@ -3,5 +3,7 @@
 		<lib_path>bin/tcp.dll</lib_path>
 		<listen>tcp_connecter_socket_getter</listen>
 		<is_stream>true</is_stream>
+		<ip>172.17.23.116</ip>
+		<port>1234</port>
 	</net_name>
 </client>

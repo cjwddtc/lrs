@@ -1,5 +1,6 @@
 #include "client.h"
 #include <boost/property_tree/xml_parser.hpp>
+#include <config.h>
 #include <iostream>
 #include <listener.h>
 #include <memory>
@@ -55,37 +56,10 @@ bool DerivedApp::OnInit()
                 char        ch = 0;
                 buf.put((unsigned char*)id.data(), id.size() + 1);
                 buf.put((unsigned char*)passwd.data(), passwd.size() + 1);
-                auto p = pa->resign_port(0);
-                p->start();
-                p->OnMessage.connect([this, p](auto buf) {
-                    uint16_t flag;
-                    buf.get(flag);
-                    if (flag)
-                    {
-                        gui_run([this, p]() {
-                            mf = wxXmlResource::Get()->LoadFrame(NULL,
-                                                                 "MyFrame1");
-                            mf->Show();
-                            mf->Bind(
-                                wxEVT_COMMAND_MENU_SELECTED,
-                                [](wxCommandEvent& e) {
-                                    std::cout << "asd" << std::endl;
-                                },
-                                wxXmlResource::GetXRCID(wxT("menu_match")));
-                        });
-                        p->close();
-                    }
-                    else
-                    {
-                        dlg->SetTitle("wrong passwd or id!");
-                    }
+                auto p = pa->ports[config::login_port];
+                p->write(buf, []() {
+                    std::cout << "login request sent" << std::endl;
                 });
-                p->OnDestroy.connect([this]() {
-                    gui_run([this]() { dlg->Close(); });
-                    auto p = pa->resign_port(1);
-                });
-                p->write(buf,
-                         []() { std::cout << "finish write" << std::endl; });
                 dlg->SetTitle("logining");
                 dlg->Refresh();
             }
@@ -99,6 +73,57 @@ bool DerivedApp::OnInit()
         port->OnError.connect(
             [](auto er) { std::cout << er.message() << std::endl; });
         port->start();
+        auto p = port->resign_port(config::login_port);
+        p->start();
+        p->OnMessage.connect([this, p](auto buf) {
+            uint16_t flag;
+            buf.get(flag);
+            switch (flag)
+            {
+                case 0:
+                    gui_run([this]() {
+                        mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
+                        mf->Show();
+                        wxStaticCast(wxWindow::FindWindowByName("m_menu1"),
+                                     wxMenu)
+                            ->Bind(wxEVT_MENU_OPEN, [this](wxMenuEvent a) {
+                                wxWindow::FindWindowByName("muti_panel", mf)
+                                    ->Show(true);
+                                auto po
+                                    = pa->resign_port(config::multiplay_port);
+                                po->OnMessage.connect([this](lsy::buffer buf) {
+                                    wxStaticCast(wxWindow::FindWindowByName(
+                                                     "m_listBox2", mf),
+                                                 wxListBox)
+                                        ->Append(wxString((char*)buf.data()));
+                                });
+                                po->OnDestroy.connect([this]() {
+                                    wxStaticCast(wxWindow::FindWindowByName(
+                                                     "m_listBox2", mf),
+                                                 wxListBox)
+                                        ->Clear();
+									wxWindow::FindWindowByName("muti_panel", mf)
+										->Show(false);
+                                });
+                            });
+
+                    });
+                    p->close();
+                    break;
+                case 1:
+                    dlg->SetTitle("wrong passwd!");
+                    dlg->Refresh();
+                    break;
+                case 2:
+                    dlg->SetTitle("wrong id!");
+                    dlg->Refresh();
+                    break;
+                default:
+                    assert(0);
+                    break;
+            }
+        });
+        p->OnDestroy.connect([this]() { gui_run([this]() { dlg->Close(); }); });
         gui_run([this]() {
             dlg->SetTitle("connected");
             dlg->Refresh();

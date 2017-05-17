@@ -21,6 +21,8 @@ namespace db_gen
         statement get_rule;
         statement get_role_ver;
         statement get_role;
+        statement get_base_room;
+        statement get_extra_room;
     };
     extern main_class main;
 }
@@ -124,6 +126,49 @@ namespace db_gen
                     delete p;
                 });
             }
+            {
+                auto p = new_statement("DROP TABLE IF EXISTS room");
+                p->bind([p](bool flag) {
+                    assert(flag);
+                    delete p;
+                });
+                p = new_statement(
+                    "CREATE TABLE room(room_name varchar,rulename "
+                    "varchar,explain varchar,type int)");
+                p->bind([p](bool flag) {
+                    assert(flag);
+                    delete p;
+                });
+            }
+            {
+                auto p = new_statement("DROP TABLE IF EXISTS room_contain");
+                p->bind([p](bool flag) {
+                    assert(flag);
+                    delete p;
+                });
+                p = new_statement(
+                    "CREATE TABLE room_contain(room_name varchar,rolename "
+                    "varchar,vername varchar,count size)");
+                p->bind([p](bool flag) {
+                    assert(flag);
+                    delete p;
+                });
+            }
+            {
+                auto p = new_statement("DROP TABLE IF EXISTS rule_base_role");
+                p->bind([p](bool flag) {
+                    assert(flag);
+                    delete p;
+                });
+                p = new_statement(
+                    "CREATE TABLE rule_base_role(rolename varchar,explain "
+                    "varchar,configfile varchar,luafile varchar,onwerid "
+                    "int,rulename varchar)");
+                p->bind([p](bool flag) {
+                    assert(flag);
+                    delete p;
+                });
+            }
         }
     }
     main_class::main_class()
@@ -134,6 +179,8 @@ namespace db_gen
               this,
               "select luafile from role_ver where rolename=? AND vername=?")
         , get_role(this, "select luafile from role where rolename=?")
+        , get_base_room(this, "select room_name from room where type=0")
+        , get_extra_room(this, "select room_name from room where type=1")
     {
     }
     main_class main;

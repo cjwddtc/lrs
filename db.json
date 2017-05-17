@@ -37,13 +37,35 @@
 			"role_extend":{
 				"rolefather":"varchar",
 				"roleson":"varchar"
+			},
+			"room":{
+				"room_name":"varchar",
+				"rulename":"varchar",
+				"explain":"varchar",
+				"type":"int"
+			},
+			"room_contain":{
+				"room_name":"varchar",
+				"rolename":"varchar",
+				"vername":"varchar",
+				"count":"size"
+			},
+			"rule_base_role":{
+				"rolename":"varchar",
+				"explain":"varchar",
+				"configfile":"varchar",
+				"luafile":"varchar",
+				"onwerid":"int",
+				"rulename":"varchar"
 			}
 		},
 		"statement":{
 			"select":"select passwd from player where id=?;",
 			"get_rule":"select luafile from rule where rulename=?;",
 			"get_role_ver":"select luafile from role_ver where rolename=? AND vername=?",
-			"get_role":"select luafile from role where rolename=?"
+			"get_role":"select luafile from role where rolename=?",
+			"get_base_room":"select room_name from room where type=0",
+			"get_extra_room":"select room_name from room where type=1"
 		}
 	}
 }

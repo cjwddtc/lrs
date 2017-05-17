@@ -21,6 +21,8 @@ namespace db_gen
         statement get_rule;
         statement get_role_ver;
         statement get_role;
+        statement get_base_room;
+        statement get_extra_room;
     };
     extern main_class main;
 }

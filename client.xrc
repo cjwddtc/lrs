@@ -1,5 +1,68 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxFrame" name="MyFrame2">
+		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<size>500,300</size>
+		<title></title>
+		<centered>1</centered>
+		<aui_managed>0</aui_managed>
+		<object class="wxMenuBar" name="m_menubar1">
+			<label>MyMenuBar</label>
+			<object class="wxMenu" name="m_menu1">
+				<label>多人游戏</label>
+			</object>
+			<object class="wxMenu" name="m_menu2">
+				<label>游戏大厅</label>
+			</object>
+			<object class="wxMenu" name="m_menu3">
+				<label>收藏</label>
+			</object>
+			<object class="wxMenu" name="m_menu4">
+				<label>帮助</label>
+			</object>
+		</object>
+		<object class="wxPanel" name="muti_panel">
+			<style>wxTAB_TRAVERSAL</style>
+			<hidden>1</hidden>
+			<object class="wxBoxSizer">
+				<orient>wxVERTICAL</orient>
+				<object class="sizeritem">
+					<option>1</option>
+					<flag>wxEXPAND</flag>
+					<border>5</border>
+					<object class="wxBoxSizer">
+						<orient>wxHORIZONTAL</orient>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<object class="wxListBox" name="m_listBox2">
+								<content />
+							</object>
+						</object>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<object class="wxStaticText" name="m_staticText5">
+								<label></label>
+								<wrap>-1</wrap>
+							</object>
+						</object>
+					</object>
+				</object>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+					<border>5</border>
+					<object class="wxButton" name="m_button10">
+						<label>开始匹配</label>
+						<default>0</default>
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
 	<object class="wxDialog" name="MyDialog1">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
 		<title></title>
@@ -26,6 +89,7 @@
 				<border>5</border>
 				<object class="wxTextCtrl" name="id_tc">
 					<value></value>
+					<maxlength>0</maxlength>
 				</object>
 			</object>
 			<object class="sizeritem">
@@ -45,6 +109,7 @@
 				<border>5</border>
 				<object class="wxTextCtrl" name="passwd_tc">
 					<value></value>
+					<maxlength>0</maxlength>
 				</object>
 			</object>
 			<object class="sizeritem">
@@ -65,31 +130,6 @@
 				<object class="wxButton" name="canel_b">
 					<label>取消</label>
 					<default>1</default>
-				</object>
-			</object>
-		</object>
-	</object>
-	<object class="wxFrame" name="MyFrame1">
-		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
-		<size>500,300</size>
-		<title></title>
-		<centered>1</centered>
-		<aui_managed>0</aui_managed>
-		<object class="wxStatusBar" name="m_statusBar1">
-			<style>wxST_SIZEGRIP</style>
-			<fields>1</fields>
-		</object>
-		<object class="wxMenuBar" name="m_menubar1">
-			<label>MyMenuBar</label>
-			<object class="wxMenu" name="m_menu1">
-				<label>游戏</label>
-				<object class="wxMenuItem" name="menu_match">
-					<label>匹配</label>
-					<help></help>
-				</object>
-				<object class="wxMenuItem" name="m_menuItem2">
-					<label>自定义游戏</label>
-					<help></help>
 				</object>
 			</object>
 		</object>
