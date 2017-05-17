@@ -3,6 +3,7 @@
 		<lib_path>bin/tcp.dll</lib_path>
 		<listen>tcp_listner_socket_getter</listen>
 		<is_stream>true</is_stream>
+		<port>1234</port>
 	</net_name>
 	<ws_name>
 		<lib_path>bin/websocket.dll</lib_path>

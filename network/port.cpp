@@ -1,9 +1,18 @@
 #include "port.h"
+uint16_t lsy::port_all::valid_port()
+{
+    uint16_t n;
+    do
+    {
+        n = rand() % 65536;
+    } while (ports[n].valid());
+    return n;
+}
 lsy::port_all::port_all(assocket* soc)
     : as_contain< assocket >(soc)
 {
     ptr->OnMessage.connect([this](buffer mes) {
-        buffer head(2);
+        buffer head((size_t)2);
         head.put(mes);
         head.reset();
         uint16_t port;

@@ -74,6 +74,8 @@ namespace lsy
 
             template < class... ARG >
             void bind(std::function< void(bool) > func, ARG... arg);
+            template < class... ARG >
+            void bind_once(std::function< void(bool) > func, ARG... arg);
             template < size_t n, class T, class... ARG >
             void bind_t(T a, ARG... arg);
             template < size_t         n >

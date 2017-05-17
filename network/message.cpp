@@ -3,8 +3,8 @@ namespace lsy
 {
     message_socket::message_socket(assocket* aso)
         : as_contain< assocket >(aso)
-        , buf(1)
-        , head(4)
+        , buf((size_t)1)
+        , head((size_t)4)
         , is_head(true)
     {
         ptr->OnMessage.connect([this](const buffer buf_) {
@@ -47,7 +47,7 @@ namespace lsy
     }
     void message_socket::write(buffer buf_, std::function< void() > func)
     {
-        buffer buf(4);
+        buffer buf((size_t)4);
         buf.put((uint32_t)buf_.size());
         ptr->write(buf);
         ptr->write(buf_, func);

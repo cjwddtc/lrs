@@ -30,10 +30,44 @@ namespace lsy
     }
 
     buffer::buffer(const std::string& str)
-        : ptr((count_block*)malloc(str.size() + sizeof(size_t)))
+        : ptr((count_block*)malloc(str.size() + sizeof(size_t) + 1))
         , size_(str.size())
         , now_ptr(ptr->ptr)
     {
+        strcpy((char*)ptr->ptr, str.c_str());
+    }
+    size_t get_size(std::initializer_list< buffer > list)
+    {
+
+        size_t size = 0;
+        for (auto a : list)
+        {
+            size += a.size();
+        }
+        return size;
+    }
+    buffer::buffer(std::initializer_list< buffer > list)
+    {
+        buffer(get_size(list));
+        for (auto a : list)
+        {
+            put(a);
+        }
+        reset();
+    }
+
+    buffer::buffer(uint16_t n)
+    {
+        buffer((size_t)2);
+        put(n);
+        reset();
+    }
+
+    buffer::buffer(uint32_t n)
+    {
+        buffer((size_t)4);
+        put(n);
+        reset();
     }
 
     void buffer::get(uint16_t& t) const

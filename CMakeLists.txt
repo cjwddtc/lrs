@@ -62,6 +62,8 @@ function(lsy_add_directoy dir)
 	cotire(${dir})
 endfunction(lsy_add_directoy)
 
+lsy_add_directoy(config)
+
 lsy_add_directoy(net_api)
 
 lsy_add_directoy(network)

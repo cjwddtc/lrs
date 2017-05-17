@@ -175,6 +175,9 @@ namespace lsy
         /// Constructor from std::string
         ///@param str the string
         buffer(const std::string& str);
+        buffer(std::initializer_list< buffer > list);
+        buffer(uint16_t n);
+        buffer(uint32_t n);
         /// begin funcion
         ///@return return the begin of the buffer
         unsigned char* begin();
