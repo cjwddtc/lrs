@@ -30,4 +30,4 @@ namespace lsy
     };
     BOOST_SYMBOL_EXPORT void run();
 }
-extern lsy::server *server_ptr;
+extern lsy::server* server_ptr;

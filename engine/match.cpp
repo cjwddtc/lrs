@@ -1,8 +1,8 @@
 #include "match.h"
 #include <config.h>
 #include <db_auto.h>
-#include <room.h>
 #include <engine.h>
+#include <room.h>
 
 extern thread_local boost::asio::io_service io_service;
 void lsy::queue::add_player(player* ptr, uint16_t score)
@@ -11,7 +11,7 @@ void lsy::queue::add_player(player* ptr, uint16_t score)
     {
         group a;
         a.push_back(ptr);
-		server_ptr->create_room(room_name, a);
+        server_ptr->create_room(room_name, a);
     }
     else
     {
@@ -28,7 +28,7 @@ void lsy::queue::add_player(player* ptr, uint16_t score)
             a->second.push_back(ptr);
             if (a->second.size() == size)
             {
-				server_ptr->create_room(room_name, a->second);
+                server_ptr->create_room(room_name, a->second);
                 groups.erase(a);
             }
             else

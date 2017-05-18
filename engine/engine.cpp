@@ -14,7 +14,7 @@
 using namespace config;
 using namespace std::string_literals;
 thread_local boost::asio::io_service io_service;
-lsy::server *server_ptr;
+lsy::server*                         server_ptr;
 
 int wait_time(lua_State* L)
 {

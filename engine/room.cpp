@@ -12,6 +12,7 @@ lsy::room::room(std::string room_name_, std::vector< player* > vec)
     , count(vec.size())
 {
     lua::set_context(context);
+    // init room rule lua script
     main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
         assert(have_data);
         std::string str = main.get_room_rule[0];
@@ -22,6 +23,7 @@ lsy::room::room(std::string room_name_, std::vector< player* > vec)
         });
     },
                                  room_name);
+    // init room role
     main.get_room_role.bind([ this, &io = io_service,
                               vec = std::move(vec) ](bool is_fin) {
         if (!is_fin)
@@ -44,11 +46,11 @@ lsy::room::room(std::string room_name_, std::vector< player* > vec)
                 auto name_it = role_names.begin();
                 for (auto pl : vec)
                 {
-                    auto& role    = roles[pl];
-                    role.first    = *name_it++;
-                    role.second   = roles.size() - 1;
-                    size_t      s = role.first.find_first_of('.');
+                    auto& role  = roles[pl];
+                    role.first  = *name_it++;
+                    role.second = roles.size() - 1;
                     std::string role_name(role.first);
+                    size_t      s = role_name.find_first_of('.');
                     if (s != std::string::npos)
                     {
                         std::string role_ver(role_name.begin() + s + 1,

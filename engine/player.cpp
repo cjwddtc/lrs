@@ -1,6 +1,7 @@
 #include "player.h"
 #include <config.h>
 #include <db_auto.h>
+#include <match.h>
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
 lsy::port_all*                              lsy::player::operator->()
@@ -31,7 +32,7 @@ lsy::player::player(port_all* soc, std::string id_)
     multiplay_port->start();
     lsy::as_ptr< lsy::port > games_port = ptr->resign_port(config::games_port);
     games_port->OnMessage.connect([this, games_port](buffer buf) {
-        main.get_base_room.bind([& io = io_service, games_port ](bool is_fin) {
+        main.get_base_room.bind([games_port](bool is_fin) {
             if (is_fin)
             {
                 games_port->write(lsy::buffer(size_t(1)), []() {});
@@ -46,8 +47,10 @@ lsy::player::player(port_all* soc, std::string id_)
     games_port->start();
     lsy::as_ptr< lsy::port > match_port = ptr->resign_port(config::match_port);
     match_port->OnMessage.connect(
-        [this, match_port](buffer buf) { std::string str((char*)buf.data());
-		
-	});
+        [ this, match_port, &io = io_service ](buffer buf) {
+            std::string str((char*)buf.data());
+            io.post([str, this]() { add_to_queue(str, this); });
+
+        });
     match_port->start();
 }
