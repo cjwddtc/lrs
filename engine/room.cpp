@@ -1,70 +1,96 @@
 #include "room.h"
-#include <lua_engine.h>
-#include <db_auto.h>
+#include <algorithm>
 #include <config.h>
+#include <db_auto.h>
+#include <lua_engine.h>
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
 using namespace std::string_literals;
-lsy::room::room(std::string rule_name_, std::vector< role_info > vec)
-    : rule_name(rule_name_)
+lsy::room::room(std::string room_name_, std::vector< player* > vec)
+    : room_name(room_name_)
     , context(lua::new_context())
     , count(vec.size())
 {
     lua::set_context(context);
-    main.get_rule.bind_once([ this, &io = io_service ](bool is_fin) {
-        if (is_fin)
+    main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
+        assert(have_data);
+        std::string str = main.get_room_rule[0];
+        io.post([str, this]() {
+            lua::set_context(context);
+            lua::add_data("room"s, this);
+            lua::run_lua(str);
+        });
+    },
+                                 room_name);
+    main.get_room_role.bind([ this, &io = io_service,
+                              vec = std::move(vec) ](bool is_fin) {
+        if (!is_fin)
         {
-            std::string filename = main.get_rule[0];
-            io.post([filename, this]() {
-                lua::set_context(context);
-				lua::add_data("room"s, this);
-                lua::run_lua(filename);
+            std::string role_name = main.get_room_role[0];
+            int         count     = main.get_room_role[1];
+            io.post([this, role_name, count]() {
+                int c = count;
+                while (c--)
+                {
+                    role_names.push_back(role_name);
+                }
+            });
+        }
+        else
+        {
+            assert(role_names.size() == vec.size());
+            io.post([ this, vec = std::move(vec) ]() {
+                std::random_shuffle(role_names.begin(), role_names.end());
+                auto name_it = role_names.begin();
+                for (auto pl : vec)
+                {
+                    auto& role    = roles[pl];
+                    role.first    = *name_it++;
+                    role.second   = roles.size() - 1;
+                    size_t      s = role.first.find_first_of('.');
+                    std::string role_name(role.first);
+                    if (s != std::string::npos)
+                    {
+                        std::string role_ver(role_name.begin() + s + 1,
+                                             role_name.end());
+                        role_name.resize(s);
+                        main.get_role_ver.bind_once(
+                            [ this, &io = io_service, ptr = &pl ](bool is_fin) {
+                                if (is_fin)
+                                {
+                                    std::string filename = main.get_role_ver[0];
+                                    io.post([filename, this, ptr]() {
+                                        lua::set_context(context);
+                                        lua::add_data("room"s, this);
+                                        lua::add_data("player"s, ptr);
+                                        lua::run_lua(filename);
+                                    });
+                                }
+                            },
+                            role_name, role_ver);
+                    }
+                    main.get_role.bind_once(
+                        [ this, &io = io_service, ptr = &pl ](bool is_fin) {
+                            if (is_fin)
+                            {
+                                std::string filename = main.get_role[0];
+                                io.post([filename, this, ptr]() {
+                                    lua::set_context(context);
+                                    lua::add_data("room"s, this);
+                                    lua::add_data("player"s, ptr);
+                                    lua::run_lua(filename);
+                                    count--;
+                                    if (count == 0)
+                                    {
+                                        lua::trigger(config::room_init);
+                                    }
+                                });
+                            }
+                        },
+                        role_name);
+                }
             });
         }
     },
-                            rule_name_);
-    for (role_info& rf : vec)
-    {
-        auto& role  = roles[&rf.first];
-        role.first  = rf.second;
-        role.second = roles.size() - 1;
-        size_t s    = rf.second.find_first_of('.');
-        if (s != std::string::npos)
-        {
-            std::string role(rf.second.begin() + s + 1, rf.second.end());
-            rf.second.resize(s);
-            main.get_role_ver.bind_once(
-                [ this, &io = io_service ,ptr=&rf.first](bool is_fin) {
-                    if (is_fin)
-                    {
-                        std::string filename = main.get_role_ver[0];
-                        io.post([filename, this,ptr]() {
-                            lua::set_context(context);
-							lua::add_data("room"s, this);
-							lua::add_data("player"s, ptr);
-                            lua::run_lua(filename);
-                        });
-                    }
-                },
-                rf.second, role);
-        }
-        main.get_role.bind_once([ this, &io = io_service, ptr = &rf.first](bool is_fin) {
-            if (is_fin)
-            {
-                std::string filename = main.get_role[0];
-                io.post([filename, this,ptr]() {
-                    lua::set_context(context);
-					lua::add_data("room"s, this);
-					lua::add_data("player"s, ptr);
-                    lua::run_lua(filename);
-                    count--;
-                    if (count == 0)
-                    {
-                        lua::trigger(config::room_init);
-                    }
-                });
-            }
-        },
-                                rf.second);
-    }
+                            room_name);
 }

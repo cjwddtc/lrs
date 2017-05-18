@@ -1,15 +1,16 @@
 #include "player.h"
-#include <db_auto.h>
 #include <config.h>
+#include <db_auto.h>
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
-lsy::port_all* lsy::player::operator->()
+lsy::port_all*                              lsy::player::operator->()
 {
     return ptr;
 }
 
-lsy::player::player(port_all* soc)
+lsy::player::player(port_all* soc, std::string id_)
     : as_contain< port_all >(soc)
+    , id(id_)
 {
     lsy::as_ptr< lsy::port > multiplay_port
         = ptr->resign_port(config::multiplay_port);
@@ -27,7 +28,7 @@ lsy::player::player(port_all* soc)
                 }
             });
     });
-	multiplay_port->start();
+    multiplay_port->start();
     lsy::as_ptr< lsy::port > games_port = ptr->resign_port(config::games_port);
     games_port->OnMessage.connect([this, games_port](buffer buf) {
         main.get_base_room.bind([& io = io_service, games_port ](bool is_fin) {
@@ -42,5 +43,11 @@ lsy::player::player(port_all* soc)
             }
         });
     });
-	games_port->start();
+    games_port->start();
+    lsy::as_ptr< lsy::port > match_port = ptr->resign_port(config::match_port);
+    match_port->OnMessage.connect(
+        [this, match_port](buffer buf) { std::string str((char*)buf.data());
+		
+	});
+    match_port->start();
 }

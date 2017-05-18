@@ -2,7 +2,6 @@
 	"main":{
 		"table":{
 	    	"player": {
-				"id": "int",
 		        "name": "varchar",
 		        "passwd": "varchar",
 				"is_valid": "bool"
@@ -57,6 +56,11 @@
 				"luafile":"varchar",
 				"onwerid":"int",
 				"rulename":"varchar"
+			},
+			"score":{
+		        "name": "varchar",
+				"room_name":"varchar",
+				"score":"int"
 			}
 		},
 		"statement":{
@@ -65,7 +69,11 @@
 			"get_role_ver":"select luafile from role_ver where rolename=? AND vername=?",
 			"get_role":"select luafile from role where rolename=?",
 			"get_base_room":"select room_name from room where type=0",
-			"get_extra_room":"select room_name from room where type=1"
+			"get_extra_room":"select room_name from room where type=1",
+			"get_room_size":"select sum(count) from room_contain where room_name=?",
+			"get_score":"select score from score where name=? AND room_name=?",
+			"get_room_role":"select rolename,count from room_contain where room_name=?",
+			"get_room_rule":"select luafile from room INNER JOIN rule ON room.rulename=rule.rulename where room_name=?"
 		}
 	}
 }

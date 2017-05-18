@@ -16,7 +16,7 @@ class DerivedApp : public wxApp
   public:
     virtual bool OnInit();
     virtual int  OnExit();
-	void init_dating(int16_t type);
+    void init_dating(int16_t type);
 };
 IMPLEMENT_APP_CONSOLE(DerivedApp);
 
@@ -35,45 +35,53 @@ int DerivedApp::OnExit()
 }
 void DerivedApp::init_dating(int16_t type)
 {
-	switch (type) {
-	case 0: {
-		mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
-		//wxMenu *p=XRCCTRL(mf, "m_menu1", wxMenu);
-		mf->Show();
-		auto boptr = wxStaticCast(wxWindow::FindWindowByName("m_notebook1", mf), wxNotebook);
-		auto mutipanel = wxXmlResource::Get()->LoadPanel(boptr, "mutipanel");
-		boptr->AddPage(mutipanel, "多人游戏"); }
-	case 1: {
-		auto po
-			= pa->resign_port(config::multiplay_port);
-		po->OnMessage.connect([this,po=lsy::as_ptr<lsy::port>(po)](lsy::buffer buf) {
-			if (buf.size() == 1)
-			{
-				wxStaticCast(wxWindow::FindWindowByName(
-					"m_staticText3", mf),
-					wxStaticText)->SetLabel("加载完毕");
-				mf->Refresh();
-				po->close();
-			}
-			else {
-				wxStaticCast(wxWindow::FindWindowByName(
-					"m_listBox1", mf),
-					wxListBox)
-					->Append(wxString((char*)buf.data()));
-				mf->Refresh();
-			}
-		});
-		po->write(lsy::buffer((size_t)0), []() {});
-		po->start();
-		wxStaticCast(wxWindow::FindWindowByName(
-			"m_listBox1", mf),
-			wxListBox)->Clear();
-		wxStaticCast(wxWindow::FindWindowByName(
-			"m_staticText3", mf),
-			wxStaticText)->SetLabel("加载中");
-		mf->Refresh(); }
-		break;
-	}
+    switch (type)
+    {
+        case 0:
+        {
+            mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
+            // wxMenu *p=XRCCTRL(mf, "m_menu1", wxMenu);
+            mf->Show();
+            auto boptr = wxStaticCast(
+                wxWindow::FindWindowByName("m_notebook1", mf), wxNotebook);
+            auto mutipanel
+                = wxXmlResource::Get()->LoadPanel(boptr, "mutipanel");
+            boptr->AddPage(mutipanel, "多人游戏");
+        }
+        case 1:
+        {
+            auto po = pa->resign_port(config::multiplay_port);
+            po->OnMessage.connect([ this, po = lsy::as_ptr< lsy::port >(po) ](
+                lsy::buffer buf) {
+                if (buf.size() == 1)
+                {
+                    wxStaticCast(
+                        wxWindow::FindWindowByName("m_staticText3", mf),
+                        wxStaticText)
+                        ->SetLabel("加载完毕");
+                    mf->Refresh();
+                    po->close();
+                }
+                else
+                {
+                    wxStaticCast(wxWindow::FindWindowByName("m_listBox1", mf),
+                                 wxListBox)
+                        ->Append(wxString((char*)buf.data()));
+                    mf->Refresh();
+                }
+            });
+            po->write(lsy::buffer((size_t)0), []() {});
+            po->start();
+            wxStaticCast(wxWindow::FindWindowByName("m_listBox1", mf),
+                         wxListBox)
+                ->Clear();
+            wxStaticCast(wxWindow::FindWindowByName("m_staticText3", mf),
+                         wxStaticText)
+                ->SetLabel("加载中");
+            mf->Refresh();
+        }
+        break;
+    }
 }
 bool DerivedApp::OnInit()
 {
@@ -125,9 +133,7 @@ bool DerivedApp::OnInit()
             switch (flag)
             {
                 case 0:
-                    gui_run([this]() {
-						init_dating(0);
-                    });
+                    gui_run([this]() { init_dating(0); });
                     p->close();
                     break;
                 case 1:

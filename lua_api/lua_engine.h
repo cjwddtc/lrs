@@ -9,9 +9,10 @@ extern "C" {
 #include <string>
 namespace lua
 {
-	BOOST_SYMBOL_EXPORT void resign(std::string name, std::function< void() > func,
-                void* context = nullptr);
-	BOOST_SYMBOL_EXPORT void trigger(std::string name,  void* context = nullptr);
+    BOOST_SYMBOL_EXPORT void resign(std::string             name,
+                                    std::function< void() > func,
+                                    void*                   context = nullptr);
+    BOOST_SYMBOL_EXPORT void trigger(std::string name, void* context = nullptr);
 
 
     BOOST_SYMBOL_EXPORT void set_context(void* context);

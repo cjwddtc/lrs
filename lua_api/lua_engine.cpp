@@ -19,13 +19,12 @@ namespace lua
 
     class signal
     {
-        typedef boost::variant<int, std::function< void() > >
-            function;
+        typedef boost::variant< int, std::function< void() > > function;
         class function_run : public boost::static_visitor<>
         {
 
           public:
-			  void operator()(int func) const;
+            void operator()(int func) const;
             void operator()(std::function< void() > func) const
             {
                 func();
@@ -51,8 +50,7 @@ namespace lua
         }
     };
 
-    class space_class
-        : public std::map< std::string,signal >
+    class space_class : public std::map< std::string, signal >
     {
       public:
         int id;
@@ -95,18 +93,18 @@ namespace lua
         size_t      size;
         const char* name_ = lua_tolstring(L, 1, &size);
         std::string name(name_, size);
-		space->get_table();
-		lua_pushvalue(Ls,2);
-		int n=luaL_ref(Ls, -2);
-		(*space)[name].resign(n);
-		lua_pop(Ls, 1);
+        space->get_table();
+        lua_pushvalue(Ls, 2);
+        int n = luaL_ref(Ls, -2);
+        (*space)[name].resign(n);
+        lua_pop(Ls, 1);
         return 0;
     }
 
     int lua_trigger(lua_State* L)
     {
         assert(lua_gettop(L) == 1);
-		(*space)[lua_value(L, 1)].trigger();
+        (*space)[lua_value(L, 1)].trigger();
         return 0;
     }
 
@@ -187,12 +185,12 @@ namespace lua
     {
         luaL_dofile(Ls, file.c_str());
     }
-	void signal::function_run::operator()(int func) const
-	{
-		space->get_table();
-		lua_rawgeti(Ls, -1, func);
-		assert(lua_isfunction(Ls, lua_gettop(Ls)));
-		lua_call(Ls, 1, 0);
-		lua_pop(Ls, 1);
-	}
+    void signal::function_run::operator()(int func) const
+    {
+        space->get_table();
+        lua_rawgeti(Ls, -1, func);
+        assert(lua_isfunction(Ls, lua_gettop(Ls)));
+        lua_call(Ls, 1, 0);
+        lua_pop(Ls, 1);
+    }
 }
