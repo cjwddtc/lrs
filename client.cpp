@@ -16,6 +16,7 @@ class DerivedApp : public wxApp
   public:
     virtual bool OnInit();
     virtual int  OnExit();
+	void init_dating(int16_t type);
 };
 IMPLEMENT_APP_CONSOLE(DerivedApp);
 
@@ -31,6 +32,48 @@ int DerivedApp::OnExit()
 {
     li.join();
     return 0;
+}
+void DerivedApp::init_dating(int16_t type)
+{
+	switch (type) {
+	case 0: {
+		mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
+		//wxMenu *p=XRCCTRL(mf, "m_menu1", wxMenu);
+		mf->Show();
+		auto boptr = wxStaticCast(wxWindow::FindWindowByName("m_notebook1", mf), wxNotebook);
+		auto mutipanel = wxXmlResource::Get()->LoadPanel(boptr, "mutipanel");
+		boptr->AddPage(mutipanel, "多人游戏"); }
+	case 1: {
+		auto po
+			= pa->resign_port(config::multiplay_port);
+		po->OnMessage.connect([this,po=lsy::as_ptr<lsy::port>(po)](lsy::buffer buf) {
+			if (buf.size() == 1)
+			{
+				wxStaticCast(wxWindow::FindWindowByName(
+					"m_staticText3", mf),
+					wxStaticText)->SetLabel("加载完毕");
+				mf->Refresh();
+				po->close();
+			}
+			else {
+				wxStaticCast(wxWindow::FindWindowByName(
+					"m_listBox1", mf),
+					wxListBox)
+					->Append(wxString((char*)buf.data()));
+				mf->Refresh();
+			}
+		});
+		po->write(lsy::buffer((size_t)0), []() {});
+		po->start();
+		wxStaticCast(wxWindow::FindWindowByName(
+			"m_listBox1", mf),
+			wxListBox)->Clear();
+		wxStaticCast(wxWindow::FindWindowByName(
+			"m_staticText3", mf),
+			wxStaticText)->SetLabel("加载中");
+		mf->Refresh(); }
+		break;
+	}
 }
 bool DerivedApp::OnInit()
 {
@@ -83,36 +126,7 @@ bool DerivedApp::OnInit()
             {
                 case 0:
                     gui_run([this]() {
-                        mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
-						//wxMenu *p=XRCCTRL(mf, "m_menu1", wxMenu);
-                        mf->Show();
-						auto boptr = wxWindow::FindWindowByName("m_notebook1", mf);
-						wxStaticCast(boptr, wxNotebook)->AddPage(new wxPanel(boptr), "多人游戏");
-						/*
-						mf->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent a) {
-                                wxWindow::FindWindowByName("muti_panel", mf)
-                                    ->Show(true);
-								mf->Refresh();
-                                auto po
-                                    = pa->resign_port(config::multiplay_port);
-                                po->OnMessage.connect([this](lsy::buffer buf) {
-                                    wxStaticCast(wxWindow::FindWindowByName(
-                                                     "m_listBox2", mf),
-                                                 wxListBox)
-                                        ->Append(wxString((char*)buf.data()));
-									mf->Refresh();
-                                });
-                                po->OnDestroy.connect([this]() {
-                                    wxStaticCast(wxWindow::FindWindowByName(
-                                                     "m_listBox2", mf),
-                                                 wxListBox)
-                                        ->Clear();
-									wxWindow::FindWindowByName("muti_panel", mf)
-										->Show(false);
-									mf->Refresh();
-                                });
-                            }, wxXmlResource::GetXRCID(wxT("m_menubar1")));
-							*/
+						init_dating(0);
                     });
                     p->close();
                     break;

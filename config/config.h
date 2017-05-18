@@ -8,5 +8,6 @@ namespace config
     constexpr uint16_t login_port     = 1;
     constexpr uint16_t multiplay_port = 2;
     constexpr uint16_t games_port     = 3;
+	constexpr uint16_t match_port = 4;
     constexpr char*    room_init      = "room_init";
 }

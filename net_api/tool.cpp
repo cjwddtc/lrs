@@ -31,7 +31,7 @@ namespace lsy
 
     buffer::buffer(const std::string& str)
         : ptr((count_block*)malloc(str.size() + sizeof(size_t) + 1))
-        , size_(str.size())
+        , size_(str.size()+1)
         , now_ptr(ptr->ptr)
     {
         strcpy((char*)ptr->ptr, str.c_str());
