@@ -12,18 +12,10 @@ using namespace lsy;
 #include <time.h>
 using namespace std::string_literals;
 
-int test(lua_State* L)
-{
-    assert(lua_gettop(L) == 1);
-    assert(lua_islightuserdata(L, 1));
-    char* p = (char*)lua_topointer(L, 1);
-    printf("%s\n", p);
-    return 0;
-}
 
 int main(int n, char* argv[])
 {
-    engine en("server.xml"); /*
+    server en("server.xml"); /*
      luaL_reg reg;
      reg.name = "test";
      reg.func = test;

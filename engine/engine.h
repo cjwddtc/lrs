@@ -1,57 +1,31 @@
 #pragma once
-#include "database_fwd.h"
 #include "listener.h"
+#include <boost/asio/io_service.hpp>
+#include <boost/thread.hpp>
 #include <tuple>
 #include <utility>
+#include <room.h>
+extern thread_local boost::asio::io_service io_service;
 
 namespace lsy
 {
-    class player : private as_contain< port_all >
-    {
-      protected:
-        std::string id;
-
-      public:
-        player(port_all* soc);
-        port_all* operator->();
-    };
-
-    class room
-    {
-        void*   context;
-        uint8_t count;
-        std::map< player*, std::pair< std::string, uint8_t > > roles;
-        std::string rule_name;
-
-      public:
-        typedef std::pair< player&, std::string > role_info;
-        room(std::string rule_name, std::vector< role_info > vec);
-        /*
-class channel
-{
-    std::vector< assocket* > roles;
-    uint16_t                 port;
-    channel(uint16_t port);
-
-  public:
-    void add(role& p);
-    void send(buffer buf, std::function< void() > func = []() {});
-};
-
-std::map< uint16_t, channel > channels;
-std::vector< role* > roles;
-uint16_t add(player& pl);
-void add(uint16_t role_id, uint16_t channel_id);
-void send(uint16_t from_id, uint16_t to_id);
-void send_channel(uint16_t role_id, uint16_t channel_id);*/
-    };
-
-    class BOOST_SYMBOL_EXPORT engine
-    {
-      public:
-        listener li;
-        engine(std::string file);
-        void ConnectHandle(port_all* port);
-    };
-    BOOST_SYMBOL_EXPORT void run();
+	class BOOST_SYMBOL_EXPORT run_thread
+	{
+		std::unique_ptr<boost::asio::io_service::work> work;
+		boost::thread thr;
+	public:
+		void run();
+		void stop();
+		boost::asio::io_service &get_io_service();
+		void add_room(std::string rule_name_, std::vector< role_info > vec);
+	};
+	class BOOST_SYMBOL_EXPORT server
+	{
+	public:
+		listener li;
+		std::vector<run_thread> threads;
+		server(std::string file);
+		void create_room(std::string rule_name_, std::vector< role_info > vec);
+	};
+	BOOST_SYMBOL_EXPORT void run();
 }

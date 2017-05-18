@@ -59,7 +59,7 @@ function(lsy_add_directoy dir)
 		set(SRC "${SRC};${FILE_TMP}")
 	endforeach(type)
 	add_library(${dir} SHARED ${SRC})
-	cotire(${dir})
+#	cotire(${dir})
 endfunction(lsy_add_directoy)
 
 lsy_add_directoy(config)
