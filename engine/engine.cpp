@@ -26,7 +26,7 @@ int wait_time(lua_State* L)
     auto        t    = std::make_shared< boost::asio::deadline_timer >(
         io_service, boost::posix_time::seconds(time));
     auto pt = t.get();
-    pt->async_wait([ t, context = lua::get_context(), str ](auto a) {
+    pt->async_wait([ t, context = lua::get_data(L, "signal_space"), str ](auto a) {
         lua::trigger(str, context);
     });
     return 0;
@@ -46,9 +46,9 @@ int add_buttion(lua_State* L)
     p->ports[button_port]->write(buf, []() {});
     auto ptr = p->resign_port(port);
     ptr->OnMessage.connect(
-        [& io    = io_service, name,
-         context = lua::get_context() ](lsy::buffer buf) {
-            io.post([name, context]() { lua::trigger(name, context); });
+        [& io    = io_service, name,L
+          ](lsy::buffer buf) {
+            io.post([name, space=lua::get_data(L,"signal_space")]() { lua::trigger(name, space); });
         });
     return 0;
 }
@@ -60,7 +60,6 @@ void lsy::run_thread::run()
 {
     boost::thread([this]() {
         work.reset(new boost::asio::io_service::work(io_service));
-		lua::lua_thread_init({ "wait"s }, { wait_time });
         work->get_io_service().run();
     }).swap(thr);
 }

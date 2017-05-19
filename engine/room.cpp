@@ -8,18 +8,16 @@ extern thread_local boost::asio::io_service io_service;
 using namespace std::string_literals;
 lsy::room::room(std::string room_name_, std::vector< player* > vec)
     : room_name(room_name_)
-    , context(lua::new_context())
+    , context(lua::new_space())
     , count(vec.size())
 {
-    lua::set_context(context);
     // init room rule lua script
     main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
         assert(have_data);
         std::string str = main.get_room_rule[0];
         io.post([str, this]() {
-            lua::set_context(context);
-            lua::add_data("room"s, this);
-            lua::run_lua(str);
+            lua::add_data(context,"room"s, (void *)this);
+            lua::run_lua(str,context);
         });
     },
                                  room_name);
@@ -62,10 +60,8 @@ lsy::room::room(std::string room_name_, std::vector< player* > vec)
                                 {
                                     std::string filename = main.get_role_ver[0];
                                     io.post([filename, this, ptr]() {
-                                        lua::set_context(context);
-                                        lua::add_data("room"s, this);
-                                        lua::add_data("player"s, ptr);
-                                        lua::run_lua(filename);
+                                        lua::add_data(context,"player"s, ptr);
+                                        lua::run_lua(filename, context);
                                     });
                                 }
                             },
@@ -77,14 +73,12 @@ lsy::room::room(std::string room_name_, std::vector< player* > vec)
                             {
                                 std::string filename = main.get_role[0];
                                 io.post([filename, this, ptr]() {
-                                    lua::set_context(context);
-                                    lua::add_data("room"s, this);
-                                    lua::add_data("player"s, ptr);
-                                    lua::run_lua(filename);
+									lua::add_data(context, "player"s, ptr);
+                                    lua::run_lua(filename,context);
                                     count--;
                                     if (count == 0)
                                     {
-                                        lua::trigger(config::room_init);
+                                        lua::trigger(config::room_init,context);
                                     }
                                 });
                             }

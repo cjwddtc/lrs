@@ -3,28 +3,18 @@
 #include <functional>
 #include <map>
 #include <vector>
+#define get_space(s) (*(space_class*)s)
 namespace lua
 {
-    thread_local lua_State* Ls = nullptr;
-
-    void lua_push(std::string str)
-    {
-        lua_pushstring(Ls, str.c_str());
-    }
-
-    void lua_push(int32_t n)
-    {
-        lua_pushinteger(Ls, n);
-    }
 
     class signal
     {
-        typedef boost::variant< int, std::function< void() > > function;
+        typedef boost::variant< std::pair<lua_State*,int>, std::function< void() > > function;
         class function_run : public boost::static_visitor<>
         {
 
           public:
-            void operator()(int func) const;
+            void operator()(std::pair<lua_State*, int> func) const;
             void operator()(std::function< void() > func) const
             {
                 func();
@@ -50,39 +40,39 @@ namespace lua
         }
     };
 
+
+	void add_data(lua_State *L, std::string name, void* data)
+	{
+		lua_getglobal(L, "global_map");
+		lua_pushlightuserdata(L, data);
+		lua_setfield(L, -2, name.c_str());
+		lua_pop(L, 1);
+	}
+
+	void* get_data(lua_State *L, std::string name)
+	{
+		lua_getglobal(L, "global_map");
+		lua_getfield(L, -1, name.c_str());
+		auto p = lua_touserdata(L, -1);
+		lua_pop(L, 1);
+		return p;
+	}
+
     class space_class : public std::map< std::string, signal >
     {
       public:
-        int id;
-        space_class()
-        {
-            lua_newtable(Ls);
-            id = luaL_ref(Ls, 1);
-        }
-        void get_table()
-        {
-            lua_getglobal(Ls, "funcmap");
-        }
+		  lua_State* Ls;
+		  space_class();
     };
-
-    thread_local space_class* space;
 
     void resign(std::string name, std::function< void() > func, void* sp)
     {
-        if (sp == nullptr)
-        {
-            sp = (void*)space;
-        }
-        (*(space_class*)sp)[name].resign(func);
+		get_space(sp)[name].resign(func);
     }
 
     void trigger(std::string name, void* sp)
     {
-        if (sp != nullptr)
-        {
-            set_context(sp);
-        }
-        (*space)[name].trigger();
+		get_space(sp)[name].trigger();
     }
 
     int lua_resign(lua_State* L)
@@ -93,75 +83,45 @@ namespace lua
         size_t      size;
         const char* name_ = lua_tolstring(L, 1, &size);
         std::string name(name_, size);
-        space->get_table();
-        lua_pushvalue(Ls, 2);
-        int n = luaL_ref(Ls, -2);
-        (*space)[name].resign(n);
-        lua_pop(Ls, 1);
+		lua_getglobal(L, "global_map");
+        lua_pushvalue(L, 2);
+        int n = luaL_ref(L, -2);
+		auto space = get_data(L, "signal_space");
+		get_space(space)[name].resign(std::make_pair(L,n));
+        lua_pop(L, 1);
         return 0;
     }
 
     int lua_trigger(lua_State* L)
     {
         assert(lua_gettop(L) == 1);
-        (*space)[lua_value(L, 1)].trigger();
+		auto space = get_data(L, "signal_space");
+        get_space(space)[lua_value(L, 1)].trigger();
         return 0;
     }
 
-    void set_context(void* context)
-    {
-        if (space != (space_class*)context)
-        {
-            space = (space_class*)context;
-            lua_rawgeti(Ls, 1, space->id);
-            lua_setglobal(Ls, "funcmap");
-        }
-    }
+	std::vector<std::pair<std::string, lua_CFunction>> reg_funcs = {std::make_pair("resign",lua_resign),std::make_pair("trigger",lua_trigger) };
 
-    void* new_context()
+    void* new_space()
     {
         return (void*)new space_class();
     }
-
-
-    void* get_context()
+	
+    void add_data(void *space,std::string name, void* data)
     {
-        return (void*)space;
+		add_data(get_space(space).Ls,std::move(name), data);
     }
 
-    void add_data(std::string name, void* data)
+    void* get_data(void *space,std::string name)
     {
-        space->get_table();
-        lua_pushlightuserdata(Ls, data);
-        lua_setfield(Ls, -2, name.c_str());
-        lua_pop(Ls, 1);
+        return get_data(get_space(space).Ls, std::move(name));
     }
 
-    const void* get_data(std::string name)
-    {
-        space->get_table();
-        lua_getfield(Ls, -1, name.c_str());
-        auto ptr = lua_topointer(Ls, -1);
-        lua_pop(Ls, 1);
-        return ptr;
-    }
-
-    void lua_thread_init(std::initializer_list< std::string >   list_name,
-                         std::initializer_list< lua_CFunction > list_func)
-    {
-        Ls = luaL_newstate();
-        lua_register(Ls, "trigger", lua_trigger);
-        lua_register(Ls, "resign", lua_resign);
-        lua_newtable(Ls);
-        assert(list_name.size() == list_func.size());
-        for (size_t i = 0; i < list_name.size(); i++)
-        {
-            lua_register(Ls, list_name.begin()[i].c_str(),
-                         list_func.begin()[i]);
-        }
-        luaL_openlibs(Ls);
-    }
-
+	BOOST_SYMBOL_EXPORT void add_func(std::string name, lua_CFunction func)
+	{
+		reg_funcs.push_back(std::make_pair(name, func));
+	}
+	
     lua_value::lua_value(lua_State* L_, int index_)
         : L(L_)
         , index(index_)
@@ -181,16 +141,28 @@ namespace lua
     }
 
 
-    void BOOST_SYMBOL_EXPORT run_lua(std::string file)
+    void BOOST_SYMBOL_EXPORT run_lua(std::string file,void *space)
     {
-        luaL_dofile(Ls, file.c_str());
+        luaL_dofile(get_space(space).Ls, file.c_str());
     }
-    void signal::function_run::operator()(int func) const
+    void signal::function_run::operator()(std::pair<lua_State*, int> func) const
     {
-        space->get_table();
-        lua_rawgeti(Ls, -1, func);
-        assert(lua_isfunction(Ls, lua_gettop(Ls)));
-        lua_call(Ls, 0, 0);
-        lua_pop(Ls, 1);
+		lua_getglobal(func.first, "global_map");
+        lua_rawgeti(func.first, -1, func.second);
+        assert(lua_isfunction(func.first, lua_gettop(func.first)));
+        lua_call(func.first, 0, 0);
+        lua_pop(func.first, 1);
     }
+	space_class::space_class() :Ls(luaL_newstate())
+	{
+		for (auto &a : reg_funcs)
+		{
+			lua_register(Ls, a.first.c_str(), a.second);
+		}
+		lua_newtable(Ls);
+		luaL_openlibs(Ls);
+		lua_pushlightuserdata(Ls, (void*)this);
+		lua_setfield(Ls, 1, "signal_space");
+		lua_setglobal(Ls, "global_map");
+	}
 }
