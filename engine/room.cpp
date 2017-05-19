@@ -40,8 +40,8 @@ lsy::room::room(std::string room_name_, std::vector< player* > vec)
         }
         else
         {
-            assert(role_names.size() == vec.size());
             io.post([ this, vec = std::move(vec) ]() {
+				assert(role_names.size() == vec.size());
                 std::random_shuffle(role_names.begin(), role_names.end());
                 auto name_it = role_names.begin();
                 for (auto pl : vec)

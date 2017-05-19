@@ -61,6 +61,10 @@ void DerivedApp::init_dating(int16_t type)
                         ->SetLabel("加载完毕");
                     mf->Refresh();
                     po->close();
+					auto po = pa->resign_port(config::match_port);
+					po->start();
+					std::string str("sryx");
+					po->write(str, []() {});
                 }
                 else
                 {
@@ -72,13 +76,21 @@ void DerivedApp::init_dating(int16_t type)
             });
             po->write(lsy::buffer((size_t)0), []() {});
             po->start();
-            wxStaticCast(wxWindow::FindWindowByName("m_listBox1", mf),
-                         wxListBox)
-                ->Clear();
+			wxListBox *lb =
+				wxStaticCast(wxWindow::FindWindowByName("m_listBox1", mf),
+					wxListBox);
+            lb->Clear();
             wxStaticCast(wxWindow::FindWindowByName("m_staticText3", mf),
                          wxStaticText)
                 ->SetLabel("加载中");
             mf->Refresh();
+			wxStaticCast(wxWindow::FindWindowByName("m_button4", mf),
+				wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [lb,this](wxCommandEvent &event) {
+				wxString str=lb->GetString(lb->GetSelection());
+				auto po=pa->resign_port(config::match_port);
+				po->start();
+				po->write(str.ToStdString(), []() {});
+			});
         }
         break;
     }

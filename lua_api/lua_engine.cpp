@@ -190,7 +190,7 @@ namespace lua
         space->get_table();
         lua_rawgeti(Ls, -1, func);
         assert(lua_isfunction(Ls, lua_gettop(Ls)));
-        lua_call(Ls, 1, 0);
+        lua_call(Ls, 0, 0);
         lua_pop(Ls, 1);
     }
 }

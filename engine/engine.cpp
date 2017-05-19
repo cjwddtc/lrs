@@ -14,7 +14,7 @@
 using namespace config;
 using namespace std::string_literals;
 thread_local boost::asio::io_service io_service;
-lsy::server*                         server_ptr;
+lsy::server*  server_ptr;
 
 int wait_time(lua_State* L)
 {
@@ -60,6 +60,7 @@ void lsy::run_thread::run()
 {
     boost::thread([this]() {
         work.reset(new boost::asio::io_service::work(io_service));
+		lua::lua_thread_init({ "wait"s }, { wait_time });
         work->get_io_service().run();
     }).swap(thr);
 }
@@ -85,19 +86,18 @@ void lsy::run_thread::add_room(std::string                 rule_name_,
 
 lsy::server::server(std::string file)
 {
-    lua::lua_thread_init({"wait"s}, {wait_time});
+	server_ptr = this;
     boost::property_tree::ptree pt;
     boost::property_tree::read_xml(file, pt);
     threads.resize(pt.get("threads", 1));
     li.add_group(pt.find("engine")->second);
     li.OnConnect.connect([ this, &io = io_service ](lsy::port_all * po) {
-        io.post([this, po]() {
             port* p = po->resign_port(login_port);
-            p->OnMessage.connect([this, p, po](buffer buf) {
+            p->OnMessage.connect([this, p, po, &io = io](buffer buf) {
                 std::string id((char*)buf.data());
                 std::string passwd((char*)buf.data() + id.size() + 1);
                 main.select.bind_once(
-                    [ passwd, p, po, id, &io = io_service ](bool sucess) {
+                    [ passwd, p, po, id, &io = io ](bool sucess) {
                         lsy::buffer buf((size_t)2);
                         if (sucess)
                         {
@@ -116,20 +116,29 @@ lsy::server::server(std::string file)
                         {
                             buf.put((uint16_t)2);
                         }
-                        p->write(buf, []() {});
+						io.post([p, buf]() {
+							p->write(buf, []() {});
+						});
                     },
                     id);
             });
             po->start();
             p->start();
         });
-    });
 }
 
 void lsy::server::create_room(std::string                 rule_name_,
                               std::vector< lsy::player* > vec)
 {
     threads[rand() % threads.size()].add_room(rule_name_, vec);
+}
+
+void lsy::server::run()
+{
+	for (auto &thr : threads)
+	{
+		thr.run();
+	}
 }
 
 

@@ -46,7 +46,6 @@
 			"room_contain":{
 				"room_name":"varchar",
 				"rolename":"varchar",
-				"vername":"varchar",
 				"count":"size"
 			},
 			"rule_base_role":{
@@ -64,7 +63,7 @@
 			}
 		},
 		"statement":{
-			"select":"select passwd from player where id=?;",
+			"select":"select passwd from player where name=?;",
 			"get_rule":"select luafile from rule where rulename=?;",
 			"get_role_ver":"select luafile from role_ver where rolename=? AND vername=?",
 			"get_role":"select luafile from role where rolename=?",

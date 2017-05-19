@@ -15,7 +15,9 @@ using namespace std::string_literals;
 
 int main(int n, char* argv[])
 {
-    server en("server.xml"); /*
+    server en("server.xml");
+	en.run();
+	/*
      luaL_reg reg;
      reg.name = "test";
      reg.func = test;

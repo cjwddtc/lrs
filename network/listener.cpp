@@ -17,9 +17,6 @@ void lsy::listener::add(std::string name, boost::property_tree::ptree& pt)
     ptr->OnNewSocket.connect(
         [ this, is_stream = pt.get< bool >("is_stream") ](assocket * p) {
             p->OnMessage.connect([](auto buf) {
-                std::cout << "OnMessage";
-                buf.print();
-                std::cout << std::endl;
             });
             if (is_stream)
             {
@@ -49,9 +46,7 @@ void lsy::listener::join()
 {
     for (auto& a : accs)
     {
-        printf("join\n");
         a.second.second.join();
-        printf("joined\n");
     }
 }
 

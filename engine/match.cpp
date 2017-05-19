@@ -15,27 +15,27 @@ void lsy::queue::add_player(player* ptr, uint16_t score)
     }
     else
     {
-        auto a = groups.lower_bound(score);
+        auto a = groups.upper_bound(score);
         // create new group
-        if (a == groups.end() || a->first + gap < score)
+        if (a!= groups.begin() && (--a,1) && a->first + gap > score)
         {
-            groups[score].push_back(ptr);
-            map[ptr].first  = &groups[score];
-            map[ptr].second = 0;
+			a->second.push_back(ptr);
+			if (a->second.size() == size)
+			{
+				server_ptr->create_room(room_name, a->second);
+				groups.erase(a);
+			}
+			else
+			{
+				map[ptr].first = &a->second;
+				map[ptr].second = a->second.size() - 1;
+			}
         }
         else
         {
-            a->second.push_back(ptr);
-            if (a->second.size() == size)
-            {
-                server_ptr->create_room(room_name, a->second);
-                groups.erase(a);
-            }
-            else
-            {
-                map[ptr].first  = &a->second;
-                map[ptr].second = a->second.size() - 1;
-            }
+			groups[score].push_back(ptr);
+			map[ptr].first = &groups[score];
+			map[ptr].second = 0;
         }
     }
 }

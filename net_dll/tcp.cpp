@@ -96,9 +96,6 @@ namespace lsy
                                     {
                                         buffer buf_(buf);
                                         buf_.resize(bytes_transferred);
-                                        std::cout << "in:";
-                                        buf_.print();
-                                        std::cout << std::endl;
                                         OnMessage(buf_);
                                         if (soc.is_open())
                                         {
@@ -112,9 +109,6 @@ namespace lsy
         }
         virtual void write(buffer message, std::function< void() > func)
         {
-            std::cout << "out:";
-            message.print();
-            std::cout << std::endl;
             auto buf = boost::asio::buffer(message.data(), message.size());
             inc();
             soc.async_write_some(

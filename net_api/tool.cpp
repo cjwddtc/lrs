@@ -57,15 +57,21 @@ namespace lsy
     }
 
     buffer::buffer(uint16_t n)
+		: ptr((count_block*)malloc(2 + sizeof(size_t)))
+		, size_(2)
+		, now_ptr(ptr->ptr)
     {
-        buffer((size_t)2);
+		ptr->count = 1;
         put(n);
         reset();
     }
 
     buffer::buffer(uint32_t n)
+		: ptr((count_block*)malloc(4 + sizeof(size_t)))
+		, size_(4)
+		, now_ptr(ptr->ptr)
     {
-        buffer((size_t)4);
+		ptr->count = 1;
         put(n);
         reset();
     }
