@@ -14,10 +14,10 @@ namespace lsy
         std::map< uint16_t, group > groups;
         std::map< player*, std::pair< group*, size_t > > map;
         uint16_t    gap;
-        size_t      size;
         std::string room_name;
 
       public:
+		  size_t      size;
         void add_player(player* ptr, uint16_t score);
         void remove_player(player* ptr);
         queue(std::string room_name, size_t size, uint16_t gap);

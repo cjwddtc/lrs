@@ -33,6 +33,20 @@ int DerivedApp::OnExit()
     li.join();
     return 0;
 }
+
+void set_text(wxStaticText *st, std::tuple<uint16_t, uint16_t>*p)
+{
+	if (std::get<1>(*p))
+	{
+		wxString str=wxString::Format(wxT("start match sucess\n%u/%u"), std::get<0>(*p), std::get<1>(*p));
+		st->SetLabelText(str);
+	}
+	else
+	{
+		st->SetLabelText(wxT("start match Fail please retry"));
+	}
+}
+
 void DerivedApp::init_dating(int16_t type)
 {
     switch (type)
@@ -50,6 +64,27 @@ void DerivedApp::init_dating(int16_t type)
         }
         case 1:
         {
+			auto pp = new std::tuple<uint16_t, uint16_t>();
+			auto mp=pa->resign_port(config::match_port);
+			mp->start();
+			mp->OnMessage.connect([pp,this](lsy::buffer buf) {
+				buf.get(std::get<1>(*pp));
+				gui_run([pp,this]() {
+					set_text(wxStaticCast(
+						wxWindow::FindWindowByName("m_staticText3", mf),
+						wxStaticText), pp);
+				});
+			});
+			auto msp = pa->resign_port(config::match_status_port);
+			msp->OnMessage.connect([pp,this](lsy::buffer buf) {
+				buf.get(std::get<0>(*pp));
+				gui_run([pp, this]() {
+					set_text(wxStaticCast(
+						wxWindow::FindWindowByName("m_staticText3", mf),
+						wxStaticText), pp);
+				});
+			});
+			msp->start();
             auto po = pa->resign_port(config::multiplay_port);
             po->OnMessage.connect([ this, po = lsy::as_ptr< lsy::port >(po) ](
                 lsy::buffer buf) {
@@ -61,10 +96,6 @@ void DerivedApp::init_dating(int16_t type)
                         ->SetLabel("¼ÓÔØÍê±Ï");
                     mf->Refresh();
                     po->close();
-					auto po = pa->resign_port(config::match_port);
-					po->start();
-					std::string str("sryx");
-					po->write(str, []() {});
                 }
                 else
                 {
@@ -87,7 +118,7 @@ void DerivedApp::init_dating(int16_t type)
 			wxStaticCast(wxWindow::FindWindowByName("m_button4", mf),
 				wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [lb,this](wxCommandEvent &event) {
 				wxString str=lb->GetString(lb->GetSelection());
-				auto po=pa->resign_port(config::match_port);
+				auto po= pa->ports[config::match_port].get();
 				po->start();
 				po->write(str.ToStdString(), []() {});
 			});

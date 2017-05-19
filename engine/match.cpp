@@ -86,8 +86,14 @@ void lsy::add_to_queue(std::string str, player* ptr)
     if (it != queues.end())
     {
         main.get_score.bind_once([ ptr, it, &io = io_service ](bool is_data) {
-            int score = main.get_score[0];
-            io.post([score, ptr, it]() { it->second.add_player(ptr, score); });
+			if (is_data) {
+				int score = main.get_score[0];
+				io.post([score, ptr, it]() { it->second.add_player(ptr, score);
+				(*ptr)->ports[config::match_port]->write(buffer(uint16_t(it->second.size)), []() {}); });
+			}
+			else {
+				(*ptr)->ports[config::match_port]->write(buffer(uint16_t(0)), []() {});
+			}
         },
                                  ptr->id, str);
     }
@@ -102,10 +108,14 @@ void lsy::add_to_queue(std::string str, player* ptr)
                         std::make_pair(str, lsy::queue(str, n, 100)));
                     main.get_score.bind_once(
                         [ ptr, it, &io = io_service ](bool is_data) {
-                            int score = main.get_score[0];
-                            io.post([score, ptr, it]() {
-                                it.first->second.add_player(ptr, score);
-                            });
+						if (is_data) {
+							int score = main.get_score[0];
+							io.post([score, ptr, it]() { it.first->second.add_player(ptr, score);
+							(*ptr)->ports[config::match_port]->write(buffer(uint16_t(it.first->second.size)), []() {}); });
+						}
+						else {
+							(*ptr)->ports[config::match_port]->write(buffer(uint16_t(0)), []() {});
+						}
                         },
                         ptr->id, str);
                 });
