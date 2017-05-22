@@ -11,5 +11,10 @@ namespace config
     constexpr uint16_t match_port        = 4;
     constexpr uint16_t match_status_port = 5;
 	constexpr uint16_t text_port = 6;
+	constexpr uint16_t channel_control = 7;
+
+	constexpr uint16_t channel_open = 0;
+	constexpr uint16_t channel_enable = 1;
+	constexpr uint16_t channel_disable = 2;
     constexpr char*    room_init         = "room_init";
 }

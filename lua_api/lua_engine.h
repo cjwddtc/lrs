@@ -16,9 +16,9 @@ namespace lua
 
     BOOST_SYMBOL_EXPORT void* new_space();
 
-    BOOST_SYMBOL_EXPORT void add_data(void *space,std::string name, void* data);
+    BOOST_SYMBOL_EXPORT lua_State *get_state(void *space);
 
-	BOOST_SYMBOL_EXPORT void* get_data(void *L, std::string name);
+	BOOST_SYMBOL_EXPORT void add_data(void *ptr, std::string name, std::function<void(lua_State *Ls)> func);
 
 	BOOST_SYMBOL_EXPORT void add_data(lua_State *L, std::string name, void* data);
 
@@ -27,6 +27,10 @@ namespace lua
 	BOOST_SYMBOL_EXPORT void add_func(std::string name, lua_CFunction func);
 
     BOOST_SYMBOL_EXPORT void run_lua(std::string file,void *space);
+
+	BOOST_SYMBOL_EXPORT int lua_table_index(lua_State *Ls);
+
+	BOOST_SYMBOL_EXPORT void test();
     class BOOST_SYMBOL_EXPORT lua_value
     {
         lua_State* L;

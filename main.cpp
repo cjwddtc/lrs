@@ -15,8 +15,8 @@ using namespace std::string_literals;
 
 int main(int n, char* argv[])
 {
-    server en("server.xml");
-	en.run();
+    //server en("server.xml");
+	//en.run();
 	/*
      luaL_reg reg;
      reg.name = "test";
@@ -34,7 +34,8 @@ int main(int n, char* argv[])
      lua::add_data("test", (void*)qwe.c_str());
      lua::run_lua("D:\\test.lua");
      lua::trigger("qwe", "fff"s);*/
-    run();
+    //run();
+	lua::test();
     getchar();
     // en.li.close();
     // en.li.join();

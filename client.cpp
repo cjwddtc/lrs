@@ -6,6 +6,8 @@
 #include <memory>
 #include <stdint.h>
 #include <wx/notebook.h>
+#include <wx/listbook.h>
+using namespace std::string_literals;
 class DerivedApp : public wxApp
 {
     lsy::listener                li;
@@ -38,12 +40,15 @@ void set_text(wxStaticText *st, std::tuple<uint16_t, uint16_t>*p)
 {
 	if (std::get<1>(*p))
 	{
-		wxString str=wxString::Format(wxT("start match sucess\n%u/%u"), std::get<0>(*p), std::get<1>(*p));
-		st->SetLabelText(str);
+			wxString str = wxString::Format(wxT("开始匹配成功\n%u/%u"), std::get<0>(*p), std::get<1>(*p));
+			if (std::get<1>(*p) == std::get<0>(*p)) {
+				str += "\n 请使用游戏标签页进行游戏";
+			}
+			st->SetLabelText(str);
 	}
 	else
 	{
-		st->SetLabelText(wxT("start match Fail please retry"));
+		st->SetLabelText(wxT("开始匹配失败，请刷新房间列表后重试"));
 	}
 }
 
@@ -82,6 +87,30 @@ void DerivedApp::init_dating(int16_t type)
 					set_text(wxStaticCast(
 						wxWindow::FindWindowByName("m_staticText3", mf),
 						wxStaticText), pp);
+					if (std::get<0>(*pp) == std::get<1>(*pp))
+					{
+						auto boptr = wxStaticCast(
+							wxWindow::FindWindowByName("m_notebook1", mf), wxNotebook);
+						auto playerpanel
+							= wxXmlResource::Get()->LoadPanel(boptr, "playpanel");
+						boptr->AddPage(playerpanel, "游戏",true);
+						auto ch_con = pa->resign_port(config::channel_control);
+						ch_con->start();
+						ch_con->OnMessage.connect([playerpanel](auto buf) {
+							uint16_t op;
+							buf.get(op);
+							if (op == 0) {
+								wxString name(buf.get(buf.remain()));
+								gui_run([name, playerpanel]() {
+									auto lb = wxStaticCast(wxWindow::FindWindowByName("m_listbook1", playerpanel), wxListbook);
+									auto textpanel
+										= wxXmlResource::Get()->LoadPanel(lb, "textpanel");
+									lb->AddPage(textpanel, name);
+									playerpanel->Refresh();
+								});
+							}
+						});
+					}
 				});
 			});
 			msp->start();
@@ -119,9 +148,10 @@ void DerivedApp::init_dating(int16_t type)
 				wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [lb,this](wxCommandEvent &event) {
 				wxString str=lb->GetString(lb->GetSelection());
 				auto po= pa->ports[config::match_port].get();
-				po->start();
 				po->write(str.ToStdString(), []() {});
 			});
+			auto tt = pa->ports[config::match_port].get();
+			tt->write("sryx"s, []() {});
         }
         break;
     }
