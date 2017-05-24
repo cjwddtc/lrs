@@ -5,7 +5,7 @@
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
 
-lsy::port_all*                              lsy::player::operator->()
+lsy::port_all* lsy::player::operator->()
 {
     return ptr;
 }
@@ -54,5 +54,4 @@ lsy::player::player(port_all* soc, std::string id_)
 
         });
     match_port->start();
-	ptr->resign_port(config::channel_control)->start();
 }

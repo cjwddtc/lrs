@@ -1,191 +1,246 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
-	<object class="wxFrame" name="MyFrame2">
-		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
-		<size>500,300</size>
-		<title></title>
-		<centered>1</centered>
-		<aui_managed>0</aui_managed>
-		<object class="wxNotebook" name="m_notebook1">
-			<style>wxNB_TOP</style>
-		</object>
-	</object>
-	<object class="wxDialog" name="MyDialog1">
-		<style>wxDEFAULT_DIALOG_STYLE</style>
-		<title></title>
-		<centered>1</centered>
-		<object class="wxGridBagSizer">
-			<vgap>0</vgap>
-			<hgap>0</hgap>
-			<growablecols></growablecols>
-			<growablerows></growablerows>
-			<object class="sizeritem">
-				<cellpos>0,0</cellpos>
-				<cellspan>1,1</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
-				<object class="wxStaticText" name="m_staticText3">
-					<label>账号</label>
-					<wrap>-1</wrap>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<cellpos>0,1</cellpos>
-				<cellspan>1,2</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
-				<object class="wxTextCtrl" name="id_tc">
-					<value></value>
-					<maxlength>0</maxlength>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<cellpos>1,0</cellpos>
-				<cellspan>1,1</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
-				<object class="wxStaticText" name="m_staticText4">
-					<label>密码</label>
-					<wrap>-1</wrap>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<cellpos>1,1</cellpos>
-				<cellspan>1,2</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
-				<object class="wxTextCtrl" name="passwd_tc">
-					<value></value>
-					<maxlength>0</maxlength>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<cellpos>2,0</cellpos>
-				<cellspan>1,2</cellspan>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
-				<object class="wxButton" name="login_b">
-					<label>登陆</label>
-					<default>0</default>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<cellpos>2,2</cellpos>
-				<cellspan>1,1</cellspan>
-				<flag>wxALL</flag>
-				<border>5</border>
-				<object class="wxButton" name="canel_b">
-					<label>取消</label>
-					<default>1</default>
-				</object>
-			</object>
-		</object>
-	</object>
-	<object class="wxPanel" name="mutipanel">
-		<style>wxTAB_TRAVERSAL</style>
-		<size>500,300</size>
-		<object class="wxBoxSizer">
-			<orient>wxHORIZONTAL</orient>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND</flag>
-				<border>5</border>
-				<object class="wxListBox" name="m_listBox1">
-					<content />
-				</object>
-			</object>
-			<object class="sizeritem">
-				<option>1</option>
-				<flag>wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<object class="wxBoxSizer">
-					<orient>wxVERTICAL</orient>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<object class="wxStaticText" name="m_staticText3">
-							<label></label>
-							<wrap>-1</wrap>
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<object class="wxStaticText" name="m_staticText4">
-							<label></label>
-							<wrap>-1</wrap>
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>1</option>
-						<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
-						<border>5</border>
-						<object class="wxBoxSizer">
-							<orient>wxHORIZONTAL</orient>
-							<object class="sizeritem">
-								<option>0</option>
-								<flag>wxALL|wxALIGN_BOTTOM</flag>
-								<border>5</border>
-								<object class="wxButton" name="m_button4">
-									<label>开始匹配</label>
-									<default>0</default>
-								</object>
-							</object>
-							<object class="sizeritem">
-								<option>0</option>
-								<flag>wxALL|wxALIGN_BOTTOM</flag>
-								<border>5</border>
-								<object class="wxButton" name="m_button5">
-									<label>查看详情</label>
-									<default>0</default>
-								</object>
-							</object>
-						</object>
-					</object>
-				</object>
-			</object>
-		</object>
-	</object>
-	<object class="wxPanel" name="playpanel">
-		<style>wxTAB_TRAVERSAL</style>
-		<size>500,300</size>
-		<object class="wxBoxSizer">
-			<orient>wxHORIZONTAL</orient>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<object class="wxTextCtrl" name="m_textCtrl3">
-					<style>wxTE_MULTILINE|wxTE_READONLY</style>
-					<value></value>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<option>1</option>
-				<flag>wxEXPAND|wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<object class="wxListbook" name="m_listbook1">
-					<style>wxLB_DEFAULT</style>
-				</object>
-			</object>
-		</object>
-	</object>
-	<object class="wxPanel" name="textpanel">
-		<style>wxTAB_TRAVERSAL</style>
-		<size>500,300</size>
-		<object class="wxBoxSizer">
-			<orient>wxVERTICAL</orient>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
-				<object class="wxTextCtrl" name="m_textCtrl4">
-					<style>wxTE_MULTILINE|wxTE_READONLY</style>
-					<value></value>
-				</object>
-			</object>
-		</object>
-	</object>
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc">
+  <object class="wxFrame" name="MyFrame2">
+    <title/>
+    <centered>1</centered>
+    <style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+    <size>500,300</size>
+    <object class="wxNotebook" name="m_notebook1">
+      <style/>
+    </object>
+  </object>
+  <object class="wxDialog" name="MyDialog1">
+    <title/>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE</style>
+    <object class="wxGridBagSizer">
+      <vgap>0</vgap>
+      <hgap>0</hgap>
+      <growablecols/>
+      <growablerows/>
+      <object class="sizeritem">
+        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+        <border>5</border>
+        <cellpos>0,0</cellpos>
+        <cellspan>1,1</cellspan>
+        <object class="wxStaticText" name="m_staticText3">
+          <label>账号</label>
+          <style/>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+        <border>5</border>
+        <cellpos>0,1</cellpos>
+        <cellspan>1,2</cellspan>
+        <object class="wxTextCtrl" name="id_tc">
+          <style/>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+        <border>5</border>
+        <cellpos>1,0</cellpos>
+        <cellspan>1,1</cellspan>
+        <object class="wxStaticText" name="m_staticText4">
+          <label>密码</label>
+          <style/>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+        <border>5</border>
+        <cellpos>1,1</cellpos>
+        <cellspan>1,2</cellspan>
+        <object class="wxTextCtrl" name="passwd_tc">
+          <style/>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+        <border>5</border>
+        <cellpos>2,0</cellpos>
+        <cellspan>1,2</cellspan>
+        <object class="wxButton" name="login_b">
+          <label>登陆</label>
+          <style/>
+          <bitmapposition>wxLEFT</bitmapposition>
+          <default>0</default>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>5</border>
+        <cellpos>2,2</cellpos>
+        <cellspan>1,1</cellspan>
+        <object class="wxButton" name="canel_b">
+          <label>取消</label>
+          <style/>
+          <bitmapposition>wxLEFT</bitmapposition>
+          <default>1</default>
+        </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="mutipanel">
+    <size>500,300</size>
+    <style>wxTAB_TRAVERSAL</style>
+    <object class="wxBoxSizer">
+      <orient>wxHORIZONTAL</orient>
+      <object class="sizeritem" name="boxSizer41">
+        <flag>wxEXPAND</flag>
+        <border>5</border>
+        <option>1</option>
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem" name="boxSizer42">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <flag>wxALL|wxEXPAND</flag>
+                <border>5</border>
+                <option>1</option>
+                <object class="wxButton" name="m_button5">
+                  <label>刷新</label>
+                  <style/>
+                  <bitmapposition>wxLEFT</bitmapposition>
+                  <default>0</default>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+                <object class="wxStaticText" name="m_staticText5">
+                  <label/>
+                  <style/>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+            <border>5</border>
+            <option>1</option>
+            <object class="wxListBox" name="m_listBox1">
+              <style>wxLB_SINGLE</style>
+              <content/>
+              <selection>-1</selection>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem" name="boxSizer46">
+        <flag>wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+        <border>5</border>
+        <option>1</option>
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="m_staticText3">
+              <label/>
+              <style/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="m_staticText4">
+              <label/>
+              <style/>
+            </object>
+          </object>
+          <object class="sizeritem" name="boxSizer49">
+            <flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+            <border>5</border>
+            <option>1</option>
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <flag>wxALL|wxALIGN_BOTTOM</flag>
+                <border>5</border>
+                <object class="wxButton" name="m_button4">
+                  <label>开始匹配</label>
+                  <style/>
+                  <bitmapposition>wxLEFT</bitmapposition>
+                  <default>0</default>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="playpanel">
+    <size>500,300</size>
+    <style>wxTAB_TRAVERSAL</style>
+    <object class="wxBoxSizer">
+      <orient>wxHORIZONTAL</orient>
+      <object class="sizeritem" name="boxSizer26">
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="m_staticText28">
+              <label/>
+              <style/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+            <option>1</option>
+            <object class="wxTextCtrl" name="m_textCtrl30">
+              <style>wxTE_READONLY|wxTE_MULTILINE</style>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+        <option>1</option>
+        <object class="wxRibbonBar" name="m_ribbonBar108">
+          <style>wxRIBBON_BAR_FLOW_VERTICAL|wxRIBBON_BAR_DEFAULT_STYLE</style>
+          <art-provider>default</art-provider>
+          <object class="wxRibbonPage" name="m_ribbonPage112">
+            <label>Page</label>
+            <style/>
+            <selected>1</selected>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+        <option>1</option>
+        <object class="wxRibbonBar" name="m_ribbonBar5">
+          <style>wxRIBBON_BAR_DEFAULT_STYLE</style>
+          <art-provider>default</art-provider>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+        <option>1</option>
+        <object class="wxRibbonBar" name="m_ribbonBar110">
+          <style>wxRIBBON_BAR_FLOW_VERTICAL|wxRIBBON_BAR_DEFAULT_STYLE</style>
+          <art-provider>default</art-provider>
+          <object class="wxRibbonPage" name="m_ribbonPage114">
+            <label>Page</label>
+            <style/>
+            <selected>1</selected>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
 </resource>

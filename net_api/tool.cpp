@@ -57,21 +57,21 @@ namespace lsy
     }
 
     buffer::buffer(uint16_t n)
-		: ptr((count_block*)malloc(2 + sizeof(size_t)))
-		, size_(2)
-		, now_ptr(ptr->ptr)
+        : ptr((count_block*)malloc(2 + sizeof(size_t)))
+        , size_(2)
+        , now_ptr(ptr->ptr)
     {
-		ptr->count = 1;
+        ptr->count = 1;
         put(n);
         reset();
     }
 
     buffer::buffer(uint32_t n)
-		: ptr((count_block*)malloc(4 + sizeof(size_t)))
-		, size_(4)
-		, now_ptr(ptr->ptr)
+        : ptr((count_block*)malloc(4 + sizeof(size_t)))
+        , size_(4)
+        , now_ptr(ptr->ptr)
     {
-		ptr->count = 1;
+        ptr->count = 1;
         put(n);
         reset();
     }
@@ -170,7 +170,7 @@ namespace lsy
 void lsy::buffer::get(unsigned char* ptr_, size_t size) const
 {
     assert(now_ptr + size - ptr->ptr <= size_);
-    std::copy(ptr_, ptr_ + size, now_ptr);
+	std::copy(now_ptr, now_ptr + size, ptr_);
     now_ptr += size;
 }
 

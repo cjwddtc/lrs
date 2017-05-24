@@ -14,8 +14,8 @@
 using namespace config;
 using namespace std::string_literals;
 thread_local boost::asio::io_service io_service;
-lsy::server*  server_ptr;
-
+lsy::server*                         server_ptr;
+/*
 int wait_time(lua_State* L)
 {
     assert(lua_gettop(L) == 2);
@@ -26,7 +26,8 @@ int wait_time(lua_State* L)
     auto        t    = std::make_shared< boost::asio::deadline_timer >(
         io_service, boost::posix_time::seconds(time));
     auto pt = t.get();
-    pt->async_wait([ t, context = lua::get_data(L, "signal_space"), str ](auto a) {
+    pt->async_wait([ t, context = lua::get_data(L, "signal_space"), str ](auto
+a) {
         lua::trigger(str, context);
     });
     return 0;
@@ -48,12 +49,13 @@ int add_buttion(lua_State* L)
     ptr->OnMessage.connect(
         [& io    = io_service, name,L
           ](lsy::buffer buf) {
-            io.post([name, space=lua::get_data(L,"signal_space")]() { lua::trigger(name, space); });
+            io.post([name, space=lua::get_data(L,"signal_space")]() {
+lua::trigger(name, space); });
         });
     return 0;
 }
 
-
+*/
 using db_gen::main;
 
 void lsy::run_thread::run()
@@ -75,69 +77,66 @@ boost::asio::io_service& lsy::run_thread::get_io_service()
     return work->get_io_service();
 }
 
+using room_space::room;
 void lsy::run_thread::add_room(std::string                 rule_name_,
-                               std::vector< lsy::player* > vec)
+                               std::vector< lsy::port_all* > vec)
 {
-    work->get_io_service().post([ rule_name_, vec = std::move(vec) ]() {
-        new lsy::room(rule_name_, vec);
-    });
+    work->get_io_service().post(
+        [ rule_name_, vec = std::move(vec) ]() { new room(rule_name_, vec); });
 }
 
 lsy::server::server(std::string file)
 {
-	server_ptr = this;
+    server_ptr = this;
     boost::property_tree::ptree pt;
     boost::property_tree::read_xml(file, pt);
     threads.resize(pt.get("threads", 1));
     li.add_group(pt.find("engine")->second);
     li.OnConnect.connect([ this, &io = io_service ](lsy::port_all * po) {
-            port* p = po->resign_port(login_port);
-            p->OnMessage.connect([this, p, po, &io = io](buffer buf) {
-                std::string id((char*)buf.data());
-                std::string passwd((char*)buf.data() + id.size() + 1);
-                main.select.bind_once(
-                    [ passwd, p, po, id, &io = io ](bool sucess) {
-                        lsy::buffer buf((size_t)2);
-                        if (sucess)
-                        {
-                            if (passwd == (std::string)main.select[0])
-                            {
-                                std::cout << "login success" << std::endl;
-                                buf.put((uint16_t)0);
-                                io.post([po, id]() { new player(po, id); });
-                            }
-                            else
-                            {
-                                buf.put((uint16_t)1);
-                            }
-                        }
-                        else
-                        {
-                            buf.put((uint16_t)2);
-                        }
-						io.post([p, buf]() {
-							p->write(buf, []() {});
-						});
-                    },
-                    id);
-            });
-            po->start();
-            p->start();
+        port* p = po->resign_port(login_port);
+        p->OnMessage.connect([ this, p, po, &io = io ](buffer buf) {
+            std::string id((char*)buf.data());
+            std::string passwd((char*)buf.data() + id.size() + 1);
+            main.select.bind_once([ passwd, p, po, id, &io = io ](bool sucess) {
+                lsy::buffer buf((size_t)2);
+                if (sucess)
+                {
+                    if (passwd == (std::string)main.select[0])
+                    {
+                        std::cout << "login success" << std::endl;
+                        buf.put((uint16_t)0);
+                        io.post([po, id]() { new player(po, id); });
+                    }
+                    else
+                    {
+                        buf.put((uint16_t)1);
+                    }
+                }
+                else
+                {
+                    buf.put((uint16_t)2);
+                }
+                io.post([p, buf]() { p->write(buf, []() {}); });
+            },
+                                  id);
         });
+        po->start();
+        p->start();
+    });
 }
 
 void lsy::server::create_room(std::string                 rule_name_,
-                              std::vector< lsy::player* > vec)
+                              std::vector< lsy::port_all* > vec)
 {
     threads[rand() % threads.size()].add_room(rule_name_, vec);
 }
 
 void lsy::server::run()
 {
-	for (auto &thr : threads)
-	{
-		thr.run();
-	}
+    for (auto& thr : threads)
+    {
+        thr.run();
+    }
 }
 
 

@@ -18,7 +18,7 @@ namespace lsy
         void                     run();
         void                     stop();
         boost::asio::io_service& get_io_service();
-        void add_room(std::string rule_name_, std::vector< player* > vec);
+        void add_room(std::string rule_name_, std::vector< lsy::port_all* > vec);
     };
     class BOOST_SYMBOL_EXPORT server
     {
@@ -26,8 +26,8 @@ namespace lsy
         listener                  li;
         std::vector< run_thread > threads;
         server(std::string file);
-        void create_room(std::string rule_name_, std::vector< player* > vec);
-		void run();
+        void create_room(std::string rule_name_, std::vector< lsy::port_all* > vec);
+        void run();
     };
     BOOST_SYMBOL_EXPORT void run();
 }

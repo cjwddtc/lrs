@@ -16,8 +16,7 @@ void lsy::listener::add(std::string name, boost::property_tree::ptree& pt)
     value.first = ptr;
     ptr->OnNewSocket.connect(
         [ this, is_stream = pt.get< bool >("is_stream") ](assocket * p) {
-            p->OnMessage.connect([](auto buf) {
-            });
+            p->OnMessage.connect([](auto buf) {});
             if (is_stream)
             {
                 OnConnect(new port_all(new message_socket(p)));
