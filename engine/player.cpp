@@ -2,6 +2,7 @@
 #include <config.h>
 #include <db_auto.h>
 #include <match.h>
+#include <room.h>
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
 
@@ -50,8 +51,14 @@ lsy::player::player(port_all* soc, std::string id_)
     match_port->OnMessage.connect(
         [ this, match_port, &io = io_service ](buffer buf) {
             std::string str((char*)buf.data());
-            io.post([str, this]() { add_to_queue(str, this); });
+			if (room_space::get_playing(id) == 0) {
+				io.post([str, this]() { add_to_queue(str, this); });
+			}
+			else {
+				match_port->write(uint16_t(0), []() {});
+			}
 
         });
     match_port->start();
+	ptr->resign_port(config::match_status_port)->start();
 }

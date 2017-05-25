@@ -12,6 +12,9 @@ lsy::port_all::port_all(assocket* soc)
     : as_contain< assocket >(soc)
 {
     ptr->OnMessage.connect([this](buffer mes) {
+		printf("in:");
+		mes.print();
+		printf("\n");
         buffer head((size_t)2);
         head.put(mes);
         head.reset();
@@ -83,6 +86,9 @@ void lsy::port_all::write(uint16_t port, buffer buf,
     head.put(port);
     head.put(buf);
     ptr->write(head, func);
+	printf("out:");
+	head.print();
+	printf("\n");
 }
 
 void lsy::port_all::start()
@@ -98,4 +104,8 @@ void lsy::port::start()
 void lsy::port_all::add_map(port* p)
 {
     ports[p->num] = p;
+}
+
+lsy::port_all::~port_all()
+{
 }

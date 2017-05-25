@@ -1,2 +1,11 @@
+#pragma once
 #include "wx/xrc/xmlres.h"
 #include <wx/wx.h>
+#include <wx/settings.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/xrc/xh_bmp.h>
+#include <wx/dialog.h>
+#include <wx/iconbndl.h>
+#include <wx/artprov.h>
+#include <wx/sizer.h>
+#include <wx/listbox.h>

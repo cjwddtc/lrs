@@ -214,7 +214,7 @@
           <object class="wxRibbonPage" name="m_ribbonPage112">
             <label>Page</label>
             <style/>
-            <selected>1</selected>
+            <selected>0</selected>
           </object>
         </object>
       </object>
@@ -237,7 +237,83 @@
           <object class="wxRibbonPage" name="m_ribbonPage114">
             <label>Page</label>
             <style/>
-            <selected>1</selected>
+            <selected>0</selected>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="game_result">
+    <title>游戏结果</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE</style>
+    <size>500,300</size>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>5</border>
+        <object class="wxStaticText" name="m_staticText134">
+          <label/>
+          <style/>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>5</border>
+        <object class="wxNotebook" name="m_notebook146">
+          <style>wxBK_DEFAULT</style>
+          <object class="notebookpage">
+            <label>演员表</label>
+            <selected>0</selected>
+            <object class="wxPanel" name="m_panel150">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <flag>wxALL|wxEXPAND</flag>
+                  <border>5</border>
+                  <option>1</option>
+                  <object class="wxListCtrl" name="m_listCtrl156">
+                    <style>wxLC_REPORT</style>
+                    <object class="listcol">
+                      <text>序号</text>
+                      <width>-1</width>
+                    </object>
+                    <object class="listcol">
+                      <text>id</text>
+                      <width>-1</width>
+                    </object>
+                    <object class="listcol">
+                      <text>身份</text>
+                      <width>-1</width>
+                    </object>
+                    <object class="listcol">
+                      <text>胜负情况</text>
+                      <width>-1</width>
+                    </object>
+                  </object>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="notebookpage">
+            <label>游戏复盘</label>
+            <selected>0</selected>
+            <object class="wxPanel" name="m_panel152">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <flag>wxALL|wxEXPAND</flag>
+                  <border>5</border>
+                  <option>1</option>
+                  <object class="wxTextCtrl" name="m_textCtrl160">
+                    <style>wxTE_READONLY|wxTE_MULTILINE</style>
+                  </object>
+                </object>
+              </object>
+            </object>
           </object>
         </object>
       </object>

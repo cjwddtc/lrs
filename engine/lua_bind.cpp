@@ -241,7 +241,8 @@ void f(lua_State* ls, T* ptr, F (T::*func)(ARG...), std::string name)
         }
         catch (bad_get e)
         {
-            printf("%d type is wrong", e.n);
+			
+            printf("%d type %s is wrong\n", e.n, lua_typename(ls, e.n));
             return 0;
         }
         return 1;
@@ -261,7 +262,7 @@ void f(lua_State* ls, T* ptr, void (T::*func)(ARG...), std::string name)
         }
         catch (bad_get e)
         {
-            printf("%d type is wrong", e.n);
+			printf("%d type %s is wrong\n", e.n, lua_typename(ls, e.n));
             return 0;
         }
         return 0;
@@ -403,10 +404,10 @@ namespace room_space
     }
     void lua_put(lua_State* ls, player* ptr)
     {
-        f__(ls, ptr, "add_button", &player::add_button,"remove_button",&player::remove_button);
+        f__(ls, ptr, "add_button", &player::add_button,"remove_button",&player::remove_button,"sent_public",&player::sent_public, "set_camp", &player::set_camp);
     }
     void lua_put(lua_State* ls, room* ptr)
     {
-        f__(ls, ptr, "signals", &room::signals, "channels", &room::channels,"wait",&room::wait,  "set_dead", &room::is_dead);
+        f__(ls, ptr, "signals", &room::signals, "channels", &room::channels,"wait",&room::wait,  "set_dead", &room::is_dead,"sent_public",&room::sent_public,"close",&room::close,"get_player",&room::get_player,"size",&room::size);
     }
 }

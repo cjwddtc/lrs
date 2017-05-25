@@ -5,6 +5,9 @@
 #include <iostream>
 #include <lua_bind.h>
 #include <string>
+#include <memory>
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
 using namespace std::string_literals;
@@ -21,13 +24,13 @@ void room::is_dead(uint8_t index,bool is_dead)
 	uint8_t fl = is_dead;
 	buf.put(&index, 1);
 	buf.put(&fl, 1);
-	for (auto p : players)
+	for (auto &p : players)
 	{
 		(*p)->ports[config::player_dead]->write(buf, []() {});
 	}
 }
 
-room::room(std::string room_name_, std::vector< lsy::port_all* > vec)
+room::room(std::string room_name_, std::vector< lsy::player* > vec)
     : room_name(room_name_)
     , count(vec.size())
     , ls(luaL_newstate())
@@ -39,30 +42,7 @@ room::room(std::string room_name_, std::vector< lsy::port_all* > vec)
 	players.reserve(vec.size());
 	for (auto a : vec)
 	{
-		players.emplace_back(a, index++);
-	}
-	for (player &pl : players)
-	{
-		auto pp=pl.pl->resign_port(config::channel_open); 
-		pp->OnMessage.connect([this,&pl](lsy::buffer) {
-			chs.for_player_channel(&pl,[](const channel *ptr) {
-				ptr->open();
-				((channel*)ptr)->enable(ptr->is_enable);
-			});
-		});
-		pp->start();
-		pp = pl.pl->resign_port(config::player_dead);
-		pp->OnMessage.connect([this, &pl](lsy::buffer) {
-			for (player &pli : players)
-			{
-				lsy::buffer buf(size_t(2));
-				uint8_t fl = pli.is_dead;
-				buf.put(&pli.index, 1);
-				buf.put(&fl, 1);
-				(*pl)->ports[config::player_dead]->write(buf, []() {});
-			}
-		});
-		pp->start();
+		players.emplace_back(this,a->operator->(), index++, a->id);
 	}
     // init room rule lua script
     main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
@@ -124,9 +104,10 @@ room::room(std::string room_name_, std::vector< lsy::port_all* > vec)
                                 io.post([filename, this, ptr, name]() {
 									auto rp = ptr->pl->resign_port(config::room_info);
 									rp->OnMessage.connect([size = (uint8_t)players.size(), ptr, name](lsy::buffer buf) {
-										lsy::buffer bu(name.size() + 2);
+										lsy::buffer bu(name.size() + 3);
 										bu.put(name);
 										bu.put(&size, 1);
+										bu.put(&ptr->index, 1);
 										(*ptr)->ports[config::room_info]->write(bu, []() {});
 									});
 									rp->start();
@@ -161,9 +142,6 @@ channels* room::channels()
 {
     return &chs;
 }
-#include <memory>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 void room_space::room::wait(int time, std::function<void()> func)
 {
 	auto        t = std::make_shared< boost::asio::deadline_timer >(
@@ -178,4 +156,54 @@ void room_space::room::wait(int time, std::function<void()> func)
 player * room_space::room::get_player(uint8_t index)
 {
 	return &players[index];
+}
+
+uint8_t room_space::room::size()
+{
+	return players.size();
+}
+
+void room_space::room::sent_public(std::string mes)
+{
+	for (auto &a : players)
+	{
+		a.sent_public(mes);
+	}
+}
+
+void room_space::room::close(uint8_t camp)
+{
+	size_t size=0;
+	int index=0;
+	for (auto &p : players)
+	{
+		size += p.id.size()+1;
+		size += role_names[index++].size()+1;
+		size ++;
+	}
+	lsy::buffer result(size);
+	index = 0;
+	for (auto &p : players)
+	{
+		result.put(p.id);
+		result.put(role_names[index++]);
+		uint8_t flag = p.camp == camp;
+		result.put(&flag, 1);
+	}
+	index = 0;
+	for (auto &p : players)
+	{
+		auto po=p.pl->resign_port(config::game_result);
+		std::string str = p.id;
+		str += "(";
+		str += role_names[index++];
+		str += ")";
+		str += (p.camp == camp) ? "win" : "lose";
+		po->OnMessage.connect([po,result,str=std::move(str)](lsy::buffer buf) {
+			po->write(str,[]() {});
+			po->write(result, [po]() {po->close(); });
+		});
+		po->start();
+	}
+	delete this;
 }

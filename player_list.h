@@ -44,6 +44,8 @@ class personpanel :public wxRibbonPanel
 {
 	wxRibbonButtonBar* bar;
 public:
+	wxTextCtrl *tc;
+	int m_index;
 	personpanel(wxWindow *paren,int index);
 	void add(std::string name, std::function<void()> func = []() {});
 	std::map<std::string, int> buttonmap;

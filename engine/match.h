@@ -4,23 +4,23 @@
 #include <string>
 namespace lsy
 {
-    class group : public std::vector< port_all* >
+    class group : public std::vector< player* >
     {
       public:
-        void push_back(port_all* ptr);
+        void push_back(player* ptr);
         void pop_back();
     };
     class queue
     {
         std::map< uint16_t, group > groups;
-        std::map< port_all*, std::pair< group*, size_t > > map;
+        std::map< player*, std::pair< group*, size_t > > map;
         uint16_t    gap;
         std::string room_name;
 
       public:
         size_t size;
-        void add_player(port_all* ptr, uint16_t score);
-        void remove_player(port_all* ptr);
+        void add_player(player* ptr, uint16_t score);
+        void remove_player(player* ptr);
         queue(std::string room_name, size_t size, uint16_t gap);
     };
     void add_to_queue(std::string str, player* ptr);

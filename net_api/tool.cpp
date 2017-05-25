@@ -181,6 +181,12 @@ void lsy::buffer::get(buffer& other) const
     other.now_ptr += size;
 }
 
+void lsy::buffer::get(std::string & str)
+{
+	str.assign((char*)now_ptr);
+	now_ptr += str.size()+1;
+}
+
 void lsy::buffer::renew(size_t new_size)
 {
     if (ptr->count != 1)

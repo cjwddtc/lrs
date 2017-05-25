@@ -40,7 +40,6 @@ channels::~channels()
 
 channel* channels::get_channel(player* pl, std::string name)
 {
-	printf("player:%p\n", pl);
     auto& iti = map->get< 0 >();
     auto  it  = iti.find(std::make_pair(name, pl));
     if (it == iti.end())
@@ -50,7 +49,7 @@ channel* channels::get_channel(player* pl, std::string name)
         auto rp = (*pl)->resign_port(port);
         rp->start();
 		(*pl)->mut.unlock();
-		auto     it = map->insert({ std::make_pair(name, pl), port });
+		auto it=map->emplace(name, pl, port);
 		it.first->open();
         rp->OnMessage.connect([ &channel = *it.first, this ](auto buf) {
             if (channel.is_enable)
@@ -58,7 +57,7 @@ channel* channels::get_channel(player* pl, std::string name)
                 auto& index = map->get< 1 >();
                 auto  its   = index.equal_range(channel.name());
                 auto  it    = its.first;
-				uint8_t n= it->player()->index;
+				uint8_t n= channel.player()->index;
 				lsy::buffer buf_(buf.size() + 1);
 				buf_.put(&n, 1);
 				buf_.put(buf);
@@ -86,7 +85,7 @@ void room_space::channels::remove_channel(channel * chan)
 	}
 	else
 	{
-		auto po = (*chan->player());
+		auto &po = (*chan->player());
 		po->ports[config::channel_close]->write(lsy::buffer(chan->name()), []() {});
 		po->ports[chan->port]->close();
 		map->erase(it);

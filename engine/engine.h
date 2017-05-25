@@ -6,7 +6,7 @@
 #include <tuple>
 #include <utility>
 extern thread_local boost::asio::io_service io_service;
-
+#include <player.h>
 namespace lsy
 {
     class BOOST_SYMBOL_EXPORT run_thread
@@ -18,7 +18,7 @@ namespace lsy
         void                     run();
         void                     stop();
         boost::asio::io_service& get_io_service();
-        void add_room(std::string rule_name_, std::vector< lsy::port_all* > vec);
+        void add_room(std::string rule_name_, std::vector< lsy::player* > vec);
     };
     class BOOST_SYMBOL_EXPORT server
     {
@@ -26,7 +26,7 @@ namespace lsy
         listener                  li;
         std::vector< run_thread > threads;
         server(std::string file);
-        void create_room(std::string rule_name_, std::vector< lsy::port_all* > vec);
+        void create_room(std::string rule_name_, std::vector< lsy::player* > vec);
         void run();
     };
     BOOST_SYMBOL_EXPORT void run();

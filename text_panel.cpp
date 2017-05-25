@@ -82,9 +82,11 @@ text_panel::text_panel( lsy::port *po, wxWindow* parent, wxWindowID id, const wx
 	});
 	m_button1->Bind(wxEVT_BUTTON, [this](auto ev) {
 		std::string str = m_textCtrl2->GetValue();
-		m_textCtrl2->Clear();
-		port->write(str, []() {	});
-		Refresh();
+		if (str.size() != 0) {
+			m_textCtrl2->Clear();
+			port->write(str, []() {});
+			Refresh();
+		}
 	});
 }
 

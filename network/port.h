@@ -40,12 +40,13 @@ namespace lsy
         uint16_t valid_port();
         port_all(assocket* soc);
         error_signal OnError;
-        port* resign_port(uint16_t num);
+        virtual port* resign_port(uint16_t num);
         void add_map(port* p);
         virtual void close();
         virtual void start();
         assocket*    get_soc();
         void write(uint16_t port, buffer buf, std::function< void() > fun);
+		virtual ~port_all();
     };
 }
 #endif

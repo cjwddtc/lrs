@@ -8,6 +8,7 @@ namespace room_space
 {
     struct channel
     {
+		channel(std::string str, player *pl, uint16_t port);
         std::pair< std::string, player* > key;
         const std::string& name() const;
         player*       player() const;
@@ -15,5 +16,6 @@ namespace room_space
         mutable bool       is_enable;
 		void open()const;
         void enable(bool is_enable);
+		~channel();
     };
 };

@@ -14,12 +14,14 @@
 #include <wx/button.h>
 #include "text_panel.h"
 #include "player_list.h"
+#include <wx/listctrl.h>
 using namespace std::string_literals;
+wxFrame*                     mf;
 class DerivedApp : public wxApp
 {
     lsy::listener                li;
     wxDialog*                    dlg;
-    wxFrame*                     mf;
+	wxDialog*res_dia;
     lsy::as_ptr< lsy::port_all > pa;
 	std::map<std::string, text_panel*> channel_map;
 	pl_panel *player_pannel;
@@ -59,7 +61,7 @@ void set_text(wxStaticText *st, std::tuple<uint16_t, uint16_t>*p)
 	}
 	else
 	{
-		st->SetLabel(wxT("开始匹配失败，请刷新房间列表后重试"));
+		st->SetLabel(wxT("开始匹配失败，请不要同时匹配多局游戏"));
 	}
 }
 
@@ -84,15 +86,63 @@ void DerivedApp::init_dating()
 				});
 		});
 		mp->start();
+		auto ri = pa->resign_port(config::room_init_port);
+		ri->OnMessage.connect([this](lsy::buffer buf) {
+			uint16_t flag;
+			buf.get(flag);
+			if (flag) {
+				gui_run([this]() {
+					auto boptr = XRCCTRL(*mf, "m_notebook1", wxNotebook);
+					boptr->DeletePage(boptr->GetPageCount() - 1);
+					res_dia
+						= wxXmlResource::Get()->LoadDialog(mf, "game_result");
+					res_dia->Show(true);
+					mf->Refresh();
+				});
+				auto po=pa->resign_port(config::game_result);
+				po->OnMessage.connect([this,flag=std::make_shared<bool>(true)](lsy::buffer buf) {
+					gui_run([buf_c=buf,flag, this]() {
+						lsy::buffer buf(buf_c);
+						if (*flag) {
+							*flag = false;
+							wxStaticText *st = XRCCTRL(*res_dia, "m_staticText134", wxStaticText);
+							wxString str((char*)buf.get(0));
+							st->SetLabelText(str);
+							res_dia->Update();
+						}
+						else {
+							std::string name;
+							std::string role;
+							uint8_t is_win;
+							int index = 0;
+							while (buf.remain()) {
+								buf.get(name);
+								buf.get(role);
+								buf.get(&is_win, 1);
+								XRCCTRL(*res_dia, "m_listCtrl156", wxListCtrl)->InsertItem(index, wxString::Format("%d", index + 1));
+								XRCCTRL(*res_dia, "m_listCtrl156", wxListCtrl)->SetItem(index,1,name);
+								XRCCTRL(*res_dia, "m_listCtrl156", wxListCtrl)->SetItem(index, 2,role);
+								XRCCTRL(*res_dia, "m_listCtrl156", wxListCtrl)->SetItem(index, 3, is_win ? "赢" : "输");
+								res_dia->Update();
+								index++;
+							}
+						}
+					});
+				});
+				po->start();
+				po->write(lsy::buffer(size_t(0)), []() {});
+			}
+			else {
+				gui_run([this]() {init_play(); });
+			}
+		});
+		ri->write(lsy::buffer(size_t(0)), []() {});
+		ri->start();
 		auto msp = pa->resign_port(config::match_status_port);
 		msp->OnMessage.connect([pp,this](lsy::buffer buf) {
 			buf.get(std::get<0>(*pp));
 			gui_run([pp, this]() {
 				set_text(XRCCTRL(*mf, "m_staticText3", wxStaticText), pp);
-				if (std::get<0>(*pp) == std::get<1>(*pp))
-				{
-					init_play();
-				}
 			});
 		});
 		msp->start();
@@ -129,13 +179,20 @@ void DerivedApp::init_dating()
 			wxString str=lb->GetString(lb->GetSelection());
 			pa->ports[config::match_port]->write(str.ToStdString(), []() {});
 		});
-		pa->ports[config::match_port]->write("sryx"s, []() {});
+		//pa->ports[config::match_port]->write("sryx"s, []() {});
 }
 void DerivedApp::init_play()
 {
 	auto boptr = XRCCTRL(*mf, "m_notebook1", wxNotebook);
 	auto playerpanel
 		= wxXmlResource::Get()->LoadPanel(boptr, "playpanel");
+	auto p_ch = pa->resign_port(config::public_channel);
+	p_ch->OnMessage.connect([this](auto buf) {
+		XRCCTRL(*mf, "m_textCtrl30", wxTextCtrl)->AppendText((char*)buf.get(0));
+		mf->Refresh();
+	});
+	p_ch->start();
+	p_ch->write(lsy::buffer(size_t(0)), []() {});
 	boptr->AddPage(playerpanel, "游戏", true);
 	auto ch_con = pa->resign_port(config::channel_open);
 	ch_con->start();
@@ -143,18 +200,26 @@ void DerivedApp::init_play()
 	auto ro_info = pa->resign_port(config::room_info);
 	ro_info->start();
 	ro_info->write(lsy::buffer(size_t(0)), []() {});
-	ro_info->OnMessage.connect([this](auto buf) {
+	ro_info->OnMessage.connect([this, playerpanel](auto buf) {
 		std::string str((char*)buf.get(0));
 		buf.get(str.size() + 1);
 		uint8_t num;
+		uint8_t index;
 		buf.get(&num, 1);
-		gui_run([num,str, playerpanel =XRCCTRL(*mf,"playpanel",wxPanel)]() {
+		buf.get(&index, 1);
+		gui_run([this,num,str, index, playerpanel]() {
 			auto left = XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage);
 			auto right = XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage);
 			player_pannel =new pl_panel(left, right, num);
+			playerpanel->Bind(wxEVT_DESTROY, [this](auto a) {
+				if (player_pannel) {
+					delete player_pannel;
+					player_pannel = 0;
+				}
+			});
 			left->Realize();
 			right->Realize();
-			XRCCTRL(*mf, "m_staticText28", wxStaticText)->SetLabel(wxString::Format("你的身份是：%s\n",str));
+			XRCCTRL(*mf, "m_staticText28", wxStaticText)->SetLabel(wxString::Format("你的身份是：%s\n你的位置是：%d\n",str, index+1));
 			playerpanel->Refresh();
 		});
 		auto bupo = pa->resign_port(config::button_port);
@@ -262,13 +327,16 @@ void DerivedApp::init_play()
 		uint16_t b;
 		buf.get(b);
 		std::string name((char*)buf.get(1));
-		if (channel_map.find(name) != channel_map.end())
-		{
-			gui_run([this, name, b]() {
-				channel_map[name]->Enable(b);
-				mf->Refresh();
-			});
-		}
+		gui_run([this, name, b]() {
+			if (channel_map.find(name) != channel_map.end())
+			{
+					channel_map[name]->Enable(b);
+					mf->Refresh();
+			}
+			else {
+				printf("skip:%s\n", name.c_str());
+			}
+		});
 	});
 	ch_en->start();
 	ch_con->OnMessage.connect([playerpanel, this](auto buf) {
@@ -362,6 +430,10 @@ bool DerivedApp::OnInit()
                     dlg->SetTitle("wrong id!");
                     dlg->Refresh();
                     break;
+				case 3:
+					dlg->SetTitle("already login!");
+					dlg->Refresh();
+					break;
                 default:
                     assert(0);
                     break;

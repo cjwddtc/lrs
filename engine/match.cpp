@@ -5,7 +5,7 @@
 #include <room.h>
 
 extern thread_local boost::asio::io_service io_service;
-void lsy::queue::add_player(port_all* ptr, uint16_t score)
+void lsy::queue::add_player(player* ptr, uint16_t score)
 {
     if (size == 1)
     {
@@ -15,9 +15,16 @@ void lsy::queue::add_player(port_all* ptr, uint16_t score)
     }
     else
     {
-        auto a = groups.upper_bound(score);
+		uint16_t low = score - gap / 2;
+		if (score < gap / 2)
+		{
+			low = 0;
+		}
+		uint16_t hight = score + gap / 2;
+        auto a = groups.upper_bound(low);
+		auto b = groups.upper_bound(hight);
         // create new group
-        if (a != groups.begin() && (--a, 1) && a->first + gap > score)
+        if (a != b)
         {
             a->second.push_back(ptr);
             if (a->second.size() == size)
@@ -40,7 +47,7 @@ void lsy::queue::add_player(port_all* ptr, uint16_t score)
     }
 }
 
-void lsy::queue::remove_player(port_all* ptr)
+void lsy::queue::remove_player(player* ptr)
 {
     auto p = map[ptr].first;
     std::swap(p->at(map[ptr].second), p->back());
@@ -55,24 +62,23 @@ lsy::queue::queue(std::string room_name_, size_t size_, uint16_t gap_)
 {
 }
 
-void lsy::group::push_back(port_all* ptr)
+void lsy::group::push_back(player* ptr)
 {
-    ptr->resign_port(config::match_status_port)->start();
-    std::vector< port_all* >::push_back(ptr);
+    std::vector< player* >::push_back(ptr);
     for (auto a : *this)
     {
-        a->ports[config::match_status_port]->write((uint16_t)size(),
+        (*a)->ports[config::match_status_port]->write((uint16_t)size(),
                                                       []() {});
     }
 }
 
 void lsy::group::pop_back()
 {
-    back()->ports[config::match_status_port]->close();
-    std::vector< port_all* >::pop_back();
+    (*back())->ports[config::match_status_port]->close();
+    std::vector< player* >::pop_back();
     for (auto a : *this)
     {
-        a->ports[config::match_status_port]->write((uint16_t)size(),
+        (*a)->ports[config::match_status_port]->write((uint16_t)size(),
                                                       []() {});
     }
 }
@@ -90,7 +96,7 @@ void lsy::add_to_queue(std::string str, player* ptr)
             {
                 int score = main.get_score[0];
                 io.post([score, ptr, it]() {
-                    it->second.add_player(ptr->operator->(), score);
+                    it->second.add_player(ptr, score);
                     (*ptr)->ports[config::match_port]->write(
                         buffer(uint16_t(it->second.size)), []() {});
                 });
@@ -118,7 +124,7 @@ void lsy::add_to_queue(std::string str, player* ptr)
                             {
                                 int score = main.get_score[0];
                                 io.post([score, ptr, it]() {
-                                    it.first->second.add_player(ptr->operator->(), score);
+                                    it.first->second.add_player(ptr, score);
                                     (*ptr)->ports[config::match_port]->write(
                                         buffer(uint16_t(it.first->second.size)),
                                         []() {});
@@ -141,5 +147,5 @@ void lsy::remove_from_queue(std::string str, player* ptr)
 {
     auto it = queues.find(str);
     assert(it != queues.end());
-    it->second.remove_player(ptr->operator->());
+    it->second.remove_player(ptr);
 }

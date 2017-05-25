@@ -7,6 +7,7 @@ namespace config
     using namespace std::string_literals;
 	//login port
     constexpr uint16_t login_port        = 1;
+	constexpr uint16_t keep_alive_port = 14;
 	//match port
     constexpr uint16_t multiplay_port    = 2;
     constexpr uint16_t games_port        = 3;
@@ -15,6 +16,7 @@ namespace config
 
     constexpr uint16_t text_port         = 6;
 
+	constexpr uint16_t room_init_port = 15;
     constexpr uint16_t channel_open   = 7;
 	constexpr uint16_t channel_close = 12;
 	constexpr uint16_t channel_enable = 10;
@@ -23,6 +25,7 @@ namespace config
 	constexpr uint16_t room_info = 11;
 	constexpr uint16_t public_channel = 9;
 	constexpr uint16_t button_port = 0;
+	constexpr uint16_t game_result = 16;
 
     constexpr char*    room_init       = "room_init";
 }

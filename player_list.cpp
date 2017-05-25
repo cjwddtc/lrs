@@ -39,9 +39,32 @@ pl_panel::pl_panel(wxRibbonPage* left_page_, wxRibbonPage* right_page_, size_t s
 pl_panel::~pl_panel()
 {
 }
-
-personpanel::personpanel(wxWindow *parent,int index):wxRibbonPanel(parent,-1,wxString::Format("%dºÅ",index),wxNullBitmap,wxDefaultPosition, wxSize(80, 80))
+#include <wx/frame.h>
+extern wxFrame *mf;
+personpanel::personpanel(wxWindow *parent,int index):wxRibbonPanel(parent,-1,wxString::Format("%dºÅ",index+1),wxNullBitmap,wxDefaultPosition, wxSize(80, 80)),m_index(index)
 {
+	tc = nullptr;
+	this->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent &ev) {
+		auto po=ev.GetPosition();
+		ClientToScreen(&po.x, &po.y);
+		mf->ScreenToClient(&po.x, &po.y);
+		if (tc == nullptr) {
+			tc = new wxTextCtrl(mf,-1);
+		}
+		tc->SetPosition(po);
+		tc->Show(true);
+		tc->SetFocus();
+		auto func= [this](auto ev) {
+			tc->GetValue();
+			SetLabel(wxString::Format("%dºÅ %s", m_index + 1, tc->GetValue().mb_str()));
+			tc->Show(false);
+			mf->Refresh();
+		};
+		tc->Bind(wxEVT_KILL_FOCUS, func);
+		tc->Bind(wxEVT_TEXT_ENTER, func);
+		tc->Refresh();
+		printf("asd\n");
+	});
 	bar = new wxRibbonButtonBar(this, -1, wxDefaultPosition);
 }
 
