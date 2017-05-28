@@ -9,7 +9,7 @@
 
 void pl_panel::set_status(size_t index, bool is_dead)
 {
-	pannels[index]->is_dead = is_dead;
+    pannels[index]->is_dead = is_dead;
     if (is_dead)
     {
         pannels[index]->SetArtProvider(redpro);
@@ -43,20 +43,20 @@ pl_panel::~pl_panel()
 {
 }
 #include <wx/frame.h>
-extern text_panel *current_channel;
-extern wxFrame* mf; 
+extern text_panel* current_channel;
+extern wxFrame*    mf;
 personpanel::personpanel(wxWindow* parent, int index)
     : wxRibbonPanel(parent, -1, wxString::Format("%dºÅ", index + 1),
-                    wxNullBitmap, wxDefaultPosition, wxSize(80, 80)),is_dead(false)
+                    wxNullBitmap, wxDefaultPosition, wxSize(80, 80))
+    , is_dead(false)
     , m_index(index)
 {
     tc = nullptr;
-	this->Bind(wxEVT_ENTER_WINDOW, [index](wxMouseEvent& ev) {
-		current_channel->show_type(index);
-	});
-	this->Bind(wxEVT_LEAVE_WINDOW, [index](wxMouseEvent& ev) {
-		current_channel->show_type(0xff);
-	});
+    this->Bind(wxEVT_ENTER_WINDOW, [index](wxMouseEvent& ev) {
+        current_channel->show_type(index);
+    });
+    this->Bind(wxEVT_LEAVE_WINDOW,
+               [index](wxMouseEvent& ev) { current_channel->show_type(0xff); });
     this->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& ev) {
         auto po = ev.GetPosition();
         ClientToScreen(&po.x, &po.y);
@@ -86,12 +86,13 @@ personpanel::personpanel(wxWindow* parent, int index)
 int  count = 12345;
 void personpanel::add(std::string name, std::function< void() > func)
 {
-	if (!is_dead) {
-		bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
-		buttonmap[name] = count;
-		bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
-			count++);
-	}
+    if (!is_dead)
+    {
+        bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
+        buttonmap[name] = count;
+        bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
+                  count++);
+    }
 }
 
 void personpanel::remove(std::string name)

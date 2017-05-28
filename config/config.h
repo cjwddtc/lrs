@@ -6,9 +6,9 @@ namespace config
 {
     using namespace std::string_literals;
     // login port
-    constexpr uint16_t login_port      = 1;
-	constexpr uint16_t login_comfirm_port = 17;
-    constexpr uint16_t keep_alive_port = 14;
+    constexpr uint16_t login_port         = 1;
+    constexpr uint16_t login_comfirm_port = 17;
+    constexpr uint16_t keep_alive_port    = 14;
     // match port
     constexpr uint16_t multiplay_port    = 2;
     constexpr uint16_t games_port        = 3;

@@ -37,9 +37,9 @@ namespace lsy
         };
         std::array< as_ptr< port >, 65536 > ports;
         std::mutex mut;
-		std::mutex unpost_mut;
-		std::map<uint16_t, std::vector<buffer>> unpost;
-        uint16_t   valid_port();
+        std::mutex unpost_mut;
+        std::map< uint16_t, std::vector< buffer > > unpost;
+        uint16_t valid_port();
         port_all(assocket* soc);
         error_signal  OnError;
         virtual port* resign_port(uint16_t num);

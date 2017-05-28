@@ -39,7 +39,7 @@ class text_panel : public wxPanel
     wxButton*                        m_button1;
     std::stringstream                all;
     std::vector< std::stringstream > sqli_mes;
-	uint32_t this_count;
+    uint32_t                         this_count;
     void add(uint8_t index, std::string mess);
     void show_type(uint8_t index);
     void enable(bool flag);

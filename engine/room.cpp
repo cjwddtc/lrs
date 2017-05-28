@@ -17,6 +17,10 @@ using namespace room_space;
 */
 
 
+room_space::room::~room()
+{
+}
+
 void room::is_dead(uint8_t index, bool is_dead)
 {
     players[index].is_dead = is_dead;
@@ -86,7 +90,8 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
                                 if (is_fin)
                                 {
                                     std::string filename = main.get_role_ver[0];
-                                    OnInit.connect(std::bind(load_file(filename), ptr));
+                                    OnInit.connect(
+                                        std::bind(load_file(filename), ptr));
                                 }
                             },
                             role_name, role_ver);
@@ -97,13 +102,12 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
                             if (is_fin)
                             {
                                 std::string filename = main.get_role[0];
-                                OnInit.connect(std::bind(load_file(filename), ptr));
+                                OnInit.connect(
+                                    std::bind(load_file(filename), ptr));
                                 count--;
                                 if (count == 0)
                                 {
-                                    io.post([this]() { 
-										OnInit(); 
-									});
+                                    io.post([this]() { OnInit(); });
                                 }
                             }
                         },
@@ -135,7 +139,7 @@ void room_space::room::wait(int time, std::function< void() > func)
 
 player* room_space::room::get_player(uint8_t index)
 {
-    return &players[index%players.size()];
+    return &players[index % players.size()];
 }
 
 uint8_t room_space::room::size()
@@ -145,8 +149,8 @@ uint8_t room_space::room::size()
 
 void room_space::room::sent_public(std::string mes)
 {
-	replay += mes;
-	log += mes;
+    replay += mes;
+    log += mes;
     for (auto& a : players)
     {
         a.sent_public(mes);
@@ -196,42 +200,47 @@ void room_space::room::close(uint8_t camp)
     delete this;
 }
 
-void room_space::room::for_player(int n, std::function<void(player*)> func, int m)
+void room_space::room::for_player(int n, std::function< void(player*) > func,
+                                  int m)
 {
-	if (m != size()) {
-		func(get_player(m));
-		wait(n, [this, func, m, n]() {for_player(n, func, m + 1); });
-	}
+    if (m != size())
+    {
+        func(get_player(m));
+        wait(n, [this, func, m, n]() { for_player(n, func, m + 1); });
+    }
 }
 
-void room_space::room::for_each_player(int n, std::function<void(player*)> func)
+void room_space::room::for_each_player(int                            n,
+                                       std::function< void(player*) > func)
 {
-	uint8_t size = players.size();
-	for (int i = n; i != size; i++)
-	{
-		func(&players[i]);
-	}
-	for (int i = 0; i != n; i++)
-	{
-		func(&players[i]);
-	}
+    uint8_t size = players.size();
+    for (int i = n; i != size; i++)
+    {
+        func(&players[i]);
+    }
+    for (int i = 0; i != n; i++)
+    {
+        func(&players[i]);
+    }
 }
 
 
 uint8_t room_space::room::check()
 {
-	std::map<uint8_t, uint8_t> camp_map;
-	for (auto &a : players)
-	{
-		if (!a.is_dead) {
-			camp_map[a.camp]++;
-		}
-	}
-	if (camp_map.size()==1)
-	{
-		return camp_map.begin()->first;
-	}
-	else {
-		return 0xff;
-	}
+    std::map< uint8_t, uint8_t > camp_map;
+    for (auto& a : players)
+    {
+        if (!a.is_dead)
+        {
+            camp_map[a.camp]++;
+        }
+    }
+    if (camp_map.size() == 1)
+    {
+        return camp_map.begin()->first;
+    }
+    else
+    {
+        return 0xff;
+    }
 }

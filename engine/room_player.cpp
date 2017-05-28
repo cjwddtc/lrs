@@ -147,10 +147,10 @@ void room_space::player::add_button(std::string                    name,
         port->start();
         pl->mut.unlock();
         buttons.emplace(std::make_pair(name, por));
-        port->OnMessage.connect([func,&io=io_service](lsy::buffer buf) {
+        port->OnMessage.connect([ func, &io = io_service ](lsy::buffer buf) {
             uint8_t index;
             buf.get(&index, 1);
-			io.post([index,func]() {func(index); });
+            io.post([index, func]() { func(index); });
         });
         lsy::buffer buf(name.size() + 3);
         buf.put(por);
@@ -165,12 +165,13 @@ void room_space::player::add_button(std::string                    name,
 
 void room_space::player::remove_button(std::string name)
 {
-	auto it = buttons.find(name);
-	if (it != buttons.end()) {
-		auto p = pl->ports[it->second];
-		buttons.erase(it);
-		p->write(lsy::buffer((size_t)0), [p]() { p->close(); });
-	}
+    auto it = buttons.find(name);
+    if (it != buttons.end())
+    {
+        auto p = pl->ports[it->second];
+        buttons.erase(it);
+        p->write(lsy::buffer((size_t)0), [p]() { p->close(); });
+    }
 }
 
 void room_space::player::sent_public(std::string mes)
@@ -201,7 +202,7 @@ void room_space::player::bind(lsy::port_all* pl_)
         pl->close();
         pl = pl_;
     }
-	check_open(pl);
+    check_open(pl);
     auto rop = pl->resign_port(config::room_init_port);
     rop->OnMessage.connect([this](auto buf) {
         uint16_t flag;
@@ -214,7 +215,7 @@ void room_space::player::bind(lsy::port_all* pl_)
             uint8_t size = ro->size();
             bu.put(&size, 1);
             bu.put(&index, 1);
-			printf("sending room_info\n");
+            printf("sending room_info\n");
             pl->ports[config::room_info]->write(bu, []() {});
         }
         else if (flag == 1)
@@ -254,7 +255,7 @@ void room_space::player::set_camp(uint8_t camp)
 
 bool room_space::player::dead()
 {
-	return is_dead;
+    return is_dead;
 }
 
 room_space::player::~player()
@@ -292,8 +293,8 @@ void room_space::player::send_status()
     check_open(pl);
     ro->chs.for_player_channel(this, [this](const channel* ptr) {
         ptr->open();
-		ro->chs.resent(ptr);
-		((channel*)ptr)->enable(ptr->is_enable);
+        ro->chs.resent(ptr);
+        ((channel*)ptr)->enable(ptr->is_enable);
     });
     for (player& pli : ro->players)
     {
@@ -310,5 +311,5 @@ void room_space::player::send_status()
         buf.put(a.first);
         pl->ports[config::button_port]->write(buf, []() {});
     }
-	sent_public(ro->log);
+    sent_public(ro->log);
 }

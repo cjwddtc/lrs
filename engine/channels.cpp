@@ -46,7 +46,7 @@ channel* channels::get_channel(player* pl, std::string name)
     {
         (*pl)->mut.lock();
         uint16_t port = (*pl)->valid_port();
-        auto     it   = map->emplace(name, pl, port,this);
+        auto     it   = map->emplace(name, pl, port, this);
         it.first->open();
         (*pl)->mut.unlock();
         const channel& ch = *(it.first);
@@ -86,40 +86,41 @@ void room_space::channels::for_player_channel(
     }
 }
 
-void room_space::channels::for_name_channel(std::string name, std::function<void(const channel*)> func)
+void room_space::channels::for_name_channel(
+    std::string name, std::function< void(const channel*) > func)
 {
-	auto it = map->get< 1 >().equal_range(name);
-	while (it.first != it.second)
-	{
-		func(&*it.first);
-		++it.first;
-	}
+    auto it = map->get< 1 >().equal_range(name);
+    while (it.first != it.second)
+    {
+        func(&*it.first);
+        ++it.first;
+    }
 }
 
 void channels::sent(std::string name, std::string mes)
 {
-	log[name].emplace_back(0xff, mes);
-	auto it = map->get< 1 >().equal_range(name);
-	uint8_t n = 0xff;
-	uint32_t si = log[name].size();
-	lsy::buffer buf_(mes.size() + 6);
-	buf_.put(si);
-	buf_.put(&n, 1);
-	buf_.put(mes);
-	while (it.first != it.second)
-	{
-		(*it.first->player())->ports[it.first->port]->write(buf_, []() {});
-		++it.first;
-	}
+    log[name].emplace_back(0xff, mes);
+    auto        it = map->get< 1 >().equal_range(name);
+    uint8_t     n  = 0xff;
+    uint32_t    si = log[name].size();
+    lsy::buffer buf_(mes.size() + 6);
+    buf_.put(si);
+    buf_.put(&n, 1);
+    buf_.put(mes);
+    while (it.first != it.second)
+    {
+        (*it.first->player())->ports[it.first->port]->write(buf_, []() {});
+        ++it.first;
+    }
 }
 
 void room_space::channels::resent(const channel* ch)
 {
-	uint32_t si=0;
+    uint32_t si = 0;
     for (auto a : log[ch->name()])
     {
         lsy::buffer buf_(a.second.size() + 6);
-		buf_.put(++si);
+        buf_.put(++si);
         buf_.put(&a.first, 1);
         buf_.put(a.second);
         (*ch->player())->ports[ch->port]->write(buf_, []() {});

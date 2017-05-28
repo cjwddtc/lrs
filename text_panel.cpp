@@ -18,12 +18,15 @@ void text_panel::add(uint8_t index, std::string mess)
     {
         sqli_mes.resize(index + 1);
     }
-	if (index == 0xff) {
-		all << "public" << ":" << mess << "\n";
-	}
-	else {
-		all << (uint16_t)index + 1 << ":" << mess << "\n";
-	}
+    if (index == 0xff)
+    {
+        all << "public"
+            << ":" << mess << "\n";
+    }
+    else
+    {
+        all << (uint16_t)index + 1 << ":" << mess << "\n";
+    }
     sqli_mes[index] << "\n" << mess;
 }
 
@@ -53,7 +56,8 @@ void text_panel::enable(bool flag)
 text_panel::text_panel(lsy::port* po, wxWindow* parent, wxWindowID id,
                        const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
-    , port(po), this_count(0)
+    , port(po)
+    , this_count(0)
 {
     wxBoxSizer* bSizer1;
     bSizer1 = new wxBoxSizer(wxVERTICAL);
@@ -84,24 +88,26 @@ text_panel::text_panel(lsy::port* po, wxWindow* parent, wxWindowID id,
     this->Layout();
 
     po->OnMessage.connect([this](lsy::buffer buf) {
-        uint8_t num = 0;
-		uint32_t count;
-		buf.get(count);
-		if (count > this_count) {
-			this_count = count;
-			buf.get(&num, 1);
-			gui_run([str = std::string((char*)buf.get(0)), num, this]() {
-				add(num, str);
-				show_type(255);
-				Refresh();
-				SetFocus();
-			});
-		}
-		else {
-			printf("skip the invalid message\n");
-		}
+        uint8_t  num = 0;
+        uint32_t count;
+        buf.get(count);
+        if (count > this_count)
+        {
+            this_count = count;
+            buf.get(&num, 1);
+            gui_run([ str = std::string((char*)buf.get(0)), num, this ]() {
+                add(num, str);
+                show_type(255);
+                Refresh();
+                SetFocus();
+            });
+        }
+        else
+        {
+            printf("skip the invalid message\n");
+        }
     });
-	po->start();
+    po->start();
     m_button1->Bind(wxEVT_BUTTON, [this](auto ev) {
         std::string str = m_textCtrl2->GetValue();
         if (str.size() != 0)

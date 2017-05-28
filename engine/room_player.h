@@ -23,7 +23,7 @@ namespace room_space
         void bind(lsy::port_all* pl);
         bool is_null();
         void set_camp(uint8_t camp);
-		bool dead();
+        bool dead();
         ~player();
         player(const player&);
         void send_status();

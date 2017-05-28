@@ -47,7 +47,7 @@ class personpanel : public wxRibbonPanel
   public:
     wxTextCtrl* tc;
     int         m_index;
-	bool is_dead;
+    bool        is_dead;
     personpanel(wxWindow* paren, int index);
     void add(std::string name, std::function< void() > func = []() {});
     std::map< std::string, int > buttonmap;

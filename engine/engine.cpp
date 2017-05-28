@@ -56,46 +56,48 @@ lsy::server::server(std::string file)
         p->OnMessage.connect([ this, p, po, &io = io ](buffer buf) {
             std::string id((char*)buf.data());
             std::string passwd((char*)buf.data() + id.size() + 1);
-            main.select.bind_once(
-                [ this, passwd, p, po, id, &io = io ](bool sucess) {
-                    lsy::buffer buf((size_t)2);
-                    if (sucess)
+            main.select.bind_once([ this, passwd, p, po, id,
+                                    &io = io ](bool sucess) {
+                lsy::buffer buf((size_t)2);
+                if (sucess)
+                {
+                    if (passwd == (std::string)main.select[0])
                     {
-                        if (passwd == (std::string)main.select[0])
+                        std::cout << "login success" << std::endl;
+                        auto p = room_space::get_playing(id);
+                        if (p != 0 && !p->is_null())
                         {
-                            std::cout << "login success" << std::endl;
-                            auto p = room_space::get_playing(id);
-                            if (p != 0 && !p->is_null())
-                            {
-                                buf.put((uint16_t)3);
-                            }
-                            else
-                            {
-                                buf.put((uint16_t)0);
-								auto lcpp=po->resign_port(config::login_comfirm_port);
-								lcpp->start();
-								lcpp->OnMessage.connect([&io, po,id,p](auto buf) {
+                            buf.put((uint16_t)3);
+                        }
+                        else
+                        {
+                            buf.put((uint16_t)0);
+                            auto lcpp
+                                = po->resign_port(config::login_comfirm_port);
+                            lcpp->start();
+                            lcpp->OnMessage.connect([&io, po, id, p](auto buf) {
                                 io.post([po, id, p]() {
                                     new player(po, id);
                                     if (p != 0)
                                     {
                                         p->bind(po);
                                     }
-								}); });
-                            }
-                        }
-                        else
-                        {
-                            buf.put((uint16_t)1);
+                                });
+                            });
                         }
                     }
                     else
                     {
-                        buf.put((uint16_t)2);
+                        buf.put((uint16_t)1);
                     }
-                    io.post([p, buf]() { p->write(buf, []() {}); });
-                },
-                id);
+                }
+                else
+                {
+                    buf.put((uint16_t)2);
+                }
+                io.post([p, buf]() { p->write(buf, []() {}); });
+            },
+                                  id);
         });
         po->start();
         p->start();

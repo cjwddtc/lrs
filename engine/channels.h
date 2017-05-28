@@ -19,8 +19,8 @@ namespace room_space
         void for_player_channel(player*                               pl,
                                 std::function< void(const channel*) > func);
 
-		void for_name_channel(std::string                               name,
-			std::function< void(const channel*) > func);
+        void for_name_channel(std::string                           name,
+                              std::function< void(const channel*) > func);
 
         void sent(std::string name, std::string mes);
 
