@@ -214,7 +214,7 @@
           <object class="wxRibbonPage" name="m_ribbonPage112">
             <label>Page</label>
             <style/>
-            <selected>0</selected>
+            <selected>1</selected>
           </object>
         </object>
       </object>
@@ -237,7 +237,7 @@
           <object class="wxRibbonPage" name="m_ribbonPage114">
             <label>Page</label>
             <style/>
-            <selected>0</selected>
+            <selected>1</selected>
           </object>
         </object>
       </object>

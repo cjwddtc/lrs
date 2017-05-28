@@ -3,14 +3,14 @@
 #include "socket.h"
 #include <array>
 #include <assert.h>
-#include <stdint.h>
 #include <mutex>
+#include <stdint.h>
 namespace lsy
 {
 
     class port_all;
     class BOOST_SYMBOL_EXPORT port : public assocket,
-                                     private as_contain< port_all >
+                                     protected as_contain< port_all >
     {
 
       public:
@@ -36,17 +36,19 @@ namespace lsy
             port_using(uint16_t port);
         };
         std::array< as_ptr< port >, 65536 > ports;
-		std::mutex mut;
-        uint16_t valid_port();
+        std::mutex mut;
+		std::mutex unpost_mut;
+		std::map<uint16_t, std::vector<buffer>> unpost;
+        uint16_t   valid_port();
         port_all(assocket* soc);
-        error_signal OnError;
+        error_signal  OnError;
         virtual port* resign_port(uint16_t num);
         void add_map(port* p);
         virtual void close();
         virtual void start();
         assocket*    get_soc();
         void write(uint16_t port, buffer buf, std::function< void() > fun);
-		virtual ~port_all();
+        virtual ~port_all();
     };
 }
 #endif

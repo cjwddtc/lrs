@@ -12,7 +12,7 @@ namespace room_space
                                                                            std::
                                                                                pair< std::
                                                                                          string,
-                                                                                         player* >,
+                                                                                     player* >,
                                                                            &channel::
                                                                                key > >,
                                                     hashed_non_unique< const_mem_fun< channel,
@@ -21,7 +21,7 @@ namespace room_space
                                                                                       &channel::
                                                                                           name > >,
                                                     hashed_non_unique< const_mem_fun< channel,
-                                                                                          player*,
+                                                                                      player*,
                                                                                       &channel::
                                                                                           player > > > >
     {
@@ -44,30 +44,11 @@ channel* channels::get_channel(player* pl, std::string name)
     auto  it  = iti.find(std::make_pair(name, pl));
     if (it == iti.end())
     {
-		(*pl)->mut.lock();
+        (*pl)->mut.lock();
         uint16_t port = (*pl)->valid_port();
-        auto rp = (*pl)->resign_port(port);
-        rp->start();
-		(*pl)->mut.unlock();
-		auto it=map->emplace(name, pl, port);
-		it.first->open();
-        rp->OnMessage.connect([ &channel = *it.first, this ](auto buf) {
-            if (channel.is_enable)
-            {
-                auto& index = map->get< 1 >();
-                auto  its   = index.equal_range(channel.name());
-                auto  it    = its.first;
-				uint8_t n= channel.player()->index;
-				lsy::buffer buf_(buf.size() + 1);
-				buf_.put(&n, 1);
-				buf_.put(buf);
-                while (it != its.second)
-                {
-                    (*it->player())->ports[it->port]->write(buf_, []() {});
-                    ++it;
-                }
-            }
-        });
+        auto     it   = map->emplace(name, pl, port,this);
+        it.first->open();
+        (*pl)->mut.unlock();
         const channel& ch = *(it.first);
         return (channel*)&ch;
     }
@@ -75,26 +56,39 @@ channel* channels::get_channel(player* pl, std::string name)
     return (channel*)&ch;
 }
 
-void room_space::channels::remove_channel(channel * chan)
+void room_space::channels::remove_channel(channel* chan)
 {
-	printf("remove:%p\n", chan->player());
-	auto &index=map->get<0>();
-	auto it = index.find(chan->key);
-	if (it == index.end()) {
-		printf("remove no-exist channel\n");
-	}
-	else
-	{
-		auto &po = (*chan->player());
-		po->ports[config::channel_close]->write(lsy::buffer(chan->name()), []() {});
-		po->ports[chan->port]->close();
-		map->erase(it);
-	}
+    printf("remove:%p\n", chan->player());
+    auto& index = map->get< 0 >();
+    auto  it    = index.find(chan->key);
+    if (it == index.end())
+    {
+        printf("remove no-exist channel\n");
+    }
+    else
+    {
+        auto& po = (*chan->player());
+        po->ports[config::channel_close]->write(lsy::buffer(chan->name()),
+                                                []() {});
+        po->ports[chan->port]->close();
+        map->erase(it);
+    }
 }
 
-void room_space::channels::for_player_channel(player * pl, std::function<void(const channel*)> func)
+void room_space::channels::for_player_channel(
+    player* pl, std::function< void(const channel*) > func)
 {
-	auto it=map->get<2>().equal_range(pl);
+    auto it = map->get< 2 >().equal_range(pl);
+    while (it.first != it.second)
+    {
+        func(&*it.first);
+        ++it.first;
+    }
+}
+
+void room_space::channels::for_name_channel(std::string name, std::function<void(const channel*)> func)
+{
+	auto it = map->get< 1 >().equal_range(name);
 	while (it.first != it.second)
 	{
 		func(&*it.first);
@@ -104,5 +98,30 @@ void room_space::channels::for_player_channel(player * pl, std::function<void(co
 
 void channels::sent(std::string name, std::string mes)
 {
-    assert(false);
+	log[name].emplace_back(0xff, mes);
+	auto it = map->get< 1 >().equal_range(name);
+	uint8_t n = 0xff;
+	uint32_t si = log[name].size();
+	lsy::buffer buf_(mes.size() + 6);
+	buf_.put(si);
+	buf_.put(&n, 1);
+	buf_.put(mes);
+	while (it.first != it.second)
+	{
+		(*it.first->player())->ports[it.first->port]->write(buf_, []() {});
+		++it.first;
+	}
+}
+
+void room_space::channels::resent(const channel* ch)
+{
+	uint32_t si=0;
+    for (auto a : log[ch->name()])
+    {
+        lsy::buffer buf_(a.second.size() + 6);
+		buf_.put(++si);
+        buf_.put(&a.first, 1);
+        buf_.put(a.second);
+        (*ch->player())->ports[ch->port]->write(buf_, []() {});
+    }
 }

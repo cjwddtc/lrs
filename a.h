@@ -4,7 +4,7 @@
 
 class a : public game_result
 {
-public:
+  public:
     a(wxWindow* parent);
     virtual ~a();
 };

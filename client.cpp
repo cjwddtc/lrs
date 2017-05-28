@@ -15,8 +15,11 @@
 #include "text_panel.h"
 #include "player_list.h"
 #include <wx/listctrl.h>
+#include <set>
 using namespace std::string_literals;
 wxFrame*                     mf;
+pl_panel *player_pannel;
+text_panel *current_channel;
 class DerivedApp : public wxApp
 {
     lsy::listener                li;
@@ -24,7 +27,7 @@ class DerivedApp : public wxApp
 	wxDialog*res_dia;
     lsy::as_ptr< lsy::port_all > pa;
 	std::map<std::string, text_panel*> channel_map;
-	pl_panel *player_pannel;
+	std::set<std::string> buttons;
 
   public:
     virtual bool OnInit();
@@ -179,27 +182,20 @@ void DerivedApp::init_dating()
 			wxString str=lb->GetString(lb->GetSelection());
 			pa->ports[config::match_port]->write(str.ToStdString(), []() {});
 		});
-		//pa->ports[config::match_port]->write("sryx"s, []() {});
+		pa->resign_port(config::login_comfirm_port)->write(lsy::buffer(size_t(0)),[]() {});
+		pa->ports[config::match_port]->write("sryx"s, []() {});
 }
 void DerivedApp::init_play()
 {
 	auto boptr = XRCCTRL(*mf, "m_notebook1", wxNotebook);
 	auto playerpanel
 		= wxXmlResource::Get()->LoadPanel(boptr, "playpanel");
-	auto p_ch = pa->resign_port(config::public_channel);
-	p_ch->OnMessage.connect([this](auto buf) {
-		XRCCTRL(*mf, "m_textCtrl30", wxTextCtrl)->AppendText((char*)buf.get(0));
-		mf->Refresh();
-	});
-	p_ch->start();
-	p_ch->write(lsy::buffer(size_t(0)), []() {});
 	boptr->AddPage(playerpanel, "游戏", true);
-	auto ch_con = pa->resign_port(config::channel_open);
-	ch_con->start();
-	auto ch_en = pa->resign_port(config::channel_enable);
+	auto rb = XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar);
+	rb->Bind(wxEVT_RIBBONBAR_PAGE_CHANGED, [this](wxRibbonBarEvent e) {
+		current_channel= wxStaticCast(e.GetPage()->GetChildren().back(),text_panel);
+	});
 	auto ro_info = pa->resign_port(config::room_info);
-	ro_info->start();
-	ro_info->write(lsy::buffer(size_t(0)), []() {});
 	ro_info->OnMessage.connect([this, playerpanel](auto buf) {
 		std::string str((char*)buf.get(0));
 		buf.get(str.size() + 1);
@@ -207,160 +203,172 @@ void DerivedApp::init_play()
 		uint8_t index;
 		buf.get(&num, 1);
 		buf.get(&index, 1);
-		gui_run([this,num,str, index, playerpanel]() {
+		printf("try init\n");
+		gui_run([this, num, str, index, playerpanel]() {
+			printf("start init\n");
 			auto left = XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage);
 			auto right = XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage);
-			player_pannel =new pl_panel(left, right, num);
-			playerpanel->Bind(wxEVT_DESTROY, [this](auto a) {
-				if (player_pannel) {
-					delete player_pannel;
-					player_pannel = 0;
-				}
-			});
+			player_pannel = new pl_panel(left, right, num);
+			printf("player_pannel inited%p,%p\n", player_pannel,&player_pannel);
 			left->Realize();
 			right->Realize();
-			XRCCTRL(*mf, "m_staticText28", wxStaticText)->SetLabel(wxString::Format("你的身份是：%s\n你的位置是：%d\n",str, index+1));
+			XRCCTRL(*mf, "m_staticText28", wxStaticText)->SetLabel(wxString::Format("你的身份是：%s\n你的位置是：%d\n", str, index + 1));
 			playerpanel->Refresh();
 		});
+
+		auto p_ch = pa->resign_port(config::public_channel);
+		p_ch->OnMessage.connect([this](auto buf) {
+			XRCCTRL(*mf, "m_textCtrl30", wxTextCtrl)->AppendText((char*)buf.get(0));
+			mf->Refresh();
+		});
+		p_ch->start();
+
+		auto ch_con = pa->resign_port(config::channel_open);
+		ch_con->OnMessage.connect([playerpanel, this, ch_con](auto buf) {
+			uint16_t op;
+			buf.get(op);
+			std::string name((char *)buf.get(buf.remain()));
+			if (channel_map.find(name) == channel_map.end())
+			{
+				channel_map[name] = 0;
+				gui_run([name, playerpanel, this, op,ch_con]() {
+					wxRibbonBar *bar = XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar);
+					auto rp = new wxRibbonPage(bar, wxID_ANY, name);
+					auto po = pa->resign_port(op);
+					auto tp = new text_panel(po, rp);
+					current_channel = tp;
+					channel_map[name] = tp;
+					XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar)->Realize();
+					mf->Maximize(false);
+					mf->Maximize(true);
+					ch_con->write(lsy::buffer(size_t(0)), []() {});
+				});
+			}
+			else {
+				printf("warning muti create channel\n");
+			}
+		});
+		ch_con->start();
+
+		auto ch_en = pa->resign_port(config::channel_enable);
+		ch_en->OnMessage.connect([this](auto buf) {
+			uint16_t b;
+			buf.get(b);
+			std::string name((char*)buf.get(1));
+			gui_run([this, name, b]() {
+				if (channel_map.find(name) != channel_map.end())
+				{
+					channel_map[name]->Enable(b);
+					mf->Refresh();
+				}
+				else {
+					printf("skip:%s\n", name.c_str());
+				}
+			});
+		});
+		ch_en->start();
+
+
 		auto bupo = pa->resign_port(config::button_port);
-		bupo->start();
 		bupo->OnMessage.connect([this](auto buf) {
 			uint16_t port;
 			buf.get(port);
 			std::string name((char*)buf.get(0));
-			auto po = pa->resign_port(port);
-			po->start();
-			po->OnMessage.connect([name, po, this](auto buf) {
+			if (buttons.find(name) == buttons.end()) {
+				buttons.insert(name);
+				auto po = pa->resign_port(port);
+				po->start();
+				po->OnMessage.connect([name, po, this](auto buf) {
+					gui_run([name, po, this]() {
+						for (auto a : player_pannel->pannels)
+						{
+							a->remove(name);
+						}
+						XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage)->Realize();
+						XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage)->Realize();
+						mf->Refresh();
+						po->close();
+					});
+				});
 				gui_run([name, po, this]() {
+					uint8_t index = 0;
 					for (auto a : player_pannel->pannels)
 					{
-						a->remove(name);
+						a->add(name, [po, index]() {
+							auto in = index;
+							lsy::buffer buf(size_t(1));
+							buf.put(&in, 1);
+							po->write(buf, []() {});
+						});
+						index++;
 					}
 					XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage)->Realize();
 					XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage)->Realize();
 					mf->Refresh();
-					po->close();
 				});
-			});
-			gui_run([name, po, this]() {
-				uint8_t index = 0;
-				for (auto a : player_pannel->pannels)
-				{
-					a->add(name, [po, index]() {
-						auto in = index;
-						lsy::buffer buf(size_t(1));
-						buf.put(&in, 1);
-						po->write(buf, []() {});
-					});
-					index++;
-				}
-				XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage)->Realize();
-				XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage)->Realize();
+			}
+			else {
+				printf("create muti same button\n");
+			}
+		});
+		bupo->start();
+
+		auto pl_de = pa->resign_port(config::player_dead);
+		pl_de->OnMessage.connect([this](auto buf) {
+			uint8_t a;
+			uint8_t b;
+			buf.get(&a, 1);
+			buf.get(&b, 1);
+			gui_run([a, b, this]() {
+				printf("player_pannel:%p,%p\n", player_pannel,&player_pannel);
+				player_pannel->set_status(a, b);
 				mf->Refresh();
 			});
 		});
-		bupo->write(lsy::buffer(size_t(0)), []() {});
-	});
-	auto pl_de = pa->resign_port(config::player_dead);
-	pl_de->OnMessage.connect([this](auto buf) {
-		uint8_t a;
-		uint8_t b;
-		buf.get(&a,1);
-		buf.get(&b ,1); 
-		gui_run([a, b,this]() {		
-			player_pannel->set_status(a, b);
-			mf->Refresh();
+		pl_de->start();
+
+		auto ch_cl = pa->resign_port(config::channel_close);
+		ch_cl->OnMessage.connect([this](auto buf) {
+			printf("in:%d\n", buf.size());
+			std::string name((char*)buf.get(0));
+			auto it = channel_map.find(name);
+			if (it == channel_map.end())
+			{
+				printf("removing no-exist channel%s\n", name.c_str());
+			}
+			else
+			{
+				wxRibbonBar *bar = XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar);
+				if (bar->GetPageCount() == 1) {
+					printf("cannot delete the only channel\n");
+				}
+				else {
+					int m;
+					int n = bar->GetPageNumber(wxStaticCast(it->second->GetParent(), wxRibbonPage));
+					if (n == bar->GetActivePage()) {
+						if (n == 0) {
+							m = n + 1;
+						}
+						else
+						{
+							m = n - 1;
+						}
+						bar->SetActivePage(m);
+					}
+					bar->DeletePage(n);
+					bar->Realize();
+					bar->Refresh();
+				}
+			}
 		});
+		ch_cl->start();
+		pa->ports[config::room_init_port]->write(uint16_t(1), []() {});
 	});
-	pl_de->start();
-	auto ch_cl = pa->resign_port(config::channel_close);
-	//ch_en->start();
-	/*
-	wxGridSizer* gSizer1=new wxGridSizer(0,2,0,0);
-	playerpanel->GetSizer()->Add(gSizer1);
-	auto pbm = new wxStaticBitmap(playerpanel, wxID_ANY, wxBitmap("qbt.bmp", wxBITMAP_TYPE_BMP), wxDefaultPosition, wxSize(70, 70));
-	gSizer1->Add(pbm,wxALL);
-	pbm = new wxStaticBitmap(playerpanel, wxID_ANY, wxBitmap("qbt.bmp", wxBITMAP_TYPE_BMP), wxDefaultPosition, wxSize(70, 70));
-	gSizer1->Add(pbm, wxALL);
-	playerpanel->GetSizer()->Layout();*/
-	//new wxTextCtrl(rp, wxID_ANY, "test");
-	//new wxRibbonPanel(rp, wxID_ANY, wxT("asda"));
-	//new wxRibbonPanel(rp, wxID_ANY, wxT("asdn"));
+	ro_info->start();
+	pa->ports[config::room_init_port]->write(uint16_t(0), []() {});
 	mf->Layout();
 	mf->Refresh();
 	mf->Show();
-	ch_cl->OnMessage.connect([this](auto buf) {
-		printf("in:%d\n",buf.size());
-		std::string name((char*)buf.get(0));
-		auto it=channel_map.find(name);
-		if (it == channel_map.end())
-		{
-			printf("removing no-exist channel%s\n", name.c_str());
-		}
-		else
-		{
-			wxRibbonBar *bar = XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar);
-			if (bar->GetPageCount() == 1) {
-				printf("cannot delete the only channel\n");
-			}
-			else {
-				int m;
-				int n = bar->GetPageNumber(wxStaticCast(it->second->GetParent(), wxRibbonPage));
-				if (n == bar->GetActivePage()) {
-					if (n == 0) {
-						m = n + 1;
-					}
-					else
-					{
-						m = n - 1;
-					}
-					bar->SetActivePage(m);
-				}
-				bar->DeletePage(n);
-				bar->Realize();
-				bar->Refresh();
-			}
-		}
-	});
-	ch_cl->start();
-	ch_en->OnMessage.connect([this](auto buf) {
-		uint16_t b;
-		buf.get(b);
-		std::string name((char*)buf.get(1));
-		gui_run([this, name, b]() {
-			if (channel_map.find(name) != channel_map.end())
-			{
-					channel_map[name]->Enable(b);
-					mf->Refresh();
-			}
-			else {
-				printf("skip:%s\n", name.c_str());
-			}
-		});
-	});
-	ch_en->start();
-	ch_con->OnMessage.connect([playerpanel, this](auto buf) {
-		uint16_t op;
-		buf.get(op);
-		std::string name((char *)buf.get(buf.remain()));
-		if (channel_map.find(name) == channel_map.end())
-		{
-			gui_run([name, playerpanel, this, op]() {
-				wxRibbonBar *bar = XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar);
-				auto rp = new wxRibbonPage(bar, wxID_ANY, name);
-				auto po = pa->resign_port(op);
-				auto tp = new text_panel(po,rp);
-				channel_map[name] = tp;
-				XRCCTRL(*mf, "m_ribbonBar5", wxRibbonBar)->Realize();
-				mf->Maximize(false);
-				mf->Maximize(true);
-			});
-		}
-		else {
-			printf("warning muti create channel\n");
-		}
-	});
-	ch_con->write(lsy::buffer((size_t)0), []() {});
 }
 #include "player_list.h"
 bool DerivedApp::OnInit()
@@ -379,34 +387,35 @@ bool DerivedApp::OnInit()
     XRCCTRL(*dlg, "canel_b", wxButton)
         ->Bind(wxEVT_COMMAND_BUTTON_CLICKED,
                [this](wxCommandEvent a) { dlg->Close(); });
-    XRCCTRL(*dlg, "login_b", wxButton)
-        ->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent a) {
-            if (XRCCTRL(*dlg, "id_tc", wxTextCtrl)->GetLineLength(0) != 0
-                && XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)->GetLineLength(0)
-                       != 0)
-            {
-                std::string id(
-                    XRCCTRL(*dlg, "id_tc", wxTextCtrl)->GetValue().mb_str());
-                std::string passwd(XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)
-                                       ->GetValue()
-                                       .mb_str());
-                lsy::buffer buf(id.size() + passwd.size() + 2);
-                char        ch = 0;
-                buf.put((unsigned char*)id.data(), id.size() + 1);
-                buf.put((unsigned char*)passwd.data(), passwd.size() + 1);
-                auto p = pa->ports[config::login_port];
-                p->write(buf, []() {
-                    std::cout << "login request sent" << std::endl;
-                });
-                dlg->SetTitle("logining");
-                dlg->Refresh();
-            }
-        });
+	auto func= [this](wxCommandEvent a) {
+		if (XRCCTRL(*dlg, "id_tc", wxTextCtrl)->GetLineLength(0) != 0
+			&& XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)->GetLineLength(0)
+			!= 0)
+		{
+			std::string id(
+				XRCCTRL(*dlg, "id_tc", wxTextCtrl)->GetValue().mb_str());
+			std::string passwd(XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)
+				->GetValue()
+				.mb_str());
+			lsy::buffer buf(id.size() + passwd.size() + 2);
+			char        ch = 0;
+			buf.put((unsigned char*)id.data(), id.size() + 1);
+			buf.put((unsigned char*)passwd.data(), passwd.size() + 1);
+			auto p = pa->ports[config::login_port];
+			p->write(buf, []() {
+				std::cout << "login request sent" << std::endl;
+			});
+			dlg->SetTitle("logining");
+			dlg->Refresh();
+		}
+	};
+	XRCCTRL(*dlg, "login_b", wxButton)
+		->Bind(wxEVT_COMMAND_BUTTON_CLICKED, func);
     dlg->SetTitle("connecting");
     dlg->Show();
     boost::property_tree::ptree pt;
     boost::property_tree::read_xml("client.xml", pt);
-    li.OnConnect.connect([this](auto port) {
+    li.OnConnect.connect([this, func](auto port) {
         pa = port;
         port->OnError.connect(
             [](auto er) { std::cout << er.message() << std::endl; });
@@ -440,10 +449,15 @@ bool DerivedApp::OnInit()
             }
         });
         p->OnDestroy.connect([this]() { gui_run([this]() { dlg->Close(); }); });
-        gui_run([this]() {
+        gui_run([this,func]() {
             dlg->SetTitle("connected");
             dlg->Refresh();
             XRCCTRL(*dlg, "login_b", wxButton)->Enable(true);
+			if (wxGetApp().argc == 3) {
+				XRCCTRL(*dlg, "id_tc", wxTextCtrl)->SetValue(wxGetApp().argv[1]);
+				XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)->SetValue(wxGetApp().argv[2]);
+				func(wxCommandEvent());
+			}
         });
     });
     li.add_group(pt.find("client")->second);/**/

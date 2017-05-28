@@ -51,14 +51,16 @@ lsy::player::player(port_all* soc, std::string id_)
     match_port->OnMessage.connect(
         [ this, match_port, &io = io_service ](buffer buf) {
             std::string str((char*)buf.data());
-			if (room_space::get_playing(id) == 0) {
-				io.post([str, this]() { add_to_queue(str, this); });
-			}
-			else {
-				match_port->write(uint16_t(0), []() {});
-			}
+            if (room_space::get_playing(id) == 0)
+            {
+                io.post([str, this]() { add_to_queue(str, this); });
+            }
+            else
+            {
+                match_port->write(uint16_t(0), []() {});
+            }
 
         });
     match_port->start();
-	ptr->resign_port(config::match_status_port)->start();
+    ptr->resign_port(config::match_status_port)->start();
 }

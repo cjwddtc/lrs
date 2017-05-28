@@ -237,7 +237,7 @@ namespace lsy
         void get(buffer& buf) const;
         /// template return version of get
         ///@return the value get
-		void get(std::string &str);
+        void get(std::string& str);
         template < class T >
         T get() const
         {

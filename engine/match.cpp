@@ -15,14 +15,14 @@ void lsy::queue::add_player(player* ptr, uint16_t score)
     }
     else
     {
-		uint16_t low = score - gap / 2;
-		if (score < gap / 2)
-		{
-			low = 0;
-		}
-		uint16_t hight = score + gap / 2;
-        auto a = groups.upper_bound(low);
-		auto b = groups.upper_bound(hight);
+        uint16_t low = score - gap / 2;
+        if (score < gap / 2)
+        {
+            low = 0;
+        }
+        uint16_t hight = score + gap / 2;
+        auto     a     = groups.upper_bound(low);
+        auto     b     = groups.upper_bound(hight);
         // create new group
         if (a != b)
         {

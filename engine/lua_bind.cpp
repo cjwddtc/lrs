@@ -34,11 +34,11 @@ void lua_get(lua_State* ls, int index, int& value)
 
 void lua_get(lua_State* ls, int index, uint8_t& value)
 {
-	if (!lua_isnumber(ls, index))
-	{
-		throw bad_get(index);
-	}
-	value = lua_tointeger(ls, index);
+    if (!lua_isnumber(ls, index))
+    {
+        throw bad_get(index);
+    }
+    value = lua_tointeger(ls, index);
 }
 
 void lua_get(lua_State* ls, int index, uint16_t& value)
@@ -68,26 +68,29 @@ void lua_get(lua_State* ls, int index, bool& value)
     value = lua_toboolean(ls, index);
 }
 
-template <class T,class ...ARG>
-struct get_put_arg_func {
-	static std::function<void( T,ARG...)> f(lua_State* ls) {
-		return [ls](T a, ARG ...b) {
-			lua_put(ls, a);
-			get_put_arg_func<ARG...>::f(ls)(b...);
-		};
-	}
+template < class T, class... ARG >
+struct get_put_arg_func
+{
+    static std::function< void(T, ARG...) > f(lua_State* ls)
+    {
+        return [ls](T a, ARG... b) {
+            lua_put(ls, a);
+            get_put_arg_func< ARG... >::f(ls)(b...);
+        };
+    }
 };
 
-template <class T>
-struct get_put_arg_func<T> {
-	static std::function<void(T)> f(lua_State* ls) {
-		return[ls](T a){
-			lua_put(ls, a); 
-		};
-	}
+template < class T >
+struct get_put_arg_func< T >
+{
+    static std::function< void(T) > f(lua_State* ls)
+    {
+        return [ls](T a) { lua_put(ls, a); };
+    }
 };
 
-template <class ...ARG>
+
+template < class... ARG >
 void lua_get(lua_State* ls, int index, std::function< void(ARG...) >& func)
 {
     if (!lua_isfunction(ls, index))
@@ -96,63 +99,63 @@ void lua_get(lua_State* ls, int index, std::function< void(ARG...) >& func)
     }
     lua_pushvalue(ls, index);
     int n = luaL_ref(ls, LUA_GLOBALSINDEX);
-    func  = [n, ls](ARG ...arg) {
+    func  = [n, ls](ARG... arg) {
         lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
-		get_put_arg_func<ARG...>::f(ls)(arg...);
+        get_put_arg_func< ARG... >::f(ls)(arg...);
         lua_call(ls, sizeof...(ARG), 0);
     };
 }
 
-template <class T,class ...ARG>
+template < class T, class... ARG >
 void lua_get(lua_State* ls, int index, std::function< T(ARG...) >& func)
 {
-	if (!lua_isfunction(ls, index))
-	{
-		throw bad_get(index);
-	}
-	lua_pushvalue(ls, index);
-	int n = luaL_ref(ls, LUA_GLOBALSINDEX);
-	func = [n, ls](ARG ...arg) {
-		lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
-		get_put_arg_func<ARG...>::f(ls)(arg...);
-		lua_call(ls, sizeof...(ARG), 1);
-		T a;
-		lua_get(ls, -1, a);
-		return a;
-	};
+    if (!lua_isfunction(ls, index))
+    {
+        throw bad_get(index);
+    }
+    lua_pushvalue(ls, index);
+    int n = luaL_ref(ls, LUA_GLOBALSINDEX);
+    func  = [n, ls](ARG... arg) {
+        lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
+        get_put_arg_func< ARG... >::f(ls)(arg...);
+        lua_call(ls, sizeof...(ARG), 1);
+        T a;
+        lua_get(ls, -1, a);
+        return a;
+    };
 }
 
 
 void lua_get(lua_State* ls, int index, std::function< void() >& func)
 {
-	if (!lua_isfunction(ls, index))
-	{
-		throw bad_get(index);
-	}
-	lua_pushvalue(ls, index);
-	int n = luaL_ref(ls, LUA_GLOBALSINDEX);
-	func = [n, ls]() {
-		lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
-		lua_call(ls, 0, 0);
-	};
+    if (!lua_isfunction(ls, index))
+    {
+        throw bad_get(index);
+    }
+    lua_pushvalue(ls, index);
+    int n = luaL_ref(ls, LUA_GLOBALSINDEX);
+    func  = [n, ls]() {
+        lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
+        lua_call(ls, 0, 0);
+    };
 }
 
-template <class T, class ...ARG>
+template < class T, class... ARG >
 void lua_get(lua_State* ls, int index, std::function< T() >& func)
 {
-	if (!lua_isfunction(ls, index))
-	{
-		throw bad_get(index);
-	}
-	lua_pushvalue(ls, index);
-	int n = luaL_ref(ls, LUA_GLOBALSINDEX);
-	func = [n, ls](ARG ...arg) {
-		lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
-		lua_call(ls, 0, 1);
-		T a;
-		lua_get(ls, -1, a);
-		return a;
-	};
+    if (!lua_isfunction(ls, index))
+    {
+        throw bad_get(index);
+    }
+    lua_pushvalue(ls, index);
+    int n = luaL_ref(ls, LUA_GLOBALSINDEX);
+    func  = [n, ls](ARG... arg) {
+        lua_rawgeti(ls, LUA_GLOBALSINDEX, n);
+        lua_call(ls, 0, 1);
+        T a;
+        lua_get(ls, -1, a);
+        return a;
+    };
 }
 
 
@@ -175,7 +178,7 @@ void lua_put(lua_State* ls, int a)
 
 void lua_put(lua_State* ls, uint8_t a)
 {
-	lua_pushinteger(ls, a);
+    lua_pushinteger(ls, a);
 }
 
 void lua_put(lua_State* ls, uint16_t a)
@@ -193,6 +196,69 @@ void lua_put(lua_State* ls, bool a)
     lua_pushboolean(ls, a);
 }
 
+
+int lua_func(lua_State* ls)
+{
+	auto func = (std::function< int(lua_State * ls) >*)lua_touserdata(
+		ls, lua_upvalueindex(1));
+	return (*func)(ls);
+}
+
+template < size_t N, class F, class... ARG, class... REARG >
+F w(lua_State* ls,  std::function<F(ARG...)> func, REARG... rearg)
+{
+	arg< N, ARG... > value;
+	lua_get(ls, N + 1, value);
+	return w< N + 1 >(ls, func, rearg..., value);
+}
+
+template < size_t N, class F, class... ARG >
+F w(lua_State* ls,  std::function<F(ARG...)> func, ARG... arg)
+{
+	return func(arg...);
+}
+
+template <class T, class ...ARG>
+void lua_put(lua_State* ls, std::function<T(ARG...)> func)
+{
+	auto qwe = new std::function< int(lua_State*) >([func](lua_State* ls) {
+		try
+		{
+			F f = w< 0 >(ls, func);
+			lua_put(ls, f);
+		}
+		catch (bad_get e)
+		{
+
+			printf("function %d type %s is wrong\n", e.n, lua_typename(ls, e.n));
+			return 0;
+		}
+		return 1;
+	});
+	lua_pushlightuserdata(ls, (void*)qwe);
+	lua_pushcclosure(ls, lua_func, 1);
+}
+
+template < class ...ARG>
+void lua_put(lua_State* ls, std::function<void(ARG...)> func)
+{
+	auto qwe = new std::function< int(lua_State*) >([func](lua_State* ls) {
+		try
+		{
+			w< 0 >(ls, func);
+		}
+		catch (bad_get e)
+		{
+
+			printf("function %d type %s is wrong\n", e.n, lua_typename(ls, e.n));
+			return 0;
+		}
+		return 0;
+	});
+	lua_pushlightuserdata(ls, (void*)qwe);
+	lua_pushcclosure(ls, lua_func, 1);
+}
+
 template < size_t N, class T, class F, class... ARG, class... REARG >
 F q(lua_State* ls, T* ptr, F (T::*func)(ARG...), REARG... rearg)
 {
@@ -207,33 +273,10 @@ F q(lua_State* ls, T* ptr, F (T::*func)(ARG...), ARG... arg)
     return (ptr->*func)(arg...);
 }
 
-template < size_t N, class T, class... ARG, class... REARG >
-void q(lua_State* ls, T* ptr, void (T::*func)(ARG...), REARG... rearg)
-{
-    arg< N, ARG... > value;
-    lua_get(ls, N + 1, value);
-    q< N + 1 >(ls, ptr, func, rearg..., value);
-}
-
-template < size_t N, class T, class... ARG >
-void q(lua_State* ls, T* ptr, void (T::*func)(ARG...), ARG... arg)
-{
-    (ptr->*func)(arg...);
-}
-
-
-int lua_func(lua_State* ls)
-{
-    auto func = (std::function< int(lua_State * ls) >*)lua_touserdata(
-        ls, lua_upvalueindex(1));
-    return (*func)(ls);
-}
-
-
 template < class T, class F, class... ARG >
 void f(lua_State* ls, T* ptr, F (T::*func)(ARG...), std::string name)
 {
-    auto qwe = new std::function< int(lua_State*) >([func, ptr](lua_State* ls) {
+    auto qwe = new std::function< int(lua_State*) >([func, ptr, name](lua_State* ls) {
         try
         {
             F f = q< 0 >(ls, ptr, func);
@@ -241,8 +284,8 @@ void f(lua_State* ls, T* ptr, F (T::*func)(ARG...), std::string name)
         }
         catch (bad_get e)
         {
-			
-            printf("%d type %s is wrong\n", e.n, lua_typename(ls, e.n));
+
+            printf("function %s:%d type %s is wrong\n", name.c_str(), e.n, lua_typename(ls, e.n));
             return 0;
         }
         return 1;
@@ -255,14 +298,14 @@ void f(lua_State* ls, T* ptr, F (T::*func)(ARG...), std::string name)
 template < class T, class... ARG >
 void f(lua_State* ls, T* ptr, void (T::*func)(ARG...), std::string name)
 {
-    auto qwe = new std::function< int(lua_State*) >([func, ptr](lua_State* ls) {
+    auto qwe = new std::function< int(lua_State*) >([name,func, ptr](lua_State* ls) {
         try
         {
             q< 0 >(ls, ptr, func);
         }
         catch (bad_get e)
         {
-			printf("%d type %s is wrong\n", e.n, lua_typename(ls, e.n));
+			printf("function %s:%d type %s is wrong\n", name.c_str(), e.n, lua_typename(ls, e.n));
             return 0;
         }
         return 0;
@@ -372,19 +415,7 @@ namespace room_space
     {
         lua_setglobal(ls, name.c_str());
     }
-    void call_file(lua_State* ls, std::string filename,
-                   std::function< int() > push_arg)
-    {
-        if (luaL_dofile(ls, filename.c_str()))
-        {
-            printf("run\"%s\"wrong:%s\n", filename.c_str(),
-                   lua_tostring(ls, -1));
-        }
-        else
-        {
-            lua_call(ls, push_arg(), LUA_MULTRET);
-        }
-    }
+
     void lua_put(lua_State* ls, signals* ptr)
     {
         f__(ls, ptr, "get_signal", &signals::get_signal);
@@ -400,14 +431,35 @@ namespace room_space
     void lua_put(lua_State* ls, channels* ptr)
     {
         f__(ls, ptr, "get_channel", &channels::get_channel, "sent",
-            &channels::sent,"remove_channel",&channels::remove_channel);
+            &channels::sent, "remove_channel", &channels::remove_channel);
     }
     void lua_put(lua_State* ls, player* ptr)
     {
-        f__(ls, ptr, "add_button", &player::add_button,"remove_button",&player::remove_button,"sent_public",&player::sent_public, "set_camp", &player::set_camp);
+        f__(ls, ptr, "add_button", &player::add_button, "remove_button",
+            &player::remove_button, "sent_public", &player::sent_public,
+            "set_camp", &player::set_camp,"index",&player::get_index,"is_dead",&player::dead);
     }
     void lua_put(lua_State* ls, room* ptr)
     {
-        f__(ls, ptr, "signals", &room::signals, "channels", &room::channels,"wait",&room::wait,  "set_dead", &room::is_dead,"sent_public",&room::sent_public,"close",&room::close,"get_player",&room::get_player,"size",&room::size);
+        f__(ls, ptr, "signals", &room::signals, "channels", &room::channels,
+            "wait", &room::wait, "set_dead", &room::is_dead, "sent_public",
+            &room::sent_public, "close", &room::close, "get_player",
+            &room::get_player, "size", &room::size,"for_each_player",&room::for_each_player,"load_lua",&room::load_file,"check",&room::check);
     }
+
+	std::function<void(player*)> room::load_file(std::string filename)
+	{
+		if (luaL_dofile(ls, filename.c_str()))
+		{
+			printf("run\"%s\"wrong:%s\n", filename.c_str(),
+				lua_tostring(ls, -1));
+			return [](player*) {};
+		}
+		else
+		{
+			std::function<void(player *pl)> func;
+			lua_get(ls, -1, func);
+			return func;
+		}
+	}
 }

@@ -11,10 +11,10 @@ uint16_t lsy::port_all::valid_port()
 lsy::port_all::port_all(assocket* soc)
     : as_contain< assocket >(soc)
 {
-    ptr->OnMessage.connect([this](buffer mes) {
-		printf("in:");
-		mes.print();
-		printf("\n");
+    ptr->OnMessage.connect([this](buffer mes) {/*
+        printf("in:");
+        mes.print();
+        printf("\n");*/
         buffer head((size_t)2);
         head.put(mes);
         head.reset();
@@ -28,6 +28,10 @@ lsy::port_all::port_all(assocket* soc)
         }
         else
         {
+			std::lock_guard<std::mutex> mut(unpost_mut);
+			if (unpost[port].size() < 100); {
+				unpost[port].push_back(data); 
+			}
             std::clog << "port:" << port << " is not open,skip the message\n";
         }
     });
@@ -85,10 +89,10 @@ void lsy::port_all::write(uint16_t port, buffer buf,
     buffer head(2 + buf.size());
     head.put(port);
     head.put(buf);
-    ptr->write(head, func);
-	printf("out:");
-	head.print();
-	printf("\n");
+    ptr->write(head, func);/*
+    printf("out:");
+    head.print();
+    printf("\n");*/
 }
 
 void lsy::port_all::start()
@@ -104,8 +108,22 @@ void lsy::port::start()
 void lsy::port_all::add_map(port* p)
 {
     ports[p->num] = p;
+	//std::lock_guard<std::mutex> mut(unpost_mut);
+	auto it = unpost.find(p->num);
+	if (it != unpost.end())
+	{
+		std::clog << "port:" << p->num << " message is post\n";
+		for (auto buf : it->second)
+		{
+			p->OnMessage(buf);
+		}
+		it->second.clear();
+	}
 }
 
 lsy::port_all::~port_all()
 {
+    OnDestroy();
+    OnDestroy.disconnect_all_slots();
+    printf("delete port_all:%p\n", this);
 }

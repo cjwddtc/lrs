@@ -1,13 +1,13 @@
 #include "room.h"
 #include <algorithm>
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <config.h>
 #include <db_auto.h>
 #include <iostream>
 #include <lua_bind.h>
-#include <string>
 #include <memory>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <string>
 using db_gen::main;
 extern thread_local boost::asio::io_service io_service;
 using namespace std::string_literals;
@@ -17,17 +17,17 @@ using namespace room_space;
 */
 
 
-void room::is_dead(uint8_t index,bool is_dead)
+void room::is_dead(uint8_t index, bool is_dead)
 {
-	players[index].is_dead = is_dead;
-	lsy::buffer buf(size_t(2));
-	uint8_t fl = is_dead;
-	buf.put(&index, 1);
-	buf.put(&fl, 1);
-	for (auto &p : players)
-	{
-		(*p)->ports[config::player_dead]->write(buf, []() {});
-	}
+    players[index].is_dead = is_dead;
+    lsy::buffer buf(size_t(2));
+    uint8_t     fl = is_dead;
+    buf.put(&index, 1);
+    buf.put(&fl, 1);
+    for (auto& p : players)
+    {
+        (*p)->ports[config::player_dead]->write(buf, []() {});
+    }
 }
 
 room::room(std::string room_name_, std::vector< lsy::player* > vec)
@@ -38,17 +38,17 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
     luaL_openlibs(ls);
     lua_put(ls, this);
     setglobal(ls, "room"s);
-	uint8_t index=0;
-	players.reserve(vec.size());
-	for (auto a : vec)
-	{
-		players.emplace_back(this,a->operator->(), index++, a->id);
-	}
+    uint8_t index = 0;
+    players.reserve(vec.size());
+    for (auto a : vec)
+    {
+        players.emplace_back(this, a->operator->(), index++, a->id);
+    }
     // init room rule lua script
     main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
         assert(have_data);
         std::string str = main.get_room_rule[0];
-        io.post([str, this]() { call_file(ls, str); });
+        OnInit.connect(std::bind(load_file(str), nullptr));
     },
                                  room_name);
     // init room role
@@ -82,50 +82,33 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
                                              role_name.end());
                         role_name.resize(s);
                         main.get_role_ver.bind_once(
-                            [ this, &io = io_service, ptr = &pl](bool is_fin) {
+                            [ this, &io = io_service, ptr = &pl ](bool is_fin) {
                                 if (is_fin)
                                 {
                                     std::string filename = main.get_role_ver[0];
-                                    io.post([filename, this, ptr]() {
-                                        call_file(ls, filename, [this, ptr]() {
-                                            lua_put(ls, ptr);
-                                            return 1;
-                                        });
-                                    });
+                                    OnInit.connect(std::bind(load_file(filename), ptr));
                                 }
                             },
                             role_name, role_ver);
                     }
                     main.get_role.bind_once(
-                        [ this, &io = io_service, ptr = &pl, name = *name_it](bool is_fin) {
+                        [ this, &io = io_service, ptr = &pl,
+                          name = *name_it ](bool is_fin) {
                             if (is_fin)
                             {
                                 std::string filename = main.get_role[0];
-                                io.post([filename, this, ptr, name]() {
-									auto rp = ptr->pl->resign_port(config::room_info);
-									rp->OnMessage.connect([size = (uint8_t)players.size(), ptr, name](lsy::buffer buf) {
-										lsy::buffer bu(name.size() + 3);
-										bu.put(name);
-										bu.put(&size, 1);
-										bu.put(&ptr->index, 1);
-										(*ptr)->ports[config::room_info]->write(bu, []() {});
+                                OnInit.connect(std::bind(load_file(filename), ptr));
+                                count--;
+                                if (count == 0)
+                                {
+                                    io.post([this]() { 
+										OnInit(); 
 									});
-									rp->start();
-                                    call_file(ls, filename, [this, ptr]() {
-                                        lua_put(ls, ptr);
-                                        return 1;
-                                    });
-                                    count--;
-                                    if (count == 0)
-                                    {
-                                        sig.get_signal(config::room_init)
-                                            ->trigger();
-                                    }
-                                });
+                                }
                             }
                         },
                         role_name);
-					++name_it;
+                    ++name_it;
                 }
             });
         }
@@ -142,68 +125,113 @@ channels* room::channels()
 {
     return &chs;
 }
-void room_space::room::wait(int time, std::function<void()> func)
+void room_space::room::wait(int time, std::function< void() > func)
 {
-	auto        t = std::make_shared< boost::asio::deadline_timer >(
-		io_service, boost::posix_time::seconds(time));
-	auto pt = t.get();
-	pt->async_wait([t, func](auto
-		a) {
-		func();
-	});
+    auto t = std::make_shared< boost::asio::deadline_timer >(
+        io_service, boost::posix_time::seconds(time));
+    auto pt = t.get();
+    pt->async_wait([t, func](auto a) { func(); });
 }
 
-player * room_space::room::get_player(uint8_t index)
+player* room_space::room::get_player(uint8_t index)
 {
-	return &players[index];
+    return &players[index%players.size()];
 }
 
 uint8_t room_space::room::size()
 {
-	return players.size();
+    return players.size();
 }
 
 void room_space::room::sent_public(std::string mes)
 {
-	for (auto &a : players)
-	{
-		a.sent_public(mes);
-	}
+	replay += mes;
+	log += mes;
+    for (auto& a : players)
+    {
+        a.sent_public(mes);
+    }
+}
+
+std::string& room_space::room::get_role(uint8_t index)
+{
+    return role_names[index];
 }
 
 void room_space::room::close(uint8_t camp)
 {
-	size_t size=0;
-	int index=0;
-	for (auto &p : players)
-	{
-		size += p.id.size()+1;
-		size += role_names[index++].size()+1;
-		size ++;
+    size_t size  = 0;
+    int    index = 0;
+    for (auto& p : players)
+    {
+        size += p.id.size() + 1;
+        size += role_names[index++].size() + 1;
+        size++;
+    }
+    lsy::buffer result(size);
+    index = 0;
+    for (auto& p : players)
+    {
+        result.put(p.id);
+        result.put(role_names[index++]);
+        uint8_t flag = p.camp == camp;
+        result.put(&flag, 1);
+    }
+    index = 0;
+    for (auto& p : players)
+    {
+        auto        po  = p.pl->resign_port(config::game_result);
+        std::string str = p.id;
+        str += "(";
+        str += role_names[index++];
+        str += ")";
+        str += (p.camp == camp) ? "win" : "lose";
+        po->OnMessage.connect(
+            [ po, result, str = std::move(str) ](lsy::buffer buf) {
+                po->write(str, []() {});
+                po->write(result, [po]() { po->close(); });
+            });
+        po->start();
+    }
+    delete this;
+}
+
+void room_space::room::for_player(int n, std::function<void(player*)> func, int m)
+{
+	if (m != size()) {
+		func(get_player(m));
+		wait(n, [this, func, m, n]() {for_player(n, func, m + 1); });
 	}
-	lsy::buffer result(size);
-	index = 0;
-	for (auto &p : players)
+}
+
+void room_space::room::for_each_player(int n, std::function<void(player*)> func)
+{
+	uint8_t size = players.size();
+	for (int i = n; i != size; i++)
 	{
-		result.put(p.id);
-		result.put(role_names[index++]);
-		uint8_t flag = p.camp == camp;
-		result.put(&flag, 1);
+		func(&players[i]);
 	}
-	index = 0;
-	for (auto &p : players)
+	for (int i = 0; i != n; i++)
 	{
-		auto po=p.pl->resign_port(config::game_result);
-		std::string str = p.id;
-		str += "(";
-		str += role_names[index++];
-		str += ")";
-		str += (p.camp == camp) ? "win" : "lose";
-		po->OnMessage.connect([po,result,str=std::move(str)](lsy::buffer buf) {
-			po->write(str,[]() {});
-			po->write(result, [po]() {po->close(); });
-		});
-		po->start();
+		func(&players[i]);
 	}
-	delete this;
+}
+
+
+uint8_t room_space::room::check()
+{
+	std::map<uint8_t, uint8_t> camp_map;
+	for (auto &a : players)
+	{
+		if (!a.is_dead) {
+			camp_map[a.camp]++;
+		}
+	}
+	if (camp_map.size()==1)
+	{
+		return camp_map.begin()->first;
+	}
+	else {
+		return 0xff;
+	}
 }

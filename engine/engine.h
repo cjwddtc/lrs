@@ -26,7 +26,8 @@ namespace lsy
         listener                  li;
         std::vector< run_thread > threads;
         server(std::string file);
-        void create_room(std::string rule_name_, std::vector< lsy::player* > vec);
+        void create_room(std::string                 rule_name_,
+                         std::vector< lsy::player* > vec);
         void run();
     };
     BOOST_SYMBOL_EXPORT void run();

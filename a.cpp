@@ -8,4 +8,3 @@ a::a(wxWindow* parent)
 a::~a()
 {
 }
-

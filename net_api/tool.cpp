@@ -170,7 +170,7 @@ namespace lsy
 void lsy::buffer::get(unsigned char* ptr_, size_t size) const
 {
     assert(now_ptr + size - ptr->ptr <= size_);
-	std::copy(now_ptr, now_ptr + size, ptr_);
+    std::copy(now_ptr, now_ptr + size, ptr_);
     now_ptr += size;
 }
 
@@ -181,10 +181,10 @@ void lsy::buffer::get(buffer& other) const
     other.now_ptr += size;
 }
 
-void lsy::buffer::get(std::string & str)
+void lsy::buffer::get(std::string& str)
 {
-	str.assign((char*)now_ptr);
-	now_ptr += str.size()+1;
+    str.assign((char*)now_ptr);
+    now_ptr += str.size() + 1;
 }
 
 void lsy::buffer::renew(size_t new_size)

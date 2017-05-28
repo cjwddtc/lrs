@@ -7,22 +7,22 @@
 #ifndef LRS_PLAYER_LIST_BASE_CLASSES_H
 #define LRS_PLAYER_LIST_BASE_CLASSES_H
 
-#include <wx/settings.h>
-#include <wx/xrc/xmlres.h>
-#include <wx/xrc/xh_bmp.h>
-#include <wx/panel.h>
 #include <wx/artprov.h>
-#include <wx/sizer.h>
-#include <wx/ribbon/bar.h>
+#include <wx/panel.h>
 #include <wx/ribbon/art.h>
+#include <wx/ribbon/bar.h>
+#include <wx/ribbon/buttonbar.h>
 #include <wx/ribbon/page.h>
 #include <wx/ribbon/panel.h>
-#include <wx/ribbon/buttonbar.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
 #include <wx/textctrl.h>
+#include <wx/xrc/xh_bmp.h>
+#include <wx/xrc/xmlres.h>
 #if wxVERSION_NUMBER >= 2900
 #include <wx/persist.h>
-#include <wx/persist/toplevel.h>
 #include <wx/persist/bookctrl.h>
+#include <wx/persist/toplevel.h>
 #include <wx/persist/treebook.h>
 #endif
 
@@ -35,34 +35,37 @@
 #define WXC_FROM_DIP(x) x
 #endif
 
-#include <vector>
+#include <functional>
 #include <map>
 #include <string>
-#include <functional>
+#include <vector>
 
-class personpanel :public wxRibbonPanel
+class personpanel : public wxRibbonPanel
 {
-	wxRibbonButtonBar* bar;
-public:
-	wxTextCtrl *tc;
-	int m_index;
-	personpanel(wxWindow *paren,int index);
-	void add(std::string name, std::function<void()> func = []() {});
-	std::map<std::string, int> buttonmap;
-	void remove(std::string);
+    wxRibbonButtonBar* bar;
+
+  public:
+    wxTextCtrl* tc;
+    int         m_index;
+	bool is_dead;
+    personpanel(wxWindow* paren, int index);
+    void add(std::string name, std::function< void() > func = []() {});
+    std::map< std::string, int > buttonmap;
+    void remove(std::string);
 };
 class pl_panel
 {
-	wxRibbonArtProvider *defaulp;
-	wxRibbonArtProvider *redpro;
-protected:
-    wxRibbonPage* left_page;
-	wxRibbonPage* right_page;
+    wxRibbonArtProvider* defaulp;
+    wxRibbonArtProvider* redpro;
 
-public:
-	std::vector<personpanel*> pannels;
-	void set_status(size_t index,bool is_dead);
-    pl_panel(wxRibbonPage* left_page, wxRibbonPage* right_page,size_t size);
+  protected:
+    wxRibbonPage* left_page;
+    wxRibbonPage* right_page;
+
+  public:
+    std::vector< personpanel* > pannels;
+    void set_status(size_t index, bool is_dead);
+    pl_panel(wxRibbonPage* left_page, wxRibbonPage* right_page, size_t size);
     virtual ~pl_panel();
 };
 
