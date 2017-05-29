@@ -72,7 +72,8 @@
 			"get_room_size":"select sum(count) from room_contain where room_name=?",
 			"get_score":"select score from score where name=? AND room_name=?",
 			"get_room_role":"select rolename,count from room_contain where room_name=?",
-			"get_room_rule":"select luafile from room INNER JOIN rule ON room.rulename=rule.rulename where room_name=?"
+			"get_room_rule":"select luafile from room INNER JOIN rule ON room.rulename=rule.rulename where room_name=?",
+			"update_score":"update score set score=? where name=? AND room_name=?"
 		}
 	}
 }

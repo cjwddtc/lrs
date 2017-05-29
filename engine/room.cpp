@@ -244,3 +244,16 @@ uint8_t room_space::room::check()
         return 0xff;
     }
 }
+
+bool room_space::room::add_group_button(room_space::player * pl, std::string name)
+{/*
+	auto it = group_data.find(name);
+	bool flag = it == group_data.end();
+	pl->add_button(name, [name,m=pl->index,&map_data=it->second,this](uint8_t n) {
+		map_data[n]++;
+		lua_pushinteger(ls, m);
+		sig.get_signal(name + "_click")->trigger();
+
+	});*/
+	return false;
+}

@@ -88,14 +88,21 @@ void personpanel::add(std::string name, std::function< void() > func)
 {
     if (!is_dead)
     {
-        bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
-        buttonmap[name] = count;
-        bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
-                  count++);
+		auto it = buttonmap.find(name);
+		if (it == buttonmap.end()) {
+			bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
+			buttonmap[name] = count;
+			bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
+				count++);
+		}
     }
 }
 
 void personpanel::remove(std::string name)
 {
-    bar->DeleteButton(buttonmap[name]);
+	auto it = buttonmap.find(name);
+	if (it != buttonmap.end()) {
+		bar->DeleteButton(it->second);
+		buttonmap.erase(it);
+	}
 }

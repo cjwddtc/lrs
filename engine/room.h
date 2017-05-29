@@ -40,5 +40,7 @@ namespace room_space
         void for_each_player(int n, std::function< void(player*) > func);
         std::function< void(player*) > load_file(std::string filename);
         uint8_t check();
+		std::map<std::string, std::map<uint8_t, uint8_t>> group_data;
+		bool add_group_button(room_space::player *pl, std::string name);
     };
 }
