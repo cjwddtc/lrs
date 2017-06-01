@@ -6,9 +6,19 @@
 #include <room_player.h>
 #include <signals.h>
 #include <utility>
+#include <set>
 namespace room_space
 {
-    class room
+	struct group_button
+	{
+		std::function<void(uint8_t ,uint8_t )> on_click;
+		std::map<uint8_t, uint8_t> click_map;
+		std::set<uint8_t> group_mem;
+		std::function<void(uint8_t)> on_max;
+		void generate(bool is_rand);
+		void for_each_player(std::function<void(uint8_t)> func);
+	};
+    struct room
     {
         friend class player;
         using signal_s  = room_space::signals;
@@ -40,7 +50,9 @@ namespace room_space
         void for_each_player(int n, std::function< void(player*) > func);
         std::function< void(player*) > load_file(std::string filename);
         uint8_t check();
-		std::map<std::string, std::map<uint8_t, uint8_t>> group_data;
+		std::map<std::string, group_button> group_data;
 		bool add_group_button(room_space::player *pl, std::string name);
+		group_button *get_group(std::string name);
+		void remove_group_button( std::string name);
     };
 }

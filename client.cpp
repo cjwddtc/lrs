@@ -28,6 +28,7 @@ class DerivedApp : public wxApp
     lsy::as_ptr< lsy::port_all > pa;
 	std::map<std::string, text_panel*> channel_map;
 	std::set<std::string> buttons;
+	wxStaticText *match_status;
 
   public:
     virtual bool OnInit();
@@ -79,7 +80,9 @@ void DerivedApp::init_dating()
 		//init mutiplayer
 		auto mutipanel
 			= wxXmlResource::Get()->LoadPanel(boptr, "mutipanel");
+		auto gamepanel= wxXmlResource::Get()->LoadPanel(boptr, "games_panel");
 		boptr->AddPage(mutipanel, "多人游戏");
+		boptr->AddPage(gamepanel, "游戏大厅");
 		auto pp = new std::tuple<uint16_t, uint16_t>();
 		auto mp=pa->resign_port(config::match_port);
 		mp->OnMessage.connect([pp,this](lsy::buffer buf) {
@@ -88,6 +91,7 @@ void DerivedApp::init_dating()
 				set_text(XRCCTRL(*mf,"m_staticText3", wxStaticText), pp);
 				});
 		});
+
 		mp->start();
 		auto ri = pa->resign_port(config::room_init_port);
 		ri->OnMessage.connect([this](lsy::buffer buf) {
@@ -136,6 +140,7 @@ void DerivedApp::init_dating()
 				po->write(lsy::buffer(size_t(0)), []() {});
 			}
 			else {
+				match_status = nullptr;
 				gui_run([this]() {init_play(); });
 			}
 		});
@@ -180,10 +185,53 @@ void DerivedApp::init_dating()
 		XRCCTRL(*mf,"m_button4", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &event) {
 			wxListBox *lb = XRCCTRL(*mf, "m_listBox1", wxListBox);
 			wxString str=lb->GetString(lb->GetSelection());
-			pa->ports[config::match_port]->write(str.ToStdString(), []() {});
+			if (match_status == nullptr) {
+				match_status = XRCCTRL(*mf, "m_staticText3", wxStaticText);
+				pa->ports[config::match_port]->write(str.ToStdString(), []() {});
+			}
+		});
+
+
+		po = pa->resign_port(config::games_port);
+		po->OnMessage.connect([this, po = lsy::as_ptr< lsy::port >(po)](
+			lsy::buffer buf) {
+			if (buf.size() == 1)
+			{
+				wxStaticCast(
+					wxWindow::FindWindowByName("m_staticText516", mf),
+					wxStaticText)
+					->SetLabel("加载完毕");
+				mf->Refresh();
+			}
+			else
+			{
+				wxStaticCast(wxWindow::FindWindowByName("m_listBox224", mf),
+					wxListBox)
+					->Append(wxString((char*)buf.data()));
+				mf->Refresh();
+			}
+		});
+		po->start();
+
+		func = [this](auto a) {
+			pa->ports[config::games_port]->write(lsy::buffer((size_t)0), []() {});
+			XRCCTRL(*mf, "m_listBox224", wxListBox)->Clear();
+			XRCCTRL(*mf, "m_staticText516", wxStaticText)->SetLabel("加载中");
+			mf->Refresh();
+		};
+		XRCCTRL(*mf, "m_button515", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, func);
+		func(wxCommandEvent());
+
+		XRCCTRL(*mf, "m_button422", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &event) {
+			wxListBox *lb = XRCCTRL(*mf, "m_listBox224", wxListBox);
+			wxString str = lb->GetString(lb->GetSelection());
+			if (match_status == nullptr) {
+				match_status = XRCCTRL(*mf, "m_staticText319", wxStaticText);
+				pa->ports[config::match_port]->write(str.ToStdString(), []() {});
+			}
 		});
 		pa->resign_port(config::login_comfirm_port)->write(lsy::buffer(size_t(0)),[]() {});
-		pa->ports[config::match_port]->write("sryx"s, []() {});
+		//pa->ports[config::match_port]->write("sryx"s, []() {});
 }
 void DerivedApp::init_play()
 {
@@ -222,6 +270,28 @@ void DerivedApp::init_play()
 			mf->Refresh();
 		});
 		p_ch->start();
+
+
+		auto rl_po = pa->resign_port(config::role_list);
+		rl_po->OnMessage.connect([this](auto buf) {
+			uint8_t is_show;
+			uint8_t index;
+			buf.get(is_show);
+			buf.get(index);
+			if (is_show) {
+				std::string name;
+				buf.get(name);
+				gui_run([name, index, this]() {
+					player_pannel->pannels[index]->set_role(name);
+				});
+			}
+			else {
+				gui_run([ index, this]() {
+					player_pannel->pannels[index]->clear_role();
+				});
+			}
+		});
+		rl_po->start();
 
 		auto ch_con = pa->resign_port(config::channel_open);
 		ch_con->OnMessage.connect([playerpanel, this, ch_con](auto buf) {
@@ -279,6 +349,7 @@ void DerivedApp::init_play()
 				auto po = pa->resign_port(port);
 				po->start();
 				po->OnMessage.connect([name, po, this](auto buf) {
+					buttons.erase(name);
 					gui_run([name, po, this]() {
 						for (auto a : player_pannel->pannels)
 						{
@@ -320,7 +391,6 @@ void DerivedApp::init_play()
 			buf.get(&a, 1);
 			buf.get(&b, 1);
 			gui_run([a, b, this]() {
-				printf("player_pannel:%p,%p\n", player_pannel,&player_pannel);
 				player_pannel->set_status(a, b);
 				mf->Refresh();
 			});

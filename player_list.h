@@ -7,6 +7,7 @@
 #ifndef LRS_PLAYER_LIST_BASE_CLASSES_H
 #define LRS_PLAYER_LIST_BASE_CLASSES_H
 
+#define wxDEBUG_LEVEL 0
 #include <wx/artprov.h>
 #include <wx/panel.h>
 #include <wx/ribbon/art.h>
@@ -52,6 +53,8 @@ class personpanel : public wxRibbonPanel
     void add(std::string name, std::function< void() > func = []() {});
     std::map< std::string, int > buttonmap;
     void remove(std::string);
+	void set_role(std::string role_name);
+	void clear_role();
 };
 class pl_panel
 {

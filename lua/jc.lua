@@ -1,42 +1,31 @@
 return function(player)
 	room.load_lua("cm.lua")(player)
-	if(room.checktable==nil) then
-		room.killtables={}
-		room.kill_flag=true
-	end
-	local channels=room.channels()
-	local signals=room.signals()
-	signals.get_signal("dark").connect(function()
+	local is_main=false
+	room.signals.get_signal("dark").connect(function()
 		if(not player.is_dead())then
-			player.add_button("kill",function (n)
-				channels.sent("ss",string.format("%d is trying to kill %d",player.index()+1,n+1))
-				room.killtables[player.index()]=n
-			end)
-		end
-	end)
-	signals.get_signal("light").connect(function()
-		player.remove_button("kill")
-		if(room.kill_flag)then
-			room.kill_flag=false
-			local kil_person=nil
-			for key, value in pairs(room.killtables) do
-				if(kil_person==nil) then
-					kil_person=value
-				else
-					if(kil_person~=value) then
-						kil_person=-1
-					end
+			if(room.add_group_button(player,"check"))then
+				is_main=true
+				but=room.group_button("check")
+				but.on_click=function(a,b)
+					room.channels.sent("jc",string.format("%d is trying to check %d",a+1,b+1))
 				end
 			end
-			if(kil_person==-1)then
-				channels.sent("ss","you cann't agree kill same player,kill fail")
-			else
-				room.kil_person=kil_person
-			end
 		end
 	end)
-	local public=channels.get_channel(player,"public")
-	public.enable(false)
-	local ss=channels.get_channel(player,"ss")
+	room.signals.get_signal("light").connect(function()
+		if(is_main)then
+			local but=room.group_button("check")
+			but.on_max=function(a)
+				if(a~=255)then
+					room.channels.sent("jc",string.format("%d is %s",a+1,room.get_role(a)))
+				end
+			end
+			but.generate(true)
+			is_main=false
+			room.remove_group_button("check")
+		end
+	end)
+	local ss=room.channels.get_channel(player,"jc")
 	ss.enable(true)
+	player.set_camp(0)
 end

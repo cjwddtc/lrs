@@ -220,7 +220,10 @@ namespace lsy
         ///@param buf another buffe
         void put(const buffer& buf);
 
+		void put(uint8_t a);
 
+
+		void get(uint8_t& t) const;
         /// get a uint16_t from the buffer to the host endian
         ///@param t the uint16_t to save
         void get(uint16_t& t) const;

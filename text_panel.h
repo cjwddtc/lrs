@@ -7,7 +7,7 @@
 
 #ifndef __TEXT_PANEL_H__
 #define __TEXT_PANEL_H__
-
+#define wxDEBUG_LEVEL 0
 #include <wx/artprov.h>
 #include <wx/button.h>
 #include <wx/colour.h>

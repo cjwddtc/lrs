@@ -13,6 +13,7 @@ namespace room_space
             log;
         channels();
         ~channels();
+		channels&operator=(const channels&);
         channel* get_channel(player* pl, std::string name);
         void remove_channel(channel* chan);
 

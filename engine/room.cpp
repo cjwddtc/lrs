@@ -42,12 +42,7 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
     luaL_openlibs(ls);
     lua_put(ls, this);
     setglobal(ls, "room"s);
-    uint8_t index = 0;
     players.reserve(vec.size());
-    for (auto a : vec)
-    {
-        players.emplace_back(this, a->operator->(), index++, a->id);
-    }
     // init room rule lua script
     main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
         assert(have_data);
@@ -73,6 +68,11 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
         else
         {
             io.post([ this, vec = std::move(vec) ]() {
+				uint8_t index = 0;
+				for (auto a : vec)
+				{
+					players.emplace_back(this, a->operator->(), index++, a->id);
+				}
                 assert(role_names.size() == vec.size());
                 std::random_shuffle(role_names.begin(), role_names.end());
                 auto name_it = role_names.begin();
@@ -246,14 +246,77 @@ uint8_t room_space::room::check()
 }
 
 bool room_space::room::add_group_button(room_space::player * pl, std::string name)
-{/*
+{
+
 	auto it = group_data.find(name);
 	bool flag = it == group_data.end();
+	if (flag) {
+		auto p=group_data.emplace(name, group_button());
+		it = p.first;
+	}
+	it->second.group_mem.insert(pl->index);
 	pl->add_button(name, [name,m=pl->index,&map_data=it->second,this](uint8_t n) {
-		map_data[n]++;
-		lua_pushinteger(ls, m);
-		sig.get_signal(name + "_click")->trigger();
+		map_data.click_map[n]++;
+		if (map_data.on_click) { map_data.on_click(m, n); };
+	});
+	return flag;
+}
 
-	});*/
-	return false;
+group_button * room_space::room::get_group(std::string name)
+{
+	return &group_data[name];
+}
+
+void room_space::room::remove_group_button(std::string name)
+{
+	auto it = group_data.find(name);
+	if (it != group_data.end()) {
+		for (auto a : it->second.group_mem)
+			players[a].remove_button(name);
+		group_data.erase(it);
+	}
+}
+
+void room_space::group_button::generate(bool is_rand)
+{
+	uint8_t max_num=0;
+	uint8_t max_pos=0;
+	std::vector<uint8_t> same_list;
+	for (auto a : click_map)
+	{
+		if (a.second > max_num)
+		{
+			same_list.clear();
+			max_pos = a.first;
+			max_num = a.second;
+		}
+		else if (a.second == max_num)
+		{
+			same_list.push_back(a.first);
+			same_list.push_back(max_pos);
+		}
+	}
+	if (on_max) {
+		if(max_num==0){
+			on_max(0xff);
+		}
+		else if (same_list.empty()) {
+			on_max(max_pos);
+		}
+		else if (is_rand)
+		{
+			on_max(same_list[rand() % same_list.size()]);
+		}
+		else {
+			on_max(0xff);
+		}
+	}
+}
+
+void room_space::group_button::for_each_player(std::function<void(uint8_t)> func)
+{
+	for (auto a : group_mem)
+	{
+		func(a);
+	}
 }

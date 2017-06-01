@@ -14,6 +14,7 @@ namespace config
     constexpr uint16_t games_port        = 3;
     constexpr uint16_t match_port        = 4;
     constexpr uint16_t match_status_port = 5;
+	constexpr uint16_t room_info_port = 18;
 
     constexpr uint16_t text_port = 6;
 
@@ -27,6 +28,7 @@ namespace config
     constexpr uint16_t public_channel = 9;
     constexpr uint16_t button_port    = 0;
     constexpr uint16_t game_result    = 16;
+	constexpr uint16_t role_list = 17;
 
     constexpr char* room_init = "room_init";
 }

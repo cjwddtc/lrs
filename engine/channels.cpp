@@ -38,8 +38,15 @@ channels::~channels()
     delete map;
 }
 
+channels & room_space::channels::operator=(const channels &)
+{
+	assert(false);
+	return *this;
+}
+
 channel* channels::get_channel(player* pl, std::string name)
 {
+	printf("channels:%p\n", this);
     auto& iti = map->get< 0 >();
     auto  it  = iti.find(std::make_pair(name, pl));
     if (it == iti.end())

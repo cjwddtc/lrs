@@ -34,7 +34,7 @@ lsy::player::player(port_all* soc, std::string id_)
     multiplay_port->start();
     lsy::as_ptr< lsy::port > games_port = ptr->resign_port(config::games_port);
     games_port->OnMessage.connect([this, games_port](buffer buf) {
-        main.get_base_room.bind([games_port](bool is_fin) {
+        main.get_extra_room.bind([games_port](bool is_fin) {
             if (is_fin)
             {
                 games_port->write(lsy::buffer(size_t(1)), []() {});

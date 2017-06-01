@@ -46,17 +46,19 @@ pl_panel::~pl_panel()
 extern text_panel* current_channel;
 extern wxFrame*    mf;
 personpanel::personpanel(wxWindow* parent, int index)
-    : wxRibbonPanel(parent, -1, wxString::Format("%dºÅ", index + 1),
-                    wxNullBitmap, wxDefaultPosition, wxSize(80, 80))
+    : wxRibbonPanel(parent, -1, wxString::Format("%dºÅ", index + 1))
     , is_dead(false)
     , m_index(index)
 {
     tc = nullptr;
     this->Bind(wxEVT_ENTER_WINDOW, [index](wxMouseEvent& ev) {
-        current_channel->show_type(index);
+		if(current_channel)
+			current_channel->show_type(index);
     });
     this->Bind(wxEVT_LEAVE_WINDOW,
-               [index](wxMouseEvent& ev) { current_channel->show_type(0xff); });
+               [index](wxMouseEvent& ev) {
+		if (current_channel)
+			current_channel->show_type(0xff); });
     this->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& ev) {
         auto po = ev.GetPosition();
         ClientToScreen(&po.x, &po.y);
@@ -78,7 +80,6 @@ personpanel::personpanel(wxWindow* parent, int index)
         tc->Bind(wxEVT_KILL_FOCUS, func);
         tc->Bind(wxEVT_TEXT_ENTER, func);
         tc->Refresh();
-        printf("asd\n");
     });
     bar = new wxRibbonButtonBar(this, -1, wxDefaultPosition);
 }
@@ -90,6 +91,7 @@ void personpanel::add(std::string name, std::function< void() > func)
     {
 		auto it = buttonmap.find(name);
 		if (it == buttonmap.end()) {
+			wxNullBitmap.Create(0, 0);
 			bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
 			buttonmap[name] = count;
 			bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
@@ -105,4 +107,15 @@ void personpanel::remove(std::string name)
 		bar->DeleteButton(it->second);
 		buttonmap.erase(it);
 	}
+}
+
+void personpanel::set_role(std::string role_name)
+{
+	SetLabel(wxString::Format("%dºÅ %s", m_index + 1,
+		role_name.c_str()));
+}
+
+void personpanel::clear_role()
+{
+	SetLabel(wxString::Format("%dºÅ", m_index + 1));
 }
