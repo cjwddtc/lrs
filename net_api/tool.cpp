@@ -129,17 +129,17 @@ namespace lsy
         other.now_ptr += size;
     }
 
-	void buffer::put(uint8_t a)
-	{
-		*(uint8_t*)now_ptr =  a;
-		now_ptr += 1;
-	}
+    void buffer::put(uint8_t a)
+    {
+        *(uint8_t*)now_ptr = a;
+        now_ptr += 1;
+    }
 
-	void buffer::get(uint8_t & t) const
-	{
-		t = *(uint8_t*)now_ptr;
-		now_ptr += 1;
-	}
+    void buffer::get(uint8_t& t) const
+    {
+        t = *(uint8_t*)now_ptr;
+        now_ptr += 1;
+    }
 
     void buffer::put(uint16_t a)
     {

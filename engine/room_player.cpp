@@ -10,7 +10,7 @@ extern thread_local boost::asio::io_service io_service;
 const uint16_t                              room_ports[]
     = {config::channel_open,   config::channel_close, config::channel_enable,
        config::role_info,      config::player_dead,   config::room_info,
-       config::public_channel, config::button_port,config::role_list};
+       config::public_channel, config::button_port,   config::role_list};
 namespace room_space
 {
     std::map< std::string, player* > playing_map;
@@ -133,7 +133,7 @@ room_space::player::player(room* ro_, lsy::port_all* pl_, uint8_t index_,
     , is_dead(false)
 {
     add_playing(id, this);
-	show_role(index,true);
+    show_role(index, true);
     bind(pl);
 }
 
@@ -142,18 +142,23 @@ void room_space::player::add_button(std::string                    name,
 {
     if (buttons.find(name) == buttons.end())
     {
-		printf("button create:%s\n",name.c_str() );
+        printf("button create:%s\n", name.c_str());
         pl->mut.lock();
         uint16_t   por  = pl->valid_port();
         lsy::port* port = pl->resign_port(por);
         port->start();
         pl->mut.unlock();
         buttons.emplace(std::make_pair(name, por));
-        port->OnMessage.connect([ func, &io = io_service ](lsy::buffer buf) {
-            uint8_t index;
-            buf.get(&index, 1);
-            io.post([index, func]() { func(index); });
-        });
+        port->OnMessage.connect(
+            [ this, name, func, &io = io_service ](lsy::buffer buf) {
+                uint8_t index;
+                buf.get(&index, 1);
+                io.post([index, func, this, name]() {
+                    func(index);
+                    ro->replay << (uint16_t)this->index << " " << name << " "
+                               << (uint16_t)index << "\n";
+                });
+            });
         lsy::buffer buf(name.size() + 3);
         buf.put(por);
         buf.put(name);
@@ -257,27 +262,31 @@ void room_space::player::set_camp(uint8_t camp)
 
 void room_space::player::show_role(uint8_t index, bool is_show)
 {
-	auto it = roles.find(index);
-	if (is_show) {
-		if (it == roles.end())
-		{
-			roles.insert(index);
-			std::string &name = ro->role_names[index];
-			lsy::buffer buf(name.size() + 3);
-			buf.put((uint8_t)is_show);
-			buf.put((uint8_t)index);
-			buf.put(name);
-			pl->ports[config::role_list]->write(buf, []() {});
-		}
-	}else{
-		if (it != roles.end()) {
-			lsy::buffer buf(size_t(2));
-			buf.put((uint8_t)is_show);
-			buf.put((uint8_t)index);
-			pl->ports[config::role_list]->write(buf, []() {});
-			roles.erase(it);
-		}
-	}
+    auto it = roles.find(index);
+    if (is_show)
+    {
+        if (it == roles.end())
+        {
+            roles.insert(index);
+            std::string& name = ro->role_names[index];
+            lsy::buffer  buf(name.size() + 3);
+            buf.put((uint8_t)is_show);
+            buf.put((uint8_t)index);
+            buf.put(name);
+            pl->ports[config::role_list]->write(buf, []() {});
+        }
+    }
+    else
+    {
+        if (it != roles.end())
+        {
+            lsy::buffer buf(size_t(2));
+            buf.put((uint8_t)is_show);
+            buf.put((uint8_t)index);
+            pl->ports[config::role_list]->write(buf, []() {});
+            roles.erase(it);
+        }
+    }
 }
 
 bool room_space::player::dead()
@@ -339,14 +348,14 @@ void room_space::player::send_status()
         pl->ports[config::button_port]->write(buf, []() {});
     }
 
-	for (auto& a : roles)
-	{
-		std::string &name = ro->role_names[a];
-		lsy::buffer buf(name.size() + 3);
-		buf.put((uint8_t)true);
-		buf.put((uint8_t)a);
-		buf.put(name);
-		pl->ports[config::role_list]->write(buf, []() {});
-	}
+    for (auto& a : roles)
+    {
+        std::string& name = ro->role_names[a];
+        lsy::buffer  buf(name.size() + 3);
+        buf.put((uint8_t) true);
+        buf.put((uint8_t)a);
+        buf.put(name);
+        pl->ports[config::role_list]->write(buf, []() {});
+    }
     sent_public(ro->log);
 }

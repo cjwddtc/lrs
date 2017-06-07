@@ -68,11 +68,11 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
         else
         {
             io.post([ this, vec = std::move(vec) ]() {
-				uint8_t index = 0;
-				for (auto a : vec)
-				{
-					players.emplace_back(this, a->operator->(), index++, a->id);
-				}
+                uint8_t index = 0;
+                for (auto a : vec)
+                {
+                    players.emplace_back(this, a->operator->(), index++, a->id);
+                }
                 assert(role_names.size() == vec.size());
                 std::random_shuffle(role_names.begin(), role_names.end());
                 auto name_it = role_names.begin();
@@ -149,7 +149,7 @@ uint8_t room_space::room::size()
 
 void room_space::room::sent_public(std::string mes)
 {
-    replay += mes;
+    replay << mes;
     log += mes;
     for (auto& a : players)
     {
@@ -181,9 +181,18 @@ void room_space::room::close(uint8_t camp)
         uint8_t flag = p.camp == camp;
         result.put(&flag, 1);
     }
-    index = 0;
+    index            = 0;
+    std::string repl = replay.str();
     for (auto& p : players)
     {
+        if (p.camp == camp)
+        {
+            main.add_score.bind([](bool is) {}, p.id, room_name);
+        }
+        else
+        {
+            main.dec_score.bind([](bool is) {}, p.id, room_name);
+        }
         auto        po  = p.pl->resign_port(config::game_result);
         std::string str = p.id;
         str += "(";
@@ -191,9 +200,10 @@ void room_space::room::close(uint8_t camp)
         str += ")";
         str += (p.camp == camp) ? "win" : "lose";
         po->OnMessage.connect(
-            [ po, result, str = std::move(str) ](lsy::buffer buf) {
+            [ po, result, str = std::move(str), repl ](lsy::buffer buf) {
                 po->write(str, []() {});
-                po->write(result, [po]() { po->close(); });
+                po->write(result, []() {});
+                po->write(repl, [po]() { po->close(); });
             });
         po->start();
     }
@@ -245,78 +255,90 @@ uint8_t room_space::room::check()
     }
 }
 
-bool room_space::room::add_group_button(room_space::player * pl, std::string name)
+bool room_space::room::add_group_button(room_space::player* pl,
+                                        std::string         name)
 {
 
-	auto it = group_data.find(name);
-	bool flag = it == group_data.end();
-	if (flag) {
-		auto p=group_data.emplace(name, group_button());
-		it = p.first;
-	}
-	it->second.group_mem.insert(pl->index);
-	pl->add_button(name, [name,m=pl->index,&map_data=it->second,this](uint8_t n) {
-		map_data.click_map[n]++;
-		if (map_data.on_click) { map_data.on_click(m, n); };
-	});
-	return flag;
+    auto it   = group_data.find(name);
+    bool flag = it == group_data.end();
+    if (flag)
+    {
+        auto p = group_data.emplace(name, group_button());
+        it     = p.first;
+    }
+    it->second.group_mem.insert(pl->index);
+    pl->add_button(
+        name, [ name, m = pl->index, &map_data = it->second, this ](uint8_t n) {
+            map_data.click_map[n]++;
+            if (map_data.on_click)
+            {
+                map_data.on_click(m, n);
+            };
+        });
+    return flag;
 }
 
-group_button * room_space::room::get_group(std::string name)
+group_button* room_space::room::get_group(std::string name)
 {
-	return &group_data[name];
+    return &group_data[name];
 }
 
 void room_space::room::remove_group_button(std::string name)
 {
-	auto it = group_data.find(name);
-	if (it != group_data.end()) {
-		for (auto a : it->second.group_mem)
-			players[a].remove_button(name);
-		group_data.erase(it);
-	}
+    auto it = group_data.find(name);
+    if (it != group_data.end())
+    {
+        for (auto a : it->second.group_mem)
+            players[a].remove_button(name);
+        group_data.erase(it);
+    }
 }
 
 void room_space::group_button::generate(bool is_rand)
 {
-	uint8_t max_num=0;
-	uint8_t max_pos=0;
-	std::vector<uint8_t> same_list;
-	for (auto a : click_map)
-	{
-		if (a.second > max_num)
-		{
-			same_list.clear();
-			max_pos = a.first;
-			max_num = a.second;
-		}
-		else if (a.second == max_num)
-		{
-			same_list.push_back(a.first);
-			same_list.push_back(max_pos);
-		}
-	}
-	if (on_max) {
-		if(max_num==0){
-			on_max(0xff);
-		}
-		else if (same_list.empty()) {
-			on_max(max_pos);
-		}
-		else if (is_rand)
-		{
-			on_max(same_list[rand() % same_list.size()]);
-		}
-		else {
-			on_max(0xff);
-		}
-	}
+    uint8_t                max_num = 0;
+    uint8_t                max_pos = 0;
+    std::vector< uint8_t > same_list;
+    for (auto a : click_map)
+    {
+        if (a.second > max_num)
+        {
+            same_list.clear();
+            max_pos = a.first;
+            max_num = a.second;
+        }
+        else if (a.second == max_num)
+        {
+            same_list.push_back(a.first);
+            same_list.push_back(max_pos);
+        }
+    }
+    if (on_max)
+    {
+        if (max_num == 0)
+        {
+            on_max(0xff);
+        }
+        else if (same_list.empty())
+        {
+            on_max(max_pos);
+        }
+        else if (is_rand)
+        {
+            on_max(same_list[rand() % same_list.size()]);
+        }
+        else
+        {
+            on_max(0xff);
+        }
+    }
 }
 
-void room_space::group_button::for_each_player(std::function<void(uint8_t)> func)
+void room_space::group_button::for_each_player(
+    std::function< void(uint8_t) > func)
 {
-	for (auto a : group_mem)
-	{
-		func(a);
-	}
+    for (auto a : group_mem)
+    {
+        func(a);
+    }
 }

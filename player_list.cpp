@@ -52,13 +52,13 @@ personpanel::personpanel(wxWindow* parent, int index)
 {
     tc = nullptr;
     this->Bind(wxEVT_ENTER_WINDOW, [index](wxMouseEvent& ev) {
-		if(current_channel)
-			current_channel->show_type(index);
+        if (current_channel)
+            current_channel->show_type(index);
     });
-    this->Bind(wxEVT_LEAVE_WINDOW,
-               [index](wxMouseEvent& ev) {
-		if (current_channel)
-			current_channel->show_type(0xff); });
+    this->Bind(wxEVT_LEAVE_WINDOW, [index](wxMouseEvent& ev) {
+        if (current_channel)
+            current_channel->show_type(0xff);
+    });
     this->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& ev) {
         auto po = ev.GetPosition();
         ClientToScreen(&po.x, &po.y);
@@ -89,33 +89,35 @@ void personpanel::add(std::string name, std::function< void() > func)
 {
     if (!is_dead)
     {
-		auto it = buttonmap.find(name);
-		if (it == buttonmap.end()) {
-			wxNullBitmap.Create(0, 0);
-			bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
-			buttonmap[name] = count;
-			bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
-				count++);
-		}
+        auto it = buttonmap.find(name);
+        if (it == buttonmap.end())
+        {
+            wxNullBitmap.Create(0, 0);
+            bar->AddButton(count, name, wxNullBitmap, name,
+                           wxRIBBON_BUTTON_NORMAL);
+            buttonmap[name] = count;
+            bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
+                      count++);
+        }
     }
 }
 
 void personpanel::remove(std::string name)
 {
-	auto it = buttonmap.find(name);
-	if (it != buttonmap.end()) {
-		bar->DeleteButton(it->second);
-		buttonmap.erase(it);
-	}
+    auto it = buttonmap.find(name);
+    if (it != buttonmap.end())
+    {
+        bar->DeleteButton(it->second);
+        buttonmap.erase(it);
+    }
 }
 
 void personpanel::set_role(std::string role_name)
 {
-	SetLabel(wxString::Format("%dºÅ %s", m_index + 1,
-		role_name.c_str()));
+    SetLabel(wxString::Format("%dºÅ %s", m_index + 1, role_name.c_str()));
 }
 
 void personpanel::clear_role()
 {
-	SetLabel(wxString::Format("%dºÅ", m_index + 1));
+    SetLabel(wxString::Format("%dºÅ", m_index + 1));
 }

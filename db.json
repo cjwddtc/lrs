@@ -73,7 +73,9 @@
 			"get_score":"select score from score where name=? AND room_name=?",
 			"get_room_role":"select rolename,count from room_contain where room_name=?",
 			"get_room_rule":"select luafile from room INNER JOIN rule ON room.rulename=rule.rulename where room_name=?",
-			"update_score":"update score set score=? where name=? AND room_name=?"
+			"add_score":"update score set score=score+100 where name=? AND room_name=?",
+			"dec_score":"update score set score=score-100 where name=? AND room_name=? AND score>=100",
+			"get_room_info":"select explain from room where room_name=?"
 		}
 	}
 }

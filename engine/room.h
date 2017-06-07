@@ -4,20 +4,20 @@
 #include <channels.h>
 #include <map>
 #include <room_player.h>
+#include <set>
 #include <signals.h>
 #include <utility>
-#include <set>
 namespace room_space
 {
-	struct group_button
-	{
-		std::function<void(uint8_t ,uint8_t )> on_click;
-		std::map<uint8_t, uint8_t> click_map;
-		std::set<uint8_t> group_mem;
-		std::function<void(uint8_t)> on_max;
-		void generate(bool is_rand);
-		void for_each_player(std::function<void(uint8_t)> func);
-	};
+    struct group_button
+    {
+        std::function< void(uint8_t, uint8_t) > on_click;
+        std::map< uint8_t, uint8_t >            click_map;
+        std::set< uint8_t >            group_mem;
+        std::function< void(uint8_t) > on_max;
+        void generate(bool is_rand);
+        void for_each_player(std::function< void(uint8_t) > func);
+    };
     struct room
     {
         friend class player;
@@ -31,7 +31,7 @@ namespace room_space
         std::vector< std::string > role_names;
         std::string                room_name;
         std::string                log;
-        std::string                replay;
+        std::stringstream          replay;
 
       public:
         ~room();
@@ -50,9 +50,9 @@ namespace room_space
         void for_each_player(int n, std::function< void(player*) > func);
         std::function< void(player*) > load_file(std::string filename);
         uint8_t check();
-		std::map<std::string, group_button> group_data;
-		bool add_group_button(room_space::player *pl, std::string name);
-		group_button *get_group(std::string name);
-		void remove_group_button( std::string name);
+        std::map< std::string, group_button > group_data;
+        bool add_group_button(room_space::player* pl, std::string name);
+        group_button* get_group(std::string name);
+        void remove_group_button(std::string name);
     };
 }

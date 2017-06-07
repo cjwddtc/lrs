@@ -29,7 +29,9 @@ statement get_room_size;
 statement get_score;
 statement get_room_role;
 statement get_room_rule;
-statement update_score;
+statement add_score;
+statement dec_score;
+statement get_room_info;
 };
 extern main_class main;
 }
@@ -118,7 +120,9 @@ main_class::main_class()
 ,get_score(this,"select score from score where name=? AND room_name=?") 
 ,get_room_role(this,"select rolename,count from room_contain where room_name=?") 
 ,get_room_rule(this,"select luafile from room INNER JOIN rule ON room.rulename=rule.rulename where room_name=?") 
-,update_score(this,"update score set score=? where name=? AND room_name=?") 
+,add_score(this,"update score set score=score+100 where name=? AND room_name=?") 
+,dec_score(this,"update score set score=score-100 where name=? AND room_name=? AND score>=100") 
+,get_room_info(this,"select explain from room where room_name=?") 
 {}
 main_class main;
 }

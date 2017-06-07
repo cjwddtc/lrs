@@ -29,7 +29,9 @@ statement get_room_size;
 statement get_score;
 statement get_room_role;
 statement get_room_rule;
-statement update_score;
+statement add_score;
+statement dec_score;
+statement get_room_info;
 };
 extern main_class main;
 }

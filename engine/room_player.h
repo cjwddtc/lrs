@@ -1,7 +1,7 @@
 #pragma once
 #include <port.h>
-#include <stdint.h>
 #include <set>
+#include <stdint.h>
 namespace room_space
 {
     class room;
@@ -18,14 +18,14 @@ namespace room_space
         uint8_t get_index();
         player(room* ro, lsy::port_all* pl, uint8_t index, std::string id);
         std::map< std::string, uint16_t > buttons;
-		std::set<uint8_t> roles;
+        std::set< uint8_t > roles;
         void add_button(std::string name, std::function< void(uint8_t) > func);
         void remove_button(std::string name);
         void sent_public(std::string mes);
         void bind(lsy::port_all* pl);
         bool is_null();
         void set_camp(uint8_t camp);
-		void show_role(uint8_t index,bool is_show);
+        void show_role(uint8_t index, bool is_show);
         bool dead();
         ~player();
         player(const player&);

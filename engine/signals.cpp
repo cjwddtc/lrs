@@ -1,9 +1,9 @@
 #include "signals.h"
 using namespace room_space;
-signals & room_space::signals::operator=(const signals &)
+signals& room_space::signals::operator=(const signals&)
 {
-	assert(false);
-	return *this;
+    assert(false);
+    return *this;
 }
 signal* signals::get_signal(std::string name)
 {

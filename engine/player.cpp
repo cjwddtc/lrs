@@ -47,13 +47,32 @@ lsy::player::player(port_all* soc, std::string id_)
         });
     });
     games_port->start();
+
+	lsy::as_ptr< lsy::port > muti_info_port = ptr->resign_port(config::muti_info_port);
+	muti_info_port->OnMessage.connect([this](lsy::buffer buf) {
+		std::string name((char*)buf.get(0));
+		main.get_room_info.bind_once([name,this](bool have_data) {
+			if (have_data) {
+				std::string info = main.get_room_info[0];
+				main.get_score.bind_once([info=std::move(info),this](bool have_data) {
+					if (have_data) {
+						int score = main.get_score[0];
+						ptr->ports[config::muti_info_port]->write(info, []() {});
+						ptr->ports[config::muti_info_port]->write(uint16_t(score), []() {});
+					}
+				}, id, name);
+			}
+		},name);
+	});
+	muti_info_port->start();
+
     lsy::as_ptr< lsy::port > match_port = ptr->resign_port(config::match_port);
     match_port->OnMessage.connect(
         [ this, match_port, &io = io_service ](buffer buf) {
             std::string str((char*)buf.data());
             if (room_space::get_playing(id) == 0)
             {
-                io.post([str, this]() { add_to_queue(str, this); });
+                io.post([str, this]() { add_to_queue(str, this, true); });
             }
             else
             {
@@ -62,5 +81,37 @@ lsy::player::player(port_all* soc, std::string id_)
 
         });
     match_port->start();
+
+
+	lsy::as_ptr< lsy::port > game_info_port = ptr->resign_port(config::game_info_port);
+	game_info_port->OnMessage.connect([this](lsy::buffer buf) {
+		std::string name((char*)buf.get(0));
+		main.get_room_info.bind_once([name, this](bool have_data) {
+			if (have_data) {
+				std::string info = main.get_room_info[0];
+				ptr->ports[config::game_info_port]->write(info, []() {});
+			}
+		}, name);
+	});
+	game_info_port->start();
+
+    lsy::as_ptr< lsy::port > match_noscore_port
+        = ptr->resign_port(config::match_noscore_port);
+    match_noscore_port->OnMessage.connect(
+        [ this, match_port, &io = io_service ](buffer buf) {
+            std::string str((char*)buf.data());
+            if (room_space::get_playing(id) == 0)
+            {
+                io.post([str, this]() { add_to_queue(str, this, false); });
+            }
+            else
+            {
+                match_port->write(uint16_t(0), []() {});
+            }
+
+        });
+    match_noscore_port->start();
+
+    ptr->resign_port(config::match_noscore_status_port)->start();
     ptr->resign_port(config::match_status_port)->start();
 }

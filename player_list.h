@@ -53,8 +53,8 @@ class personpanel : public wxRibbonPanel
     void add(std::string name, std::function< void() > func = []() {});
     std::map< std::string, int > buttonmap;
     void remove(std::string);
-	void set_role(std::string role_name);
-	void clear_role();
+    void set_role(std::string role_name);
+    void clear_role();
 };
 class pl_panel
 {

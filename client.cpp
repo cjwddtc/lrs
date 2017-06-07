@@ -28,7 +28,6 @@ class DerivedApp : public wxApp
     lsy::as_ptr< lsy::port_all > pa;
 	std::map<std::string, text_panel*> channel_map;
 	std::set<std::string> buttons;
-	wxStaticText *match_status;
 
   public:
     virtual bool OnInit();
@@ -52,8 +51,9 @@ int DerivedApp::OnExit()
     li.join();
     return 0;
 }
+typedef std::tuple<uint16_t, uint16_t, bool> match_data;
 
-void set_text(wxStaticText *st, std::tuple<uint16_t, uint16_t>*p)
+void set_text(wxStaticText *st, match_data *p)
 {
 	if (std::get<1>(*p))
 	{
@@ -71,7 +71,6 @@ void set_text(wxStaticText *st, std::tuple<uint16_t, uint16_t>*p)
 
 void DerivedApp::init_dating()
 {
-
 		mf = wxXmlResource::Get()->LoadFrame(NULL, "MyFrame2");
 		mf->Show();
 		auto boptr = wxStaticCast(
@@ -81,20 +80,13 @@ void DerivedApp::init_dating()
 		auto mutipanel
 			= wxXmlResource::Get()->LoadPanel(boptr, "mutipanel");
 		auto gamepanel= wxXmlResource::Get()->LoadPanel(boptr, "games_panel");
+		auto usercenter = wxXmlResource::Get()->LoadPanel(boptr, "usercenter");
 		boptr->AddPage(mutipanel, "多人游戏");
 		boptr->AddPage(gamepanel, "游戏大厅");
-		auto pp = new std::tuple<uint16_t, uint16_t>();
-		auto mp=pa->resign_port(config::match_port);
-		mp->OnMessage.connect([pp,this](lsy::buffer buf) {
-			buf.get(std::get<1>(*pp));
-			gui_run([pp,this]() {
-				set_text(XRCCTRL(*mf,"m_staticText3", wxStaticText), pp);
-				});
-		});
-
-		mp->start();
+		boptr->AddPage(usercenter, "用户中心");
+		auto pp = new match_data(0,0,false);
 		auto ri = pa->resign_port(config::room_init_port);
-		ri->OnMessage.connect([this](lsy::buffer buf) {
+		ri->OnMessage.connect([this,pp](lsy::buffer buf) {
 			uint16_t flag;
 			buf.get(flag);
 			if (flag) {
@@ -107,17 +99,18 @@ void DerivedApp::init_dating()
 					mf->Refresh();
 				});
 				auto po=pa->resign_port(config::game_result);
-				po->OnMessage.connect([this,flag=std::make_shared<bool>(true)](lsy::buffer buf) {
+				po->OnMessage.connect([this,flag=std::make_shared<uint8_t>(0)](lsy::buffer buf) {
 					gui_run([buf_c=buf,flag, this]() {
 						lsy::buffer buf(buf_c);
-						if (*flag) {
-							*flag = false;
+						if (*flag==0) {
+							*flag =1;
 							wxStaticText *st = XRCCTRL(*res_dia, "m_staticText134", wxStaticText);
 							wxString str((char*)buf.get(0));
 							st->SetLabelText(str);
 							res_dia->Update();
 						}
-						else {
+						else if(*flag == 1){
+							*flag = 2;
 							std::string name;
 							std::string role;
 							uint8_t is_win;
@@ -134,20 +127,58 @@ void DerivedApp::init_dating()
 								index++;
 							}
 						}
+						else {
+							XRCCTRL(*res_dia, "m_textCtrl160", wxTextCtrl)->SetValue(buf.get(0));
+						}
 					});
 				});
 				po->start();
 				po->write(lsy::buffer(size_t(0)), []() {});
 			}
 			else {
-				match_status = nullptr;
+				std::get<2>(*pp) = false;
 				gui_run([this]() {init_play(); });
 			}
 		});
 		ri->write(lsy::buffer(size_t(0)), []() {});
 		ri->start();
+
+		auto mip = pa->resign_port(config::muti_info_port);
+		mip->OnMessage.connect([flag=std::make_shared<bool>(true)](lsy::buffer buf) {
+			gui_run([flag,buf]() {
+				printf("listbox respone\n");
+				if (*flag) {
+					printf("%s\n", buf.get(0));
+					XRCCTRL(*mf, "m_staticText4", wxStaticText)->SetLabel(buf.get(0));
+					*flag = false;
+				}
+				else {
+					uint16_t m;
+					buf.get(m);
+					printf("战斗力：%d\n", m);
+					XRCCTRL(*mf, "m_staticText226", wxStaticText)->SetLabel(wxString::Format("战斗力：%d", m));
+					*flag = true;
+				}
+				mf->Refresh();
+			});
+				
+		});
+		mip->start();
+		wxListBox * mlb1 = XRCCTRL(*mf, "m_listBox1", wxListBox);
+		mlb1->Bind(wxEVT_LISTBOX, [mlb1,this](auto it) {
+			std::string str=mlb1->GetString(mlb1->GetSelection()).ToStdString();
+			pa->ports[config::muti_info_port]->write(str, []() {});
+		});
+		auto mp = pa->resign_port(config::match_port);
+		mp->OnMessage.connect([pp, this](lsy::buffer buf) {
+				buf.get(std::get<1>(*pp));
+				gui_run([pp, this]() {
+					set_text(XRCCTRL(*mf, "m_staticText3", wxStaticText), pp);
+				});
+		});
+		mp->start();
 		auto msp = pa->resign_port(config::match_status_port);
-		msp->OnMessage.connect([pp,this](lsy::buffer buf) {
+		msp->OnMessage.connect([pp, this](lsy::buffer buf) {
 			buf.get(std::get<0>(*pp));
 			gui_run([pp, this]() {
 				set_text(XRCCTRL(*mf, "m_staticText3", wxStaticText), pp);
@@ -175,23 +206,53 @@ void DerivedApp::init_dating()
         });
 		po->start();
 		std::function<void(wxCommandEvent &)> func= [this](auto a) {
-			pa->ports[config::multiplay_port]->write(lsy::buffer((size_t)0), []() {});
-			XRCCTRL(*mf, "m_listBox1", wxListBox)->Clear();
-			XRCCTRL(*mf, "m_staticText5", wxStaticText)->SetLabel("加载中");
-			mf->Refresh();
+				pa->ports[config::multiplay_port]->write(lsy::buffer((size_t)0), []() {});
+				XRCCTRL(*mf, "m_listBox1", wxListBox)->Clear();
+				XRCCTRL(*mf, "m_staticText5", wxStaticText)->SetLabel("加载中");
+				mf->Refresh();
 		};
 		XRCCTRL(*mf, "m_button5", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, func);
 		func(wxCommandEvent());
-		XRCCTRL(*mf,"m_button4", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &event) {
-			wxListBox *lb = XRCCTRL(*mf, "m_listBox1", wxListBox);
-			wxString str=lb->GetString(lb->GetSelection());
-			if (match_status == nullptr) {
-				match_status = XRCCTRL(*mf, "m_staticText3", wxStaticText);
+		XRCCTRL(*mf,"m_button4", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this,pp](wxCommandEvent &event) {
+			if (std::get<2>(*pp) == false) {
+				std::get<2>(*pp) = true;
+				wxListBox *lb = XRCCTRL(*mf, "m_listBox1", wxListBox);
+				wxString str = lb->GetString(lb->GetSelection());
 				pa->ports[config::match_port]->write(str.ToStdString(), []() {});
 			}
 		});
 
+		auto gp = pa->resign_port(config::game_info_port);
+		gp->OnMessage.connect([flag = std::make_shared<bool>(true)](lsy::buffer buf) {
+			gui_run([flag, buf]() {
+				printf("%s\n", buf.get(0));
+				XRCCTRL(*mf, "m_staticText319", wxStaticText)->SetLabel(buf.get(0));
+				mf->Refresh();
+			});
 
+		});
+		gp->start();
+		wxListBox * mlb2 = XRCCTRL(*mf, "m_listBox224", wxListBox);
+		mlb2->Bind(wxEVT_LISTBOX, [mlb2, this](auto it) {
+			std::string str = mlb2->GetString(mlb2->GetSelection()).ToStdString();
+			pa->ports[config::game_info_port]->write(str, []() {});
+		});
+		auto mnp = pa->resign_port(config::match_noscore_port);
+		mnp->OnMessage.connect([pp, this](lsy::buffer buf) {
+			buf.get(std::get<1>(*pp));
+			gui_run([pp, this]() {
+				set_text(XRCCTRL(*mf, "m_staticText222", wxStaticText), pp);
+			});
+		});
+		mnp->start();
+		auto mnsp = pa->resign_port(config::match_noscore_status_port);
+		mnsp->OnMessage.connect([pp, this](lsy::buffer buf) {
+			buf.get(std::get<0>(*pp));
+			gui_run([pp, this]() {
+				set_text(XRCCTRL(*mf, "m_staticText222", wxStaticText), pp);
+			});
+		});
+		mnsp->start();
 		po = pa->resign_port(config::games_port);
 		po->OnMessage.connect([this, po = lsy::as_ptr< lsy::port >(po)](
 			lsy::buffer buf) {
@@ -213,22 +274,24 @@ void DerivedApp::init_dating()
 		});
 		po->start();
 
-		func = [this](auto a) {
-			pa->ports[config::games_port]->write(lsy::buffer((size_t)0), []() {});
-			XRCCTRL(*mf, "m_listBox224", wxListBox)->Clear();
-			XRCCTRL(*mf, "m_staticText516", wxStaticText)->SetLabel("加载中");
-			mf->Refresh();
+		func = [this,pp](auto a) {
+				pa->ports[config::games_port]->write(lsy::buffer((size_t)0), []() {});
+				XRCCTRL(*mf, "m_listBox224", wxListBox)->Clear();
+				XRCCTRL(*mf, "m_staticText516", wxStaticText)->SetLabel("加载中");
+				mf->Refresh();
 		};
 		XRCCTRL(*mf, "m_button515", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, func);
 		func(wxCommandEvent());
 
-		XRCCTRL(*mf, "m_button422", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &event) {
+		XRCCTRL(*mf, "m_button422", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this,pp](wxCommandEvent &event) {
+			if (std::get<2>(*pp) == false) {
+				std::get<2>(*pp) = true;
 			wxListBox *lb = XRCCTRL(*mf, "m_listBox224", wxListBox);
+			printf("button click\n");
 			wxString str = lb->GetString(lb->GetSelection());
-			if (match_status == nullptr) {
-				match_status = XRCCTRL(*mf, "m_staticText319", wxStaticText);
-				pa->ports[config::match_port]->write(str.ToStdString(), []() {});
+				pa->ports[config::match_noscore_port]->write(str.ToStdString(), []() {});
 			}
+			
 		});
 		pa->resign_port(config::login_comfirm_port)->write(lsy::buffer(size_t(0)),[]() {});
 		//pa->ports[config::match_port]->write("sryx"s, []() {});

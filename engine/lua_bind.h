@@ -20,5 +20,5 @@ namespace room_space
     BOOST_SYMBOL_EXPORT void lua_put(lua_State* ls, channels* ptr);
     BOOST_SYMBOL_EXPORT void lua_put(lua_State* ls, room* ptr);
     BOOST_SYMBOL_EXPORT void lua_put(lua_State* ls, player* ptr);
-	BOOST_SYMBOL_EXPORT void lua_put(lua_State* ls, group_button* ptr);
+    BOOST_SYMBOL_EXPORT void lua_put(lua_State* ls, group_button* ptr);
 }

@@ -13,7 +13,7 @@ namespace room_space
     struct signals
     {
         std::map< std::string, signal > map;
-		signals&operator=(const signals&);
+        signals& operator=(const signals&);
         signal* get_signal(std::string name);
     };
 }

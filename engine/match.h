@@ -23,6 +23,18 @@ namespace lsy
         void remove_player(player* ptr);
         queue(std::string room_name, size_t size, uint16_t gap);
     };
-    void add_to_queue(std::string str, player* ptr);
+    class queue_no_score
+    {
+        group gr;
+
+      public:
+        queue_no_score(std::string room_name, size_t size);
+        std::map< player*, size_t > map;
+        void add_player(player* ptr);
+        void remove_player(player* ptr);
+        std::string room_name;
+        size_t      size;
+    };
+    void add_to_queue(std::string str, player* ptr, bool have_score);
     void remove_from_queue(std::string str, player* ptr);
 }
