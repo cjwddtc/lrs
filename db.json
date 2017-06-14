@@ -16,14 +16,14 @@
 				"explain":"varchar",
 				"configfile":"varchar",
 				"luafile":"varchar",
-				"onwerid":"int"
+				"onwerid":"varchar"
 			},
 			"role":{
 				"rolename":"varchar",
 				"explain":"varchar",
 				"configfile":"varchar",
 				"luafile":"varchar",
-				"onwerid":"int"
+				"onwerid":"varchar"
 			},
 			"role_ver":{
 				"rolename":"varchar",
@@ -31,7 +31,7 @@
 				"explain":"varchar",
 				"configfile":"varchar",
 				"luafile":"varchar",
-				"onwerid":"int"
+				"onwerid":"varchar"
 			},
 			"role_extend":{
 				"rolefather":"varchar",
@@ -41,7 +41,7 @@
 				"room_name":"varchar",
 				"rulename":"varchar",
 				"explain":"varchar",
-				"type":"int"
+				"onwerid":"varchar"
 			},
 			"room_contain":{
 				"room_name":"varchar",
@@ -53,7 +53,7 @@
 				"explain":"varchar",
 				"configfile":"varchar",
 				"luafile":"varchar",
-				"onwerid":"int",
+				"onwerid":"varchar",
 				"rulename":"varchar"
 			},
 			"score":{
@@ -67,15 +67,29 @@
 			"get_rule":"select luafile from rule where rulename=?;",
 			"get_role_ver":"select luafile from role_ver where rolename=? AND vername=?",
 			"get_role":"select luafile from role where rolename=?",
-			"get_base_room":"select room_name from room where type=0",
-			"get_extra_room":"select room_name from room where type=1",
+			"get_base_room":"select room_name from room where onwerid is null",
+			"get_extra_room":"select room_name from room where onwerid is not null",
 			"get_room_size":"select sum(count) from room_contain where room_name=?",
 			"get_score":"select score from score where name=? AND room_name=?",
 			"get_room_role":"select rolename,count from room_contain where room_name=?",
 			"get_room_rule":"select luafile from room INNER JOIN rule ON room.rulename=rule.rulename where room_name=?",
 			"add_score":"update score set score=score+100 where name=? AND room_name=?",
 			"dec_score":"update score set score=score-100 where name=? AND room_name=? AND score>=100",
-			"get_room_info":"select explain from room where room_name=?"
+			"get_room_info":"select explain from room where room_name=?",
+			"update_passwd":"update player set passwd=? where name=? AND passwd=?",
+			"add_role":"insert into role (rolename,luafile,onwerid) VALUES(?,?,?)",
+			"add_rule":"insert into rule (rulename,luafile,onwerid) VALUES(?,?,?)",
+			"add_room":"insert into room (room_name,rulename,explain,onwerid) VALUES(?,?,'',?)",
+			"add_room_role":"insert into room_contain (room_name,rolename,count) VALUES(?,?,?)",
+			"remove_role":"DELETE FROM role WHERE rolename=?",
+			"remove_rule":"DELETE FROM rule WHERE rulename=?",
+			"remove_room":"DELETE FROM room WHERE room_name=?",
+			"remove_room_role":"DELETE FROM room_contain WHERE room_name=?",
+			"get_user_room":"select room_name from room where onwerid=?",
+			"get_user_room_rule":"select rulename from room where room_name=?",
+			"get_user_rule":"select rulename from rule where onwerid=?",
+			"get_user_role":"select rolename from role where onwerid=?",
+			"get_user_room_role":"select rolename,count from room_contain INNER JOIN room ON room_contain.room_name=room.room_name where room.room_name=? AND onwerid=?"
 		}
 	}
 }

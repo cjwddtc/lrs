@@ -131,6 +131,7 @@ room_space::player::player(room* ro_, lsy::port_all* pl_, uint8_t index_,
     , index(index_)
     , id(id_)
     , is_dead(false)
+    , camp_flag(0)
 {
     add_playing(id, this);
     show_role(index, true);
@@ -138,17 +139,25 @@ room_space::player::player(room* ro_, lsy::port_all* pl_, uint8_t index_,
 }
 
 void room_space::player::add_button(std::string                    name,
-                                    std::function< void(uint8_t) > func)
+                                    std::function< void(uint8_t) > func,
+                                    std::function< bool(player*) > select)
 {
     if (buttons.find(name) == buttons.end())
     {
-        printf("button create:%s\n", name.c_str());
         pl->mut.lock();
         uint16_t   por  = pl->valid_port();
         lsy::port* port = pl->resign_port(por);
         port->start();
         pl->mut.unlock();
-        buttons.emplace(std::make_pair(name, por));
+        auto it = buttons.emplace(
+            name, std::make_pair(por, std::vector< uint8_t >()));
+        for (auto& i : ro->players)
+        {
+            if (select(&i))
+            {
+                it.first->second.second.push_back(i.index);
+            }
+        }
         port->OnMessage.connect(
             [ this, name, func, &io = io_service ](lsy::buffer buf) {
                 uint8_t index;
@@ -159,14 +168,16 @@ void room_space::player::add_button(std::string                    name,
                                << (uint16_t)index << "\n";
                 });
             });
-        lsy::buffer buf(name.size() + 3);
+        lsy::buffer buf(name.size() + 3 + it.first->second.second.size());
         buf.put(por);
         buf.put(name);
+        buf.put((unsigned char*)it.first->second.second.data(),
+                it.first->second.second.size());
         pl->ports[config::button_port]->write(buf, []() {});
     }
     else
     {
-        printf("warning:%s alredy exist", name.c_str());
+        printf("warning:%s alredy exist,%d\n", name.c_str(), index);
     }
 }
 
@@ -175,7 +186,7 @@ void room_space::player::remove_button(std::string name)
     auto it = buttons.find(name);
     if (it != buttons.end())
     {
-        auto p = pl->ports[it->second];
+        auto p = pl->ports[it->second.first];
         buttons.erase(it);
         p->write(lsy::buffer((size_t)0), [p]() { p->close(); });
     }
@@ -222,7 +233,6 @@ void room_space::player::bind(lsy::port_all* pl_)
             uint8_t size = ro->size();
             bu.put(&size, 1);
             bu.put(&index, 1);
-            printf("sending room_info\n");
             pl->ports[config::room_info]->write(bu, []() {});
         }
         else if (flag == 1)
@@ -258,6 +268,29 @@ bool room_space::player::is_null()
 void room_space::player::set_camp(uint8_t camp)
 {
     this->camp = camp;
+}
+
+void room_space::player::add_flag(uint8_t flag_pos)
+{
+    if (!is_dead && !check_flag(flag_pos))
+    {
+        ro->mount_count[flag_pos]++;
+    }
+    camp_flag |= (uint32_t)1 << flag_pos;
+}
+
+void room_space::player::remove_flag(uint8_t flag_pos)
+{
+    if (!is_dead && check_flag(flag_pos))
+    {
+        ro->mount_count[flag_pos]--;
+    }
+    camp_flag &= ~((uint32_t)1 << flag_pos);
+}
+
+bool room_space::player::check_flag(uint8_t flag_pos)
+{
+    return camp_flag & ((uint32_t)1 << flag_pos);
 }
 
 void room_space::player::show_role(uint8_t index, bool is_show)
@@ -342,9 +375,10 @@ void room_space::player::send_status()
     }
     for (auto& a : buttons)
     {
-        lsy::buffer buf(a.first.size() + 3);
-        buf.put(a.second);
+        lsy::buffer buf(a.first.size() + 3 + a.second.second.size());
+        buf.put(a.second.first);
         buf.put(a.first);
+        buf.put((unsigned char*)a.second.second.data(), a.second.second.size());
         pl->ports[config::button_port]->write(buf, []() {});
     }
 

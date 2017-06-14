@@ -23,6 +23,9 @@ room_space::room::~room()
 
 void room::is_dead(uint8_t index, bool is_dead)
 {
+	if (on_dead) {
+		on_dead(index);
+	}
     players[index].is_dead = is_dead;
     lsy::buffer buf(size_t(2));
     uint8_t     fl = is_dead;
@@ -32,13 +35,38 @@ void room::is_dead(uint8_t index, bool is_dead)
     {
         (*p)->ports[config::player_dead]->write(buf, []() {});
     }
+    uint32_t flag = players[index].camp_flag;
+    if (is_dead)
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            if (flag & 0x1)
+            {
+                mount_count[i]--;
+            }
+            flag >>= 1;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            if (flag & 0x1)
+            {
+                mount_count[i]++;
+            }
+            flag >>= 1;
+        }
+    }
 }
 
 room::room(std::string room_name_, std::vector< lsy::player* > vec)
     : room_name(room_name_)
     , count(vec.size())
     , ls(luaL_newstate())
+    , init_level(1)
 {
+    mount_count.fill(0);
     luaL_openlibs(ls);
     lua_put(ls, this);
     setglobal(ls, "room"s);
@@ -47,7 +75,7 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
     main.get_room_rule.bind_once([ this, &io = io_service ](bool have_data) {
         assert(have_data);
         std::string str = main.get_room_rule[0];
-        OnInit.connect(std::bind(load_file(str), nullptr));
+        OnInit.connect(0, std::bind(load_file(str), nullptr));
     },
                                  room_name);
     // init room role
@@ -79,39 +107,8 @@ room::room(std::string room_name_, std::vector< lsy::player* > vec)
                 for (auto& pl : players)
                 {
                     std::string role_name(*name_it);
-                    size_t      s = role_name.find_first_of('.');
-                    if (s != std::string::npos)
-                    {
-                        std::string role_ver(role_name.begin() + s + 1,
-                                             role_name.end());
-                        role_name.resize(s);
-                        main.get_role_ver.bind_once(
-                            [ this, &io = io_service, ptr = &pl ](bool is_fin) {
-                                if (is_fin)
-                                {
-                                    std::string filename = main.get_role_ver[0];
-                                    OnInit.connect(
-                                        std::bind(load_file(filename), ptr));
-                                }
-                            },
-                            role_name, role_ver);
-                    }
-                    main.get_role.bind_once(
-                        [ this, &io = io_service, ptr = &pl,
-                          name = *name_it ](bool is_fin) {
-                            if (is_fin)
-                            {
-                                std::string filename = main.get_role[0];
-                                OnInit.connect(
-                                    std::bind(load_file(filename), ptr));
-                                count--;
-                                if (count == 0)
-                                {
-                                    io.post([this]() { OnInit(); });
-                                }
-                            }
-                        },
-                        role_name);
+                    current_player = &pl;
+                    queue_load(role_name);
                     ++name_it;
                 }
             });
@@ -235,28 +232,27 @@ void room_space::room::for_each_player(int                            n,
 }
 
 
-uint8_t room_space::room::check()
+bool room_space::room::check()
 {
-    std::map< uint8_t, uint8_t > camp_map;
-    for (auto& a : players)
+    for (auto it : condition_map)
     {
-        if (!a.is_dead)
+        if (mount_count[it.first] == 0)
         {
-            camp_map[a.camp]++;
+            close(it.second);
+            return true;
         }
     }
-    if (camp_map.size() == 1)
-    {
-        return camp_map.begin()->first;
-    }
-    else
-    {
-        return 0xff;
-    }
+    return false;
 }
 
-bool room_space::room::add_group_button(room_space::player* pl,
-                                        std::string         name)
+void room_space::room::add_condition(uint8_t camp, uint8_t condition)
+{
+    condition_map[condition] = camp;
+}
+
+bool room_space::room::add_group_button(room_space::player*            pl,
+                                        std::string                    name,
+                                        std::function< bool(player*) > func)
 {
 
     auto it   = group_data.find(name);
@@ -268,14 +264,47 @@ bool room_space::room::add_group_button(room_space::player* pl,
     }
     it->second.group_mem.insert(pl->index);
     pl->add_button(
-        name, [ name, m = pl->index, &map_data = it->second, this ](uint8_t n) {
+        name, [ name,pl, &map_data = it->second, this ](uint8_t n) {
             map_data.click_map[n]++;
             if (map_data.on_click)
             {
-                map_data.on_click(m, n);
+                map_data.on_click(pl->index, n);
             };
-        });
+			pl->remove_button(name);
+        },
+        func);
     return flag;
+}
+
+
+void room_space::room::queue_load(std::string role_name)
+{
+    main.get_role.bind_once(
+        [ this, &io = io_service, cp = current_player ](bool is_fin) {
+            if (is_fin)
+            {
+                std::string filename = main.get_role[0];
+                io.post([this, filename, cp]() {
+                    current_player = cp;
+                    auto& func     = load_file(filename);
+                    OnInit.connect(init_level, std::bind(func, cp));
+                });
+            }
+            io.post([this]() {
+                count--;
+                if (count == 0)
+                {
+                    OnInit();
+                }
+            });
+        },
+        role_name);
+}
+
+void room_space::room::load_role(std::string role_name)
+{
+    count++;
+    queue_load(role_name);
 }
 
 group_button* room_space::room::get_group(std::string name)

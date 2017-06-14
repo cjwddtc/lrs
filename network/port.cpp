@@ -129,5 +129,4 @@ lsy::port_all::~port_all()
 {
     OnDestroy();
     OnDestroy.disconnect_all_slots();
-    printf("delete port_all:%p\n", this);
 }

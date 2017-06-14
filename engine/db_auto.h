@@ -1,37 +1,49 @@
 #include "database.h"
 #include <boost/filesystem.hpp>
-namespace db_gen{
-class is_expire
+namespace db_gen
 {
-protected:
-bool expire; 
-is_expire(const std::string &derive); 
-};
-class main_class_base
-:private is_expire 
-,public lsy::database 
-{
-public:
-main_class_base();
-};
-class main_class
-:public main_class_base
-{
-public:
-main_class();
-statement select;
-statement get_rule;
-statement get_role_ver;
-statement get_role;
-statement get_base_room;
-statement get_extra_room;
-statement get_room_size;
-statement get_score;
-statement get_room_role;
-statement get_room_rule;
-statement add_score;
-statement dec_score;
-statement get_room_info;
-};
-extern main_class main;
+    class is_expire
+    {
+      protected:
+        bool expire;
+        is_expire(const std::string& derive);
+    };
+    class main_class_base : private is_expire, public lsy::database
+    {
+      public:
+        main_class_base();
+    };
+    class main_class : public main_class_base
+    {
+      public:
+        main_class();
+        statement select;
+        statement get_rule;
+        statement get_role_ver;
+        statement get_role;
+        statement get_base_room;
+        statement get_extra_room;
+        statement get_room_size;
+        statement get_score;
+        statement get_room_role;
+        statement get_room_rule;
+        statement add_score;
+        statement dec_score;
+        statement get_room_info;
+        statement update_passwd;
+        statement add_role;
+        statement add_rule;
+        statement add_room;
+        statement add_room_role;
+        statement remove_role;
+        statement remove_rule;
+        statement remove_room;
+        statement remove_room_role;
+        statement get_user_room;
+        statement get_user_room_rule;
+        statement get_user_rule;
+        statement get_user_role;
+        statement get_user_room_role;
+    };
+    extern main_class main;
 }

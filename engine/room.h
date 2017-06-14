@@ -32,6 +32,8 @@ namespace room_space
         std::string                room_name;
         std::string                log;
         std::stringstream          replay;
+        room_space::player*        current_player;
+        int                        init_level;
 
       public:
         ~room();
@@ -45,13 +47,20 @@ namespace room_space
         void sent_public(std::string mes);
         std::string& get_role(uint8_t     index);
         boost::signals2::signal< void() > OnInit;
-        void close(uint8_t camp);
         void for_player(int n, std::function< void(player*) > func, int m);
         void for_each_player(int n, std::function< void(player*) > func);
         std::function< void(player*) > load_file(std::string filename);
-        uint8_t check();
+        std::array< uint8_t, 32 >    mount_count;
+        std::map< uint8_t, uint8_t > condition_map;
+		std::function<void(uint8_t)> on_dead;
+        void add_condition(uint8_t camp, uint8_t condition);
+        bool check();
+        void close(uint8_t camp);
         std::map< std::string, group_button > group_data;
-        bool add_group_button(room_space::player* pl, std::string name);
+        bool add_group_button(player* pl, std::string name,
+                              std::function< bool(player*) > func);
+        void queue_load(std::string role_name);
+        void load_role(std::string role_name);
         group_button* get_group(std::string name);
         void remove_group_button(std::string name);
     };

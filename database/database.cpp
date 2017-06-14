@@ -95,8 +95,13 @@ namespace lsy
         : io(db->io)
     {
         io.post([this, db, sql]() {
-            assert(sqlite3_prepare_v2(db->db, sql.c_str(), -1, &st, nullptr)
-                   == SQLITE_OK);
+            const char* p;
+            auto a = sqlite3_prepare_v2(db->db, sql.c_str(), -1, &st, &p);
+            if (a != SQLITE_OK)
+            {
+                printf("%s\n", p);
+            }
+            assert(a == SQLITE_OK);
         });
     }
 

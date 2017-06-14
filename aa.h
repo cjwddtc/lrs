@@ -4,7 +4,7 @@
 
 class a : public usercenter
 {
-public:
+  public:
     a(wxWindow* parent);
     virtual ~a();
 };

@@ -9,9 +9,7 @@ namespace lsy
 {
     lsy::as_close::~as_close()
     {
-        std::clog << "destroying" << this << '\n';
         OnDestroy();
-        std::clog << "destroyed" << this << '\n';
     }
     buffer::buffer(size_t size)
         : ptr((count_block*)malloc(size + sizeof(size_t)))

@@ -1,4 +1,7 @@
 return function()
+	not_dead=function(a)
+		return not a.is_dead
+	end
 	co=coroutine.create(function()
 		coroutine.yield(2)
 		room.checktable={}
@@ -15,7 +18,7 @@ return function()
 			dark.trigger()
 			room.sent_public("killer please choose a player to be killed\n")
 			room.sent_public("police please choose a player to be check\n")
-			coroutine.yield(10)
+			coroutine.yield(3)
 			kil_person=nil
 			light=room.signals.get_signal("light")
 			light.trigger()
@@ -26,22 +29,20 @@ return function()
 				room.sent_public("no body is killed\n");
 				kil_person=0
 			end
-			camp=room.check()
-			if(camp~=255)then
-				room.close(camp)
-				coroutine.yield(10)
+			if(room.check())then
+				coroutine.yield(0)
 			end
 			local b=nil
 			for i=kil_person,kil_person+room.size()-1,1 do
 				local a=room.get_player(i)
-				if(b==nil or not a.is_dead())then
-					room.sent_public(string.format("%d player please speak\n",a.index()+1))
+				if(b==nil or not a.is_dead)then
+					room.sent_public(string.format("%d player please speak\n",a.index+1))
 					room.channels.get_channel(a,"public").enable(true)
 					if(b~=nil)then
 						room.channels.get_channel(b,"public").enable(false)
 					end
 					b=a
-					coroutine.yield(10)
+					coroutine.yield(3)
 				end
 			end
 			room.channels.get_channel(b,"public").enable(false)
@@ -54,10 +55,8 @@ return function()
 				room.set_dead(voteout,true)
 				room.sent_public(string.format("%d player please speak\n",voteout+1))
 				room.channels.get_channel(room.get_player(voteout),"public").enable(true)
-				camp=room.check()
-				if(camp~=255)then
-					room.close(camp)
-					coroutine.yield(10)
+				if(room.check())then
+					coroutine.yield(0)
 				end
 				coroutine.yield(10)
 				room.channels.get_channel(room.get_player(voteout),"public").enable(false)

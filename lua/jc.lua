@@ -1,9 +1,12 @@
+room.load_role("cm")
 return function(player)
-	room.load_lua("cm.lua")(player)
+	print("jc")
+	player.add_flag(1)
+	room.add_condition(1,1);
 	local is_main=false
 	room.signals.get_signal("dark").connect(function()
-		if(not player.is_dead())then
-			if(room.add_group_button(player,"check"))then
+		if(not player.is_dead)then
+			if(room.add_group_button(player,"check",not_dead,not_dead))then
 				is_main=true
 				but=room.group_button("check")
 				but.on_click=function(a,b)

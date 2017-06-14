@@ -19,6 +19,17 @@ namespace config
     constexpr uint16_t room_info_port            = 18;
     constexpr uint16_t muti_info_port            = 20;
     constexpr uint16_t game_info_port            = 21;
+    constexpr uint16_t passwd_change_port        = 22;
+    constexpr uint16_t player_room_create_port   = 27;
+    constexpr uint16_t player_room_delete_port   = 28;
+    constexpr uint16_t player_room_get_port      = 29;
+    constexpr uint16_t player_room_detail_port   = 23;
+    constexpr uint16_t player_rule_create_port   = 30;
+    constexpr uint16_t player_rule_delete_port   = 31;
+    constexpr uint16_t player_rule_get_port      = 32;
+    constexpr uint16_t player_role_create_port   = 33;
+    constexpr uint16_t player_role_delete_port   = 34;
+    constexpr uint16_t player_role_get_port      = 35;
 
     constexpr uint16_t text_port = 6;
 

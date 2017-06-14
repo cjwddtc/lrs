@@ -1,18 +1,16 @@
-room.load_role("cm")
+room.load_role("lrs_cm")
 return function(player)
-	print("ss")
 	player.set_camp(1)
 	player.add_flag(2)
 	room.add_condition(0,2);
 	for i=0,room.size()-1,1 do
 		local role=room.get_role(i)
-		if(role=="ss")then
+		if(role=="wolf")then
 			player.show_role(i,true)
 		end
 	end
 	local is_main=false
 	room.signals.get_signal("dark").connect(function()
-		print("player.id_dead:",player.is_dead)
 		if(not player.is_dead)then
 			if(room.add_group_button(player,"kill",not_dead))then
 				is_main=true
@@ -23,7 +21,7 @@ return function(player)
 			end
 		end
 	end)
-	room.signals.get_signal("light").connect(function()
+	room.signals.get_signal("midnight").connect(function()
 		if(is_main)then
 			local but=room.group_button("kill")
 			but.on_max=function(a)

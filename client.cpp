@@ -4,6 +4,8 @@
 #include <wx/ribbon/panel.h>
 #include <wx/ribbon/page.h>
 #include <config.h>
+#include <boost/lexical_cast.hpp>
+#include <wx/filepicker.h>
 #include <iostream>
 #include <listener.h>
 #include <memory>
@@ -12,6 +14,8 @@
 #include <wx/listbook.h>
 #include <wx/xrc/xh_ribbon.h>
 #include <wx/button.h>
+#include <wx/grid.h>
+#include <wx/listbox.h>
 #include "text_panel.h"
 #include "player_list.h"
 #include <wx/listctrl.h>
@@ -294,7 +298,207 @@ void DerivedApp::init_dating()
 			
 		});
 		pa->resign_port(config::login_comfirm_port)->write(lsy::buffer(size_t(0)),[]() {});
-		//pa->ports[config::match_port]->write("sryx"s, []() {});
+		pa->ports[config::match_noscore_port]->write("lrs"s, []() {});
+		auto pcp = pa->resign_port(config::passwd_change_port);
+		pcp->OnMessage.connect([this](lsy::buffer buf) {
+			uint16_t f;
+			buf.get(f);
+			gui_run([this,f]() {
+				XRCCTRL(*mf, "m_staticText280", wxStaticText)->SetLabel(f ? "修改成功" : "旧密码错误"); 
+				mf->Refresh();
+			});
+			
+		});
+		pcp->start();
+		XRCCTRL(*mf, "m_panel435", wxPanel)->Show(false);
+		XRCCTRL(*mf, "m_button429", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &a) {
+			XRCCTRL(*mf, "m_panel435", wxPanel)->Show(true);
+		});
+		XRCCTRL(*mf, "m_button282", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &a) {
+			if (XRCCTRL(*mf, "m_textCtrl266", wxTextCtrl)->GetLineLength(0) != 0
+				&& XRCCTRL(*mf, "m_textCtrl270", wxTextCtrl)->GetLineLength(0)
+				!= 0)
+			{
+				if (XRCCTRL(*mf, "m_textCtrl278", wxTextCtrl)->GetValue() == XRCCTRL(*mf, "m_textCtrl270", wxTextCtrl)->GetValue()) {
+					std::string oldps = XRCCTRL(*mf, "m_textCtrl266", wxTextCtrl)->GetValue();
+					std::string newps = XRCCTRL(*mf, "m_textCtrl270", wxTextCtrl)->GetValue();
+					lsy::buffer buf(oldps.size() + 2 + newps.size());
+					buf.put(oldps);
+					buf.put(newps);
+					pa->ports[config::passwd_change_port]->write(buf, []() {});
+				}
+				else {
+					XRCCTRL(*mf, "m_staticText280", wxStaticText)->SetLabel("请输出相同的密码");
+				}
+			}
+			else {
+				XRCCTRL(*mf, "m_staticText280", wxStaticText)->SetLabel("不可为空");
+			}
+		});
+		
+		pa->resign_port(config::player_rule_create_port)->start();
+		pa->resign_port(config::player_role_create_port)->start();
+		XRCCTRL(*mf, "m_button292", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &a) {
+
+			if (XRCCTRL(*mf, "m_filePicker286", wxFilePickerCtrl)->GetPath().size() != 0
+				&& XRCCTRL(*mf, "m_textCtrl300", wxTextCtrl)->GetLineLength(0)
+				!= 0 && XRCCTRL(*mf, "m_choice288", wxChoice)->GetSelection()!= wxNOT_FOUND)
+			{
+				auto port = XRCCTRL(*mf, "m_choice288", wxChoice)->GetSelection() == 1 ? config::player_role_create_port : config::player_rule_create_port;
+				std::string name = XRCCTRL(*mf, "m_textCtrl300", wxTextCtrl)->GetValue();
+				std::string file = XRCCTRL(*mf, "m_filePicker286", wxFilePickerCtrl)->GetPath();
+				FILE *fp = fopen(file.c_str(), "r");
+				fseek(fp, 0, 2);
+				size_t size = ftell(fp);
+				void *p=malloc(size);
+				fseek(fp, 0, 0);
+				size=fread((char *)p, 1, size, fp);
+				lsy::buffer buf(name.size() + 1 + size);
+				buf.put(name);
+				buf.put((unsigned char*)p, size);
+				pa->ports[port]->write(buf, []() {});
+				pa->ports[config::player_rule_get_port]->write(lsy::buffer(size_t(0)), []() {});
+				pa->ports[config::player_role_get_port]->write(lsy::buffer(size_t(0)), []() {});
+				XRCCTRL(*mf, "m_choice288", wxChoice)->SetSelection(-1);
+				XRCCTRL(*mf, "m_textCtrl300", wxTextCtrl)->Clear();
+				XRCCTRL(*mf, "m_filePicker286", wxFilePickerCtrl)->SetPath("");
+				XRCCTRL(*mf, "m_panel435", wxPanel)->Show(false);
+			}
+			else {
+			}
+		});
+
+		pa->resign_port(config::player_room_create_port)->start();
+		pa->resign_port(config::player_room_delete_port)->start();
+		XRCCTRL(*mf, "m_grid332", wxGrid)->CreateGrid(0,2, wxGrid::wxGridSelectRows);
+		XRCCTRL(*mf, "m_grid332", wxGrid)->SetColLabelValue(0,"角色名");
+		XRCCTRL(*mf, "m_grid332", wxGrid)->SetColLabelValue(1, "角色数量");
+		XRCCTRL(*mf, "m_button340", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &a) {
+			XRCCTRL(*mf, "m_grid332", wxGrid)->AppendRows();
+		});
+		XRCCTRL(*mf, "m_button342", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &a) {
+			XRCCTRL(*mf, "m_grid332", wxGrid)->DeleteRows(XRCCTRL(*mf, "m_grid332", wxGrid)->GetSelectedRows().front());
+		});
+		XRCCTRL(*mf, "m_button350", wxButton)->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &a) {
+
+			if (XRCCTRL(*mf, "m_textCtrl348", wxTextCtrl)->GetLineLength(0) != 0
+				&& XRCCTRL(*mf, "m_textCtrl388", wxTextCtrl)->GetLineLength(0))
+			{
+				std::string room_name = XRCCTRL(*mf, "m_textCtrl348", wxTextCtrl)->GetValue();
+				std::string rule_name = XRCCTRL(*mf, "m_textCtrl388", wxTextCtrl)->GetValue();
+				auto table = XRCCTRL(*mf, "m_grid332", wxGrid)->GetTable();
+				size_t size = room_name.size() + rule_name.size() + 4;
+				int n= table->GetRowsCount();
+				for (int i = 0; i < n; i++) {
+					size += table->GetValue(i,0).size()+1;
+					size += 2;
+				}
+				lsy::buffer buf(size);
+				buf.put(room_name);
+				buf.put(rule_name);
+				buf.put((uint16_t)n);
+				for (int i = 0; i < n; i++) {
+					buf.put(table->GetValue(i, 0).ToStdString());
+					auto na = boost::lexical_cast<uint16_t>(table->GetValue(i, 1).ToStdString());
+					buf.put(na);
+				}
+				int m=buf.readed();
+				pa->ports[config::player_room_delete_port]->write(room_name, []() {});
+				pa->ports[config::player_room_create_port]->write(buf, []() {});
+				pa->ports[config::player_room_get_port]->write(""s, []() {});
+			}
+		});
+		
+		auto player_role_get_port =pa->resign_port(config::player_role_get_port);
+		player_role_get_port->OnMessage.connect([flag=std::make_shared<int>(0)](auto buf) {
+			if (buf.size() == 0) {
+				*flag = 0;
+			}
+			else {
+				if (*flag == 0) {
+					XRCCTRL(*mf, "m_listBox425", wxListBox)->Clear();
+				}
+				std::string str;
+				buf.get(str);
+				wxString st = str;
+				XRCCTRL(*mf, "m_listBox425", wxListBox)->InsertItems(1, &st, *flag);
+				++*flag;
+			}
+		});
+		player_role_get_port->start();
+
+		auto player_rule_get_port = pa->resign_port(config::player_rule_get_port);
+		player_rule_get_port->OnMessage.connect([flag = std::make_shared<int>(0)](auto buf) {
+			if (buf.size() == 0) {
+				*flag = 0;
+			}
+			else {
+				if (*flag == 0) {
+					XRCCTRL(*mf, "m_listBox427", wxListBox)->Clear();
+				}
+				std::string str;
+				buf.get(str);
+				wxString st = str;
+				XRCCTRL(*mf, "m_listBox427", wxListBox)->InsertItems(1, &st, *flag);
+				++*flag;
+			}
+		});
+		player_rule_get_port->start();
+
+		auto player_room_detail_port=pa->resign_port(config::player_room_detail_port);
+		player_room_detail_port->OnMessage.connect([this](lsy::buffer buf) {
+			gui_run([this,buf_=buf]() {
+				auto tab = XRCCTRL(*mf, "m_grid332", wxGrid)->GetTable();
+				if(tab->GetRowsCount())
+					tab->DeleteRows(0,tab->GetRowsCount());
+				lsy::buffer buf = buf_;
+				std::string room_name;
+				std::string rule_name;
+				uint16_t size;
+				buf.get(room_name);
+				XRCCTRL(*mf, "m_textCtrl348", wxTextCtrl)->SetValue(room_name);
+				buf.get(rule_name);
+				XRCCTRL(*mf, "m_textCtrl388", wxTextCtrl)->SetValue(rule_name);
+				buf.get(size);
+				while (size--) {
+					uint16_t count;
+					std::string role_name;
+					buf.get(role_name);
+					buf.get(count);
+					tab->AppendRows();
+					int num=tab->GetRowsCount();
+					tab->SetValue(num-1,0, role_name);
+					tab->SetValue(num - 1, 1, wxString::Format("%d", count));
+				}
+			});
+		});
+		player_room_detail_port->start();
+		auto mlb4 = XRCCTRL(*mf, "m_listBox413", wxListBox);
+		mlb4->Bind(wxEVT_LISTBOX, [mlb4, this](auto it) {
+			std::string str = mlb4->GetString(mlb4->GetSelection()).ToStdString();
+			pa->ports[config::player_room_detail_port]->write(str, []() {});
+		});
+		auto player_room_get_port = pa->resign_port(config::player_room_get_port);
+		player_room_get_port->OnMessage.connect([flag = std::make_shared<int>(0)](auto buf) {
+			if (buf.size() == 0) {
+				*flag = 0;
+			}
+			else {
+				if (*flag == 0) {
+					XRCCTRL(*mf, "m_listBox413", wxListBox)->Clear();
+				}
+				std::string str;
+				buf.get(str);
+				wxString st = str;
+				XRCCTRL(*mf, "m_listBox413", wxListBox)->InsertItems(1,&st,*flag);
+				++*flag;
+			}
+		});
+		player_room_get_port->start();
+
+		pa->ports[config::player_room_get_port]->write(lsy::buffer(size_t(0)), []() {});
+		pa->ports[config::player_rule_get_port]->write(lsy::buffer(size_t(0)), []() {});
+		pa->ports[config::player_role_get_port]->write(lsy::buffer(size_t(0)), []() {});
 }
 void DerivedApp::init_play()
 {
@@ -404,19 +608,20 @@ void DerivedApp::init_play()
 
 		auto bupo = pa->resign_port(config::button_port);
 		bupo->OnMessage.connect([this](auto buf) {
+			std::string name;
 			uint16_t port;
 			buf.get(port);
-			std::string name((char*)buf.get(0));
+			buf.get(name);
+			auto buindex = std::make_shared<std::vector<uint8_t>>(buf.begin()+buf.readed(),buf.end());
 			if (buttons.find(name) == buttons.end()) {
 				buttons.insert(name);
 				auto po = pa->resign_port(port);
 				po->start();
-				po->OnMessage.connect([name, po, this](auto buf) {
+				po->OnMessage.connect([name, po, this, buindex](auto buf) {
 					buttons.erase(name);
-					gui_run([name, po, this]() {
-						for (auto a : player_pannel->pannels)
-						{
-							a->remove(name);
+					gui_run([name, po, this, buindex]() {
+						for (auto index : *buindex) {
+							player_pannel->pannels[index]->remove(name);
 						}
 						XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage)->Realize();
 						XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage)->Realize();
@@ -424,17 +629,14 @@ void DerivedApp::init_play()
 						po->close();
 					});
 				});
-				gui_run([name, po, this]() {
+				gui_run([name, po, this, buindex]() {
 					uint8_t index = 0;
-					for (auto a : player_pannel->pannels)
-					{
-						a->add(name, [po, index]() {
-							auto in = index;
+					for (auto index : *buindex) {
+						player_pannel->pannels[index]->add(name, [po, index]() {
 							lsy::buffer buf(size_t(1));
-							buf.put(&in, 1);
+							buf.put(&index, 1);
 							po->write(buf, []() {});
 						});
-						index++;
 					}
 					XRCCTRL(*mf, "m_ribbonPage112", wxRibbonPage)->Realize();
 					XRCCTRL(*mf, "m_ribbonPage114", wxRibbonPage)->Realize();
@@ -586,7 +788,7 @@ bool DerivedApp::OnInit()
             dlg->SetTitle("connected");
             dlg->Refresh();
             XRCCTRL(*dlg, "login_b", wxButton)->Enable(true);
-			if (wxGetApp().argc == 3) {
+			if (wxGetApp().argc >= 3) {
 				XRCCTRL(*dlg, "id_tc", wxTextCtrl)->SetValue(wxGetApp().argv[1]);
 				XRCCTRL(*dlg, "passwd_tc", wxTextCtrl)->SetValue(wxGetApp().argv[2]);
 				func(wxCommandEvent());

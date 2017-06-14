@@ -87,18 +87,14 @@ personpanel::personpanel(wxWindow* parent, int index)
 int  count = 12345;
 void personpanel::add(std::string name, std::function< void() > func)
 {
-    if (!is_dead)
+    auto it = buttonmap.find(name);
+    if (it == buttonmap.end())
     {
-        auto it = buttonmap.find(name);
-        if (it == buttonmap.end())
-        {
-            wxNullBitmap.Create(0, 0);
-            bar->AddButton(count, name, wxNullBitmap, name,
-                           wxRIBBON_BUTTON_NORMAL);
-            buttonmap[name] = count;
-            bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
-                      count++);
-        }
+        wxNullBitmap.Create(0, 0);
+        bar->AddButton(count, name, wxNullBitmap, name, wxRIBBON_BUTTON_NORMAL);
+        buttonmap[name] = count;
+        bar->Bind(wxEVT_RIBBONBUTTONBAR_CLICKED, [func](auto a) { func(); },
+                  count++);
     }
 }
 

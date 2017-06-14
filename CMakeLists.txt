@@ -95,7 +95,7 @@ add_executable(main main.cpp)
 target_link_libraries(main net_api network engine database)
 
 
-find_package(wxWidgets REQUIRED core base xrc ribbon)
+find_package(wxWidgets REQUIRED core base xrc ribbon adv)
 link_directories("${wxWidgets_LIBRARY_DIRS}")
 include(${wxWidgets_USE_FILE})
 add_executable(client client.cpp client.h text_panel.cpp text_panel.h player_list.h player_list.cpp player_list_lrs_bitmaps.cpp)

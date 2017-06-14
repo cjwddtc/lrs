@@ -530,104 +530,40 @@
             </object>
           </object>
           <object class="notebookpage">
-            <label>上传自定义脚本</label>
+            <label>自定义脚本管理</label>
             <selected>0</selected>
             <object class="wxPanel" name="m_panel244">
               <style>wxTAB_TRAVERSAL</style>
+              <hidden>1</hidden>
               <object class="wxBoxSizer">
-                <orient>wxVERTICAL</orient>
-                <object class="sizeritem">
-                  <flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+                <orient>wxHORIZONTAL</orient>
+                <object class="sizeritem" name="boxSizer406">
+                  <flag>wxALL</flag>
                   <border>5</border>
-                  <option>1</option>
-                  <object class="wxFilePickerCtrl" name="m_filePicker286">
-                    <style>wxFLP_DEFAULT_STYLE|wxFLP_SMALL</style>
-                    <message>Select a file</message>
-                    <wildcard>*</wildcard>
-                    <value/>
-                  </object>
-                </object>
-                <object class="sizeritem" name="boxSizer296">
-                  <flag>wxALL|wxEXPAND</flag>
-                  <border>5</border>
-                  <option>1</option>
                   <object class="wxBoxSizer">
-                    <orient>wxHORIZONTAL</orient>
+                    <orient>wxVERTICAL</orient>
                     <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                      <flag>wxALL</flag>
                       <border>5</border>
-                      <object class="wxStaticText" name="m_staticText298">
-                        <label>名称</label>
-                        <style/>
+                      <object class="wxListBox" name="m_listBox425">
+                        <style>wxLB_SINGLE</style>
+                        <content/>
+                        <selection>-1</selection>
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                      <flag>wxALL</flag>
                       <border>5</border>
-                      <object class="wxTextCtrl" name="m_textCtrl300">
-                        <style/>
-                      </object>
-                    </object>
-                  </object>
-                </object>
-                <object class="sizeritem" name="boxSizer290">
-                  <flag>wxALL|wxEXPAND</flag>
-                  <border>5</border>
-                  <option>1</option>
-                  <object class="wxBoxSizer">
-                    <orient>wxHORIZONTAL</orient>
-                    <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-                      <border>5</border>
-                      <object class="wxChoice" name="m_choice288">
-                        <style/>
-                        <content>
-                          <item>角色规则</item>
-                          <item>房间规则</item>
-                        </content>
-                        <selection/>
+                      <object class="wxListBox" name="m_listBox427">
+                        <style>wxLB_SINGLE</style>
+                        <content/>
+                        <selection>-1</selection>
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                      <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
                       <border>5</border>
-                      <object class="wxButton" name="m_button292">
-                        <label>上传</label>
-                        <style/>
-                        <bitmapposition>wxLEFT</bitmapposition>
-                        <default>0</default>
-                      </object>
-                    </object>
-                  </object>
-                </object>
-              </object>
-            </object>
-          </object>
-          <object class="notebookpage">
-            <label>编辑自定义房间</label>
-            <selected>0</selected>
-            <object class="wxPanel" name="m_panel302">
-              <style>wxTAB_TRAVERSAL</style>
-              <object class="wxBoxSizer">
-                <orient>wxVERTICAL</orient>
-                <object class="sizeritem">
-                  <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
-                  <border>5</border>
-                  <option>1</option>
-                  <object class="wxGrid" name="m_grid332">
-                    <style>wxWANTS_CHARS</style>
-                  </object>
-                </object>
-                <object class="sizeritem" name="boxSizer338">
-                  <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                  <border>5</border>
-                  <option>1</option>
-                  <object class="wxBoxSizer">
-                    <orient>wxHORIZONTAL</orient>
-                    <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-                      <border>5</border>
-                      <object class="wxButton" name="m_button340">
+                      <object class="wxButton" name="m_button429">
                         <label>+</label>
                         <style/>
                         <bitmapposition>wxLEFT</bitmapposition>
@@ -635,9 +571,9 @@
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                      <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
                       <border>5</border>
-                      <object class="wxButton" name="m_button342">
+                      <object class="wxButton" name="m_button431">
                         <label>-</label>
                         <style/>
                         <bitmapposition>wxLEFT</bitmapposition>
@@ -646,106 +582,232 @@
                     </object>
                   </object>
                 </object>
-                <object class="sizeritem" name="boxSizer344">
-                  <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+                <object class="sizeritem">
+                  <flag>wxALL|wxEXPAND</flag>
                   <border>5</border>
                   <option>1</option>
-                  <object class="wxBoxSizer">
-                    <orient>wxHORIZONTAL</orient>
-                    <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-                      <border>5</border>
-                      <object class="wxStaticText" name="m_staticText346">
-                        <label>房间名称</label>
-                        <style/>
+                  <object class="wxPanel" name="m_panel435">
+                    <style>wxTAB_TRAVERSAL</style>
+                    <object class="wxBoxSizer">
+                      <orient>wxVERTICAL</orient>
+                      <object class="sizeritem">
+                        <flag>wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+                        <border>5</border>
+                        <option>1</option>
+                        <object class="wxFilePickerCtrl" name="m_filePicker286">
+                          <style>wxFLP_DEFAULT_STYLE|wxFLP_SMALL</style>
+                          <message>Select a file</message>
+                          <wildcard>*</wildcard>
+                          <value/>
+                        </object>
+                      </object>
+                      <object class="sizeritem" name="boxSizer296">
+                        <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+                        <border>5</border>
+                        <option>1</option>
+                        <object class="wxBoxSizer">
+                          <orient>wxHORIZONTAL</orient>
+                          <object class="sizeritem">
+                            <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                            <border>5</border>
+                            <object class="wxStaticText" name="m_staticText298">
+                              <label>名称</label>
+                              <style/>
+                            </object>
+                          </object>
+                          <object class="sizeritem">
+                            <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                            <border>5</border>
+                            <object class="wxTextCtrl" name="m_textCtrl300">
+                              <style/>
+                            </object>
+                          </object>
+                        </object>
+                      </object>
+                      <object class="sizeritem">
+                        <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+                        <border>5</border>
+                        <object class="wxChoice" name="m_choice288">
+                          <style/>
+                          <content>
+                            <item>规则</item>
+                            <item>角色</item>
+                          </content>
+                          <selection/>
+                        </object>
+                      </object>
+                      <object class="sizeritem" name="boxSizer290">
+                        <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+                        <border>5</border>
+                        <option>1</option>
+                        <object class="wxBoxSizer">
+                          <orient>wxHORIZONTAL</orient>
+                          <object class="sizeritem">
+                            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                            <border>5</border>
+                            <object class="wxButton" name="m_button292">
+                              <label>上传</label>
+                              <style/>
+                              <bitmapposition>wxLEFT</bitmapposition>
+                              <default>0</default>
+                            </object>
+                          </object>
+                        </object>
                       </object>
                     </object>
-                    <object class="sizeritem">
-                      <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-                      <border>5</border>
-                      <object class="wxTextCtrl" name="m_textCtrl348">
-                        <style/>
-                      </object>
-                    </object>
-                  </object>
-                </object>
-                <object class="sizeritem">
-                  <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-                  <border>5</border>
-                  <object class="wxButton" name="m_button350">
-                    <label>应用</label>
-                    <style/>
-                    <bitmapposition>wxLEFT</bitmapposition>
-                    <default>0</default>
                   </object>
                 </object>
               </object>
             </object>
           </object>
           <object class="notebookpage">
-            <label>浏览自己的房间和脚本</label>
+            <label>自定义房间管理</label>
             <selected>0</selected>
-            <object class="wxPanel" name="m_panel352">
+            <object class="wxPanel" name="m_panel302">
               <style>wxTAB_TRAVERSAL</style>
-              <object class="wxFlexGridSizer">
-                <cols>3</cols>
-                <rows>2</rows>
-                <vgap>0</vgap>
-                <hgap>0</hgap>
-                <growablecols/>
-                <growablerows/>
-                <object class="sizeritem">
+              <object class="wxBoxSizer">
+                <orient>wxHORIZONTAL</orient>
+                <object class="sizeritem" name="boxSizer411">
+                  <flag>wxALL</flag>
+                  <border>5</border>
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+                      <border>5</border>
+                      <object class="wxListBox" name="m_listBox413">
+                        <style>wxLB_SINGLE</style>
+                        <content/>
+                        <selection>-1</selection>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+                      <border>5</border>
+                      <object class="wxButton" name="m_button433">
+                        <label>-</label>
+                        <style/>
+                        <bitmapposition>wxLEFT</bitmapposition>
+                        <default>0</default>
+                      </object>
+                    </object>
+                  </object>
+                </object>
+                <object class="sizeritem" name="boxSizer330">
                   <flag>wxALL|wxEXPAND</flag>
                   <border>5</border>
                   <option>1</option>
-                  <object class="wxListBox" name="m_listBox370">
-                    <style>wxLB_SINGLE</style>
-                    <content/>
-                    <selection>-1</selection>
-                  </object>
-                </object>
-                <object class="sizeritem">
-                  <flag>wxALL|wxEXPAND</flag>
-                  <border>5</border>
-                  <option>1</option>
-                  <object class="wxListBox" name="m_listBox372">
-                    <style>wxLB_SINGLE</style>
-                    <content/>
-                    <selection>-1</selection>
-                  </object>
-                </object>
-                <object class="sizeritem">
-                  <flag>wxALL|wxEXPAND</flag>
-                  <border>5</border>
-                  <option>1</option>
-                  <object class="wxListBox" name="m_listBox374">
-                    <style>wxLB_SINGLE</style>
-                    <content/>
-                    <selection>-1</selection>
-                  </object>
-                </object>
-                <object class="sizeritem">
-                  <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-                  <border>5</border>
-                  <object class="wxStaticText" name="m_staticText376">
-                    <label>角色规则</label>
-                    <style/>
-                  </object>
-                </object>
-                <object class="sizeritem">
-                  <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-                  <border>5</border>
-                  <object class="wxStaticText" name="m_staticText378">
-                    <label>房间规则</label>
-                    <style/>
-                  </object>
-                </object>
-                <object class="sizeritem">
-                  <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-                  <border>5</border>
-                  <object class="wxStaticText" name="m_staticText380">
-                    <label>房间配置</label>
-                    <style/>
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+                      <border>5</border>
+                      <option>1</option>
+                      <object class="wxGrid" name="m_grid332">
+                        <style>wxWANTS_CHARS</style>
+                      </object>
+                    </object>
+                    <object class="sizeritem" name="boxSizer338">
+                      <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                      <border>5</border>
+                      <option>1</option>
+                      <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                          <border>5</border>
+                          <object class="wxButton" name="m_button340">
+                            <label>+</label>
+                            <style/>
+                            <bitmapposition>wxLEFT</bitmapposition>
+                            <default>0</default>
+                          </object>
+                        </object>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                          <border>5</border>
+                          <object class="wxButton" name="m_button342">
+                            <label>-</label>
+                            <style/>
+                            <bitmapposition>wxLEFT</bitmapposition>
+                            <default>0</default>
+                          </object>
+                        </object>
+                      </object>
+                    </object>
+                    <object class="sizeritem" name="boxSizer344">
+                      <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+                      <border>5</border>
+                      <option>1</option>
+                      <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                          <border>5</border>
+                          <object class="wxStaticText" name="m_staticText346">
+                            <label>房间名称</label>
+                            <style/>
+                          </object>
+                        </object>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                          <border>5</border>
+                          <object class="wxTextCtrl" name="m_textCtrl348">
+                            <style/>
+                          </object>
+                        </object>
+                      </object>
+                    </object>
+                    <object class="sizeritem" name="boxSizer384">
+                      <flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL</flag>
+                      <border>5</border>
+                      <option>1</option>
+                      <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                          <border>5</border>
+                          <object class="wxStaticText" name="m_staticText386">
+                            <label>规则名称</label>
+                            <style/>
+                          </object>
+                        </object>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                          <border>5</border>
+                          <object class="wxTextCtrl" name="m_textCtrl388">
+                            <style/>
+                          </object>
+                        </object>
+                      </object>
+                    </object>
+                    <object class="sizeritem" name="boxSizer438">
+                      <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+                      <border>5</border>
+                      <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                          <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+                          <border>5</border>
+                          <object class="wxButton" name="m_button350">
+                            <label>应用</label>
+                            <style/>
+                            <bitmapposition>wxLEFT</bitmapposition>
+                            <default>0</default>
+                          </object>
+                        </object>
+                        <object class="sizeritem">
+                          <flag>wxALL</flag>
+                          <border>5</border>
+                          <object class="wxButton" name="m_button440">
+                            <label>清空</label>
+                            <style/>
+                            <bitmapposition>wxLEFT</bitmapposition>
+                            <default>0</default>
+                          </object>
+                        </object>
+                      </object>
+                    </object>
                   </object>
                 </object>
               </object>

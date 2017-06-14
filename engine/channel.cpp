@@ -57,7 +57,6 @@ void channel::enable(bool is_enable)
     lsy::buffer buf(name().size() + 3);
     buf.put((uint16_t)is_enable);
     buf.put(name());
-    printf("enable:%d\n", is_enable);
     (*player())->ports[config::channel_enable]->write(buf, []() {});
 }
 
